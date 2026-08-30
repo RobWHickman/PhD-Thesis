@@ -1,0 +1,137 @@
+function varargout=ModigSingleTrial(varargin)
+% The main routine to run a trial
+% Keep running during a trial
+
+% TODO subroutine function eye = GetEyePosition(mode) for getting analog signals
+% from eye scan is not finished.
+
+% coded by skoba (skoba-tky@umin.ac.jp) 9 June 2005
+% last modified by skoba 15 June 2005
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+global MENUs breakcycle TaskOp VisParam
+
+% The following loop evaluate time and subject behavior (a cycle is aprox. 0.3ms ???) and control task event.
+cc=1;
+while cc < TaskOp.num_cycle & breakcycle == 0
+    Evnt=EvntJudge(cc);
+    if VisParam.draw_on_scr_0 == 1
+        UpdataMonitor(cc,VisParam.h_MONITOR_AXIS,Evnt);
+    end
+    cc = cc+1;
+end
+Priority(0);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function UpdataMonitor(cc,h_axis,Evnt)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+global TaskOp
+if mod(cc,TaskOp.cycles_eye_track) == 0
+    axes(h_axis);
+    if ishandle(TaskOp.eye_handle)
+        delete(TaskOp.eye_handle); % erase previous eye position marker on exp screen
+    end
+    TaskOp.eye_handle = plot(Evnt.eye.x,Evnt.eye.y,'ow');drawnow; % plot new eye position on exp screen
+    if strcmp(TaskOp.prj,'CAL')
+        global CAL_DATA
+        CAL_DATA.table = [CAL_DATA.table;[toc Evnt.crnt_evnt Evnt.eye.ox Evnt.eye.oy Evnt.eye.x Evnt.eye.y]];
+    end
+end
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function Evnt = EvntJudge(cc)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Called in every cycle of ModigTaskCycle's main loop
+% to judge whether stay or shift a task event.
+% by considering elapsed time and/or animal behavior
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+global TaskOp Tbl Task
+Evnt.shift = 0;
+Evnt.key = [];
+Evnt.eye = [];
+if TaskOp.crnt_evnt == 0% start of a trial
+    TaskOp.crnt_evnt = 1;
+    TaskOp.crnt_evnt_name = cell2mat(Tbl.TaskTbl(1,Tbl.TaskTblColumnID.evnt_name));
+    TaskOp.EvntHist.total_evnt = 1;
+    Priority(TaskOp.priority_level); % priority raised to avoid system interrupt (it would take aprox 0.5ms to raise priority)
+    tic; % timer started
+    EvntShift(TaskOp.crnt_evnt,TaskOp.EvntHist.total_evnt);
+    Evnt.shift = 1;
+end
+
+%if cell2mat(Tbl.TaskTbl(TaskOp.crnt_evnt,Tbl.TblColumnID.eye_req))>0
+if mod(cc,TaskOp.cycles_eye_track) == 0
+    Evnt.eye = GetEyePosition(TaskOp.tracking_method); % check eye position only if it is needed.
+end
+dur = eval(strcat('Task.',TaskOp.crnt_evnt_name,'.time_randomized'))/1000;
+if toc-cell2mat(TaskOp.EvntHist.Tbl(TaskOp.EvntHist.total_evnt,TaskOp.EvntHist.Column.start_time)) >= dur
+    % if elapsed time is longer than or equal to planned event duration, move on to the next event
+    TaskOp.crnt_evnt = cell2mat(Tbl.TaskTbl(TaskOp.crnt_evnt,Tbl.TaskTblColumnID.next_evnt));
+    TaskOp.crnt_evnt_name = cell2mat(Tbl.TaskTbl(TaskOp.crnt_evnt,Tbl.TaskTblColumnID.evnt_name));
+    TaskOp.EvntHist.total_evnt = TaskOp.EvntHist.total_evnt+1;
+    EvntShift(TaskOp.crnt_evnt,TaskOp.EvntHist.total_evnt);
+    Evnt.shift = 1;
+
+end
+Evnt.crnt_evnt=TaskOp.crnt_evnt;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function EvntShift(crnt_evnt,total_evnt) % crnt_evnt: which event defined in Task.Tbl (row), total_evnt: total number of events given thus far
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% called by function EvntJudge whenever event shifts.
+% set a visual page
+% register the time of evnt shift, change visual screen if appropriate, give reward if appropriate, beep sound if appropriate
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+global TaskOp Tbl breakcycle VisParam
+
+if strcmp(Tbl.TaskTbl(crnt_evnt,Tbl.TaskTblColumnID.evnt_name),'ITI') % end of trial
+    breakcycle = 1; % go to ITI phase (which is out of the trial loop, used for data transfer. cf. ModigTaskLoop)
+end
+%%show page for current event 
+page_num = cell2mat(Tbl.TaskTbl(crnt_evnt,Tbl.TaskTblColumnID.vis_page));% next event if the subject does not make an errro
+if page_num > 0
+    eval(VisParam.page(page_num).str);
+end
+
+%% Store event history in an array every time event shifts (TaskOp.EvntHist.Tbl. For type of information in each column, see TaskOp.EvntHist.Column)
+TaskOp.EvntHist.Tbl(total_evnt,TaskOp.EvntHist.Column.evnt_num) = {crnt_evnt};
+TaskOp.EvntHist.Tbl(total_evnt,TaskOp.EvntHist.Column.evnt_name) = Tbl.TaskTbl(crnt_evnt,Tbl.TaskTblColumnID.evnt_name);
+if total_evnt > 1
+    TaskOp.EvntHist.Tbl(total_evnt-1,TaskOp.EvntHist.Column.end_time) = {toc};
+    TaskOp.EvntHist.Tbl(total_evnt-1,TaskOp.EvntHist.Column.dur) = {cell2mat(TaskOp.EvntHist.Tbl(total_evnt-1,TaskOp.EvntHist.Column.end_time))-cell2mat(TaskOp.EvntHist.Tbl(total_evnt-1,TaskOp.EvntHist.Column.start_time))};
+end
+TaskOp.EvntHist.Tbl(total_evnt,TaskOp.EvntHist.Column.start_time) = {toc};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function eye = GetEyePosition(mode)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mode: mouse or eye
+% Return original uncalibrated values (eye.ox, eye.oy) and
+% calibrated coordinates (eye.x, eye.y, eye.button)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+global TaskOp VisParam 
+switch mode
+    case 'mouse'
+        [eye.ox eye.oy button] = GetMouse;
+        if (eye.ox-TaskOp.Cal.Mouse.Center.x)>=0
+            eye.x = (eye.ox-TaskOp.Cal.Mouse.Center.x) * TaskOp.Cal.Mouse.Gain.xp + VisParam.scr_center_x;
+        else
+            eye.x = (eye.ox-TaskOp.Cal.Mouse.Center.x) * TaskOp.Cal.Mouse.Gain.xm + VisParam.scr_center_x;
+        end 
+        if (eye.oy-TaskOp.Cal.Mouse.Center.y)>=0
+            eye.y = (eye.oy-TaskOp.Cal.Mouse.Center.y) * TaskOp.Cal.Mouse.Gain.yp + VisParam.scr_center_y;
+        else
+            eye.y = (eye.oy-TaskOp.Cal.Mouse.Center.y) * TaskOp.Cal.Mouse.Gain.ym + VisParam.scr_center_y;
+        end 
+    case 'eye'
+        %% access eye scan, get analog signals
+        if (eye.ox-TaskOp.Cal.Mouse.Center.x)>=0
+            eye.x = (eye.ox-TaskOp.Cal.Mouse.Center.x) * TaskOp.Cal.Mouse.Gain.xp + VisParam.scr_center_x;
+        else
+            eye.x = (eye.ox-TaskOp.Cal.Mouse.Center.x) * TaskOp.Cal.Mouse.Gain.xm + VisParam.scr_center_x;
+        end 
+        if (eye.oy-TaskOp.Cal.Mouse.Center.y)>=0
+            eye.y = (eye.oy-TaskOp.Cal.Mouse.Center.y) * TaskOp.Cal.Mouse.Gain.yp + VisParam.scr_center_y;
+        else
+            eye.y = (eye.oy-TaskOp.Cal.Mouse.Center.y) * TaskOp.Cal.Mouse.Gain.ym + VisParam.scr_center_y;
+        end 
+
+end

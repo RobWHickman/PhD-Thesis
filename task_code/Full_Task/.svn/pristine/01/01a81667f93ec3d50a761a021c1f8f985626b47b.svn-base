@@ -1,0 +1,12 @@
+function ModigTrialLog(option)
+
+switch option
+    case 'make_file'
+        
+    case 'open_file'
+        
+    case 'close_file'
+        
+    case 'log'
+        
+end

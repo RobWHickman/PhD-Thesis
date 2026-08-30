@@ -1,0 +1,200 @@
+function param = ModigJudgeSituation_PAVLOVIAN_FIX(time_beh,prev_id)
+% param = ModigJudgeSituation_PAVLOVIAN_FIX(time_beh,prev_id)
+%
+%   Events:
+%  
+% pre_trial   
+% fixation
+% CS
+% Trace
+% us   
+% otherUS
+% post_trial  
+% ITI         
+% error 
+%
+% 
+% See also ModigPrepareTrial_PAVLOVIAN_FIX, 
+
+
+global Tbl Timers TaskOp Stim 
+% global VisParam UserInfo ExtDevice
+% persistent names 
+persistent bt
+% if isempty(names)
+%     names = {'juice1', 'juice2'};
+% end
+
+if isempty(bt),
+    % output table:
+    bt = cell2mat(Tbl.BitTbl(:,2));
+    nbt(1) = find( strcmp(Tbl.BitTbl(:,1),'KT1')==1);
+    nbt(2) = find( strcmp(Tbl.BitTbl(:,1),'KT2')==1);
+    nbt(3) = find( strcmp(Tbl.BitTbl(:,1),'Lick1')==1);
+    nbt(4) = find( strcmp(Tbl.BitTbl(:,1),'Neuron')==1);
+    bt(nbt)=[];
+end
+
+% Initalize variables
+param.time_beh          = time_beh;
+param.prev_id           = prev_id;
+
+param.hand.req          = 0;
+param.hand.filter_time  = 0;
+
+param.eye.req           = {};
+param.eye.target_center = [];
+param.eye.tolerance_window_size = [];
+param.eye.filter_time   = 0;
+param.eye.target_name   = {};
+param.eye.limits        = [];
+
+param.touch.req           = {};
+param.touch.filter_time   = [];
+param.touch.state         = 0;
+param.touch.limits        =[];
+
+param.expPageMod = 0;
+
+TaskOp.eyeInterrupt   = 0;
+TaskOp.handInterrupt = 0;
+TaskOp.hold = 0;
+TaskOp.holdTime = 0;
+TaskOp.repeatError = 0;
+
+param.on_bit = [];
+param.off_bit = [];
+
+switch param.time_beh
+    case 1 % called by timer
+        switch param.prev_id
+            case 1 % pre
+                % Behaviour
+                fP = Stim.centralFix;
+                param.hand.req                  = fP.hand.req; % for key t
+                param.eye.req                   = fP.eye.req;
+                param.eye.filter_time           = fP.filterTime;
+                
+                param.eye.limits = fP.tolWin;
+                
+                TaskOp.hold         = fP.hold; 
+                TaskOp.holdTime     = fP.holdTime;
+                TaskOp.eyeInterrupt = fP.eyeInterrupt;
+                                
+                % Next Event
+                param.next_id  = 2; 
+
+                % Bit Operations
+                param.on_bit = Tbl.Bit.PreTrial.bit_asignment; 
+                
+            case 2 % fixation   
+                TaskOp.correct = 1;
+                
+                % Next Event
+                param.next_id  = 3; 
+                
+                % Bit operations
+                param.on_bit  = Tbl.Bit.ownCSs.bit_asignment;
+                param.off_bit = Tbl.Bit.PreTrial.bit_asignment; 
+                  
+            case 3 % CS
+%                 param.next_id  = 4; % 4 if you want a trace period, 5 if not
+                % CS disappear before trace period
+                thisCS  = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1)
+                if TaskOp.count.bucketTrial == 0
+                    param.next_id = 5; 
+                elseif TaskOp.count.bucketTrial == 1 %&& thisCS ~= 8
+                    param.next_id = 6;
+%                 elseif TaskOp.count.bucketTrial == 1 && thisCS == 8
+%                     param.next_id = 5;
+                end
+                % if no US this trial, put bit 0 up
+%                 if ~TaskOp.count.rewardNow,
+%                     param.on_bit = Tbl.Bit.PreTrial.bit_asignment;
+%                 end
+                param.on_bit  = Tbl.Bit.Correct.bit_asignment;
+                param.off_bit = Tbl.Bit.ownCSs.bit_asignment;
+                
+            case 4 % Trace   
+%                 % we move to epoch US if we will deliver reward to the
+%                 % acting monkey, else we move to epoch otherUS
+                if TaskOp.count.bucketTrial == 0
+                    param.next_id = 5; 
+                elseif TaskOp.count.bucketTrial == 1 %&& thisCS ~= 8
+                    param.next_id = 6;
+%                 elseif TaskOp.count.bucketTrial == 1 && thisCS == 8
+%                     param.next_id = 6;
+                end
+
+                % now we deliver reward to both in the same epoch, so
+                % there's no need to move to otherUS epoch
+                param.next_id = 5;
+                
+                % CS dissapears before US onset 
+%                 % [may seem redundant, but in case we skip trace period]                
+%                 param.off_bit = Tbl.Bit.ownCSs.bit_asignment;
+                
+                % "Targets" bit up if reward is big (off at post-trial)
+                if TaskOp.count.rewardNowBucket || TaskOp.count.rewardNow,
+                    param.on_bit = Tbl.Bit.Targets.bit_asignment;
+                end
+
+            case 5 % us                        
+                param.next_id = 7; 
+                
+                
+                % if bit 0 up, put down
+%                 if ~TaskOp.count.rewardNow,
+%                     param.off_bit = Tbl.Bit.PreTrial.bit_asignment;
+%                 end
+            case 6 % otherUS                        
+                param.next_id = 7;  
+                
+                % if bit 0 up, put down
+%                 if ~TaskOp.count.rewardNow,
+%                     param.off_bit = Tbl.Bit.PreTrial.bit_asignment;
+%                 end
+
+            case 7 % post_trial
+                param.next_id = 8;
+                param.off_bit = bt;
+                
+            case 8 % iti
+                param.next_id = 1;
+                               
+                param.on_bit = Tbl.Bit.greyOn.bit_asignment;
+                param.off_bit = bt(bt ~= param.on_bit);
+                
+            case 9 % error
+                param.next_id = 8;
+                
+                TaskOp.repeatError = 1;
+                TaskOp.correct = 0;
+                
+                param.off_bit = cell2mat(Tbl.BitTbl(:,2));
+        end
+    case 2 % called by behavior during an error 
+%           if TaskOp.lostHold,
+%              TaskOp.count.errors(2) = TaskOp.count.errors(2)+1;               
+%           else
+%              TaskOp.ignored            = 1;
+%              TaskOp.count.errors(1) = TaskOp.count.errors(1)+1;               
+%           end
+        param.next_id = 9;
+        
+        
+        
+        % set all bits down
+       param.off_bit = bt; 
+end
+% Recover timer and event names from global Tbl
+param.prev_event_name = cell2mat(Tbl.TaskTbl(param.prev_id,Tbl.TaskTblColumnID.evnt_name));
+param.prev_timer      = Timers.Event.(param.prev_event_name);
+
+param.next_event_name = cell2mat(Tbl.TaskTbl(param.next_id,Tbl.TaskTblColumnID.evnt_name));
+param.next_timer      = Timers.Event.(param.next_event_name);
+param.next_page       = cell2mat(Tbl.TaskTbl(param.next_id, Tbl.TaskTblColumnID.vis_page));
+
+param.next_time   =  get(param.prev_timer,'StartDelay'); 
+
+param.ok = 1;

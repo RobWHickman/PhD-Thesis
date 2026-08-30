@@ -1,0 +1,27 @@
+function ModigPreparePages_CONTINUOUS_TOUCH
+% ModigPreparePages_CONTINUOUS_TOUCH
+%
+% 0: black background -->normal situation
+% 1: grey background --> if we'd like them to touch the KT with an
+% additional visual cue
+% 
+% 
+% rbm, 6.11 grey bkg possibility (not default)
+global Tbl VisParam 
+
+VisParam.pages    = unique(cell2mat(Tbl.TaskTbl(:,Tbl.TaskTblColumnID.vis_page)));
+VisParam.pages    = VisParam.pages(VisParam.pages>0);
+VisParam.num_page = length(VisParam.pages);
+
+%% page 0. black background
+
+%% page 1. background str
+bkgstr   = 'Screen(''FillRect'', VisParam.scr_handle, [127 127 127]);';
+
+%% flip string
+flpstr   = 'Screen(''Flip'',VisParam.scr_handle);';
+
+%% arm VisParam
+VisParam.page(1).draw = bkgstr;
+VisParam.page(1).flip = flpstr;
+VisParam.page(1).str = [bkgstr,flpstr];

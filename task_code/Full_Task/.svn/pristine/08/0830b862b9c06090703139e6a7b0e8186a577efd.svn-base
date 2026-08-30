@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigJudgeSituation_OBS_LEARN</title>
+  <meta name="keywords" content="ModigJudgeSituation_OBS_LEARN">
+  <meta name="description" content="param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">OBS_LEARN</a> &gt; <a href="index.html">code</a> &gt; ModigJudgeSituation_OBS_LEARN.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\OBS_LEARN\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigJudgeSituation_OBS_LEARN
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id)
+
+   Events:
+  
+ pre_trial   
+ touchHold   
+ choApp (choices appear)      
+ goSignal    
+ choiceAcquired      
+ us          
+ post_trial  
+ ITI         
+ error 
+
+ See also <a href="ModigPrepareTrial_OBS_LEARN.html" class="code" title="function runned = ModigPrepareTrial_OBS_LEARN">ModigPrepareTrial_OBS_LEARN</a>, <a href="ModigJudgeSituation_OBS_LEARN.html" class="code" title="function param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id)">ModigJudgeSituation_OBS_LEARN</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../Modig/library/timerTimeStamper.html" class="code" title="function timerTimeStamper(obj, event, varargin)">timerTimeStamper</a>	timerTimeStamper(obj, event, varargin)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id)</a>
+0002 <span class="comment">% param = ModigJudgeSituation_OBS_LEARN(time_beh,prev_id)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">%   Events:</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% pre_trial</span>
+0007 <span class="comment">% touchHold</span>
+0008 <span class="comment">% choApp (choices appear)</span>
+0009 <span class="comment">% goSignal</span>
+0010 <span class="comment">% choiceAcquired</span>
+0011 <span class="comment">% us</span>
+0012 <span class="comment">% post_trial</span>
+0013 <span class="comment">% ITI</span>
+0014 <span class="comment">% error</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% See also ModigPrepareTrial_OBS_LEARN, ModigJudgeSituation_OBS_LEARN</span>
+0017 <span class="comment">%</span>
+0018 
+0019 <span class="keyword">global</span> Tbl Timers Stim TaskOp VisParam UserInfo ExtDevice
+0020 <span class="keyword">persistent</span> names bt
+0021 <span class="keyword">if</span> isempty(names)
+0022     names = {<span class="string">'juice1'</span>, <span class="string">'juice2'</span>};
+0023 <span class="keyword">end</span>
+0024 
+0025 <span class="keyword">if</span> isempty(bt),
+0026     <span class="comment">% output table:</span>
+0027     bt = cell2mat(Tbl.BitTbl(:,2));
+0028     nbt(1) = find( strcmp(Tbl.BitTbl(:,1),<span class="string">'KT1'</span>)==1);
+0029     nbt(2) = find( strcmp(Tbl.BitTbl(:,1),<span class="string">'KT2'</span>)==1);
+0030     nbt(3) = find( strcmp(Tbl.BitTbl(:,1),<span class="string">'Lick1'</span>)==1);
+0031     nbt(4) = find( strcmp(Tbl.BitTbl(:,1),<span class="string">'Neuron'</span>)==1);
+0032     bt(nbt)=[];
+0033 <span class="keyword">end</span>
+0034 
+0035 <span class="comment">% Initalize variables</span>
+0036 param.time_beh          = time_beh;
+0037 param.prev_id           = prev_id;
+0038 
+0039 param.hand.req          = 0;
+0040 param.hand.filter_time  = 0;
+0041 
+0042 param.touch.req           = {};
+0043 param.touch.filter_time   = [];
+0044 param.touch.state         = 0;
+0045 param.touch.limits        =[];
+0046 
+0047 param.expPageMod = 0;
+0048 
+0049 TaskOp.handInterrupt = 0;
+0050 TaskOp.hold = 0;
+0051 TaskOp.holdTime = 0;
+0052 
+0053 param.on_bit = [];
+0054 param.off_bit = [];
+0055 
+0056 <span class="comment">% pavlovian obs learn trial type</span>
+0057 pavOLtrialType = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1);
+0058 <span class="keyword">switch</span> param.time_beh
+0059     <span class="keyword">case</span> 1 <span class="comment">% called by timer</span>
+0060         <span class="keyword">switch</span> param.prev_id
+0061             <span class="keyword">case</span> 1 <span class="comment">% pre</span>
+0062                 param.hand.req = 1;
+0063                 
+0064                 
+0065                 <span class="keyword">if</span> ~isempty(Stim.touchHold.hand)
+0066                     TaskOp.handInterrupt    = Stim.touchHold.handInterrupt;
+0067                     TaskOp.hold             = Stim.touchHold.hold;
+0068                     TaskOp.holdTime         = Stim.touchHold.holdTime;
+0069                     param.hand.filter_time = Stim.touchHold.hand.filter_time;
+0070                 <span class="keyword">end</span>
+0071                 
+0072                 param.next_id  = 2; 
+0073                 
+0074                 param.on_bit = Tbl.Bit.greyOn.bit_asignment;
+0075 
+0076             <span class="keyword">case</span> 2 <span class="comment">% touchHold</span>
+0077                 param.hand.req = Stim.choApp.handReq;
+0078                 
+0079                
+0080                 param.off_bit = Tbl.Bit.PreTrial.bit_asignment;
+0081 
+0082                 <span class="comment">% change CS depending on trial type</span>
+0083                 <span class="keyword">if</span> pavOLtrialType == 2
+0084                     <span class="comment">% change visual page</span>
+0085                     VisParam.page(2).draw = VisParam.page(4).draw;
+0086                     <span class="comment">% change visual page for monitoring</span>
+0087 <span class="comment">%                     VisParam.exp_page(1).obj_handle = VisParam.exp_page(3).obj_handle;;</span>
+0088                     
+0089                     param.next_id = 5;
+0090                     param.on_bit = Tbl.Bit.ownCSs.bit_asignment;
+0091                 <span class="keyword">else</span>
+0092                     param.next_id = 3;
+0093                     param.on_bit = [Tbl.Bit.ownCSs.bit_asignment; <span class="keyword">...</span>
+0094                                 Tbl.Bit.otherCSs.bit_asignment];
+0095                 <span class="keyword">end</span>
+0096 
+0097                     
+0098             <span class="keyword">case</span> 3 <span class="comment">% choices appear</span>
+0099                 <span class="keyword">if</span> UserInfo.use_touch_screen,
+0100                      SetMouse(2048,0);
+0101                 <span class="keyword">end</span>
+0102 
+0103                 tar = Stim.target;
+0104                 param.touch.req           = tar.req;
+0105                 param.touch.filter_time   = tar.filter_time;
+0106                 param.touch.limits        = tar.touchLimits;
+0107 
+0108                 TaskOp.touchInterrupt = 1;                
+0109                 param.next_id = 4; 
+0110                 param.on_bit = Tbl.Bit.Targets.bit_asignment;
+0111                 
+0112             <span class="keyword">case</span> 4 <span class="comment">% go</span>
+0113                 <span class="keyword">if</span> UserInfo.use_touch_screen,
+0114                      SetMouse(2048,0);
+0115                 <span class="keyword">end</span>
+0116 
+0117                 <span class="keyword">if</span> TaskOp.touchInterrupt &amp;&amp; TaskOp.choice &gt; 0,
+0118                         <span class="comment">% selected visual page</span>
+0119                         VisParam.page(4).draw = VisParam.page(3+TaskOp.choice).draw;
+0120 
+0121                         <span class="comment">% select visual page for monitoring</span>
+0122                         chosen    = VisParam.exp_page(2+TaskOp.choice).obj_handle;
+0123                         notChosen = VisParam.exp_page(5-TaskOp.choice).obj_handle;
+0124                         VisParam.exp_page(3).obj_handle = chosen;
+0125                         VisParam.exp_page(4).obj_handle = notChosen;
+0126                         
+0127                         <span class="comment">% arm/disarm US</span>
+0128                         setupB = strcmp(TaskOp.curSetup,<span class="string">'B'</span>);
+0129                         cs1side = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,2);
+0130                         
+0131                         <span class="keyword">if</span> TaskOp.choice==cs1side,
+0132                             idx = 1+mod(TaskOp.count.choices(setupB+1,1),TaskOp.count.total_seq);
+0133                             TaskOp.count.rewardNow  = Stim.us.lists(idx,1);
+0134                         <span class="keyword">else</span>
+0135                             idx = 1+mod(TaskOp.count.choices(setupB+1,2)+1,TaskOp.count.total_seq);
+0136                             TaskOp.count.rewardNow  = Stim.us.lists(idx,2);
+0137                         <span class="keyword">end</span>
+0138                         
+0139                         <span class="keyword">if</span>  TaskOp.count.rewardNow==0,
+0140                             Timers.Event.us.StartFcn = @<a href="../../../../Modig/library/timerTimeStamper.html" class="code" title="function timerTimeStamper(obj, event, varargin)">timerTimeStamper</a>;
+0141                         <span class="keyword">end</span>
+0142 
+0143                         param.next_id = 5;
+0144                         
+0145                         TaskOp.repeatError = 0;
+0146 
+0147                         <span class="keyword">if</span> TaskOp.choice == 1,
+0148                             param.on_bit = Tbl.Bit.LeftChosenFB.bit_asignment;
+0149                         <span class="keyword">elseif</span> TaskOp.choice == 2,
+0150                             param.on_bit = Tbl.Bit.RightChosenFB.bit_asignment;
+0151                         <span class="keyword">end</span>
+0152                          param.on_bit = [param.on_bit; Tbl.Bit.Correct.bit_asignment];
+0153                         param.off_bit = Tbl.Bit.Targets.bit_asignment;
+0154                 <span class="keyword">else</span>
+0155                     TaskOp.count.noTouch =     TaskOp.count.noTouch+1;
+0156                     param.next_id = 9;
+0157                 <span class="keyword">end</span>
+0158                 
+0159             <span class="keyword">case</span> 5 <span class="comment">% choice acq/juice delay</span>
+0160                 param.next_id = 6;
+0161                 
+0162                 param.off_bit = Tbl.Bit.Correct.bit_asignment;
+0163 
+0164             <span class="keyword">case</span> 6 <span class="comment">% us</span>
+0165                 param.next_id = 7;
+0166                 
+0167                 <span class="keyword">if</span> TaskOp.choice == 1,
+0168                     param.off_bit = Tbl.Bit.LeftChosenFB.bit_asignment;
+0169                 <span class="keyword">elseif</span> TaskOp.choice == 2,
+0170                     param.off_bit = Tbl.Bit.RightChosenFB.bit_asignment;
+0171                 <span class="keyword">end</span>
+0172                 param.off_bit = [param.off_bit; Tbl.Bit.ownCSs.bit_asignment];
+0173                 
+0174             <span class="keyword">case</span> 7 <span class="comment">% post_trial</span>
+0175                 param.next_id = 8;
+0176                 
+0177                 param.off_bit = bt;                
+0178             <span class="keyword">case</span> 8 <span class="comment">% iti</span>
+0179                 param.next_id = 1;
+0180                 
+0181                 TaskOp.touchInterrupt = 0;
+0182                 TaskOp.choice = 0;
+0183                 
+0184 <span class="comment">%                 param.on_bit = Tbl.Bit.PreTrial.bit_asignment;</span>
+0185 <span class="comment">%                 param.off_bit = bt(bt ~= param.on_bit);</span>
+0186                 param.off_bit = cell2mat(Tbl.BitTbl(:,2));
+0187             <span class="keyword">case</span> 9 <span class="comment">% error</span>
+0188                 param.next_id = 8;
+0189                 
+0190                 TaskOp.repeatError = 1;
+0191                 TaskOp.correct = 0;
+0192                 
+0193                 param.off_bit = cell2mat(Tbl.BitTbl(:,2));
+0194         <span class="keyword">end</span>
+0195     <span class="keyword">case</span> 2 <span class="comment">% called by behavior during an error</span>
+0196         <span class="keyword">switch</span> param.prev_id
+0197             <span class="keyword">case</span> 2
+0198                TaskOp.ignored            = 1;
+0199             <span class="keyword">case</span> 3
+0200                TaskOp.count.earlyRelease = TaskOp.count.earlyRelease+1;               
+0201             <span class="keyword">case</span> 4
+0202                TaskOp.count.noTouch      = TaskOp.count.noTouch+1;
+0203         <span class="keyword">end</span>
+0204         param.next_id = 9;
+0205         
+0206         <span class="comment">% set all bits down</span>
+0207        param.off_bit = bt; 
+0208 <span class="keyword">end</span>
+0209 <span class="comment">% Recover timer and event names from global Tbl</span>
+0210 param.prev_event_name = cell2mat(Tbl.TaskTbl(param.prev_id,Tbl.TaskTblColumnID.evnt_name));
+0211 param.prev_timer      = Timers.Event.(param.prev_event_name);
+0212 
+0213 param.next_event_name = cell2mat(Tbl.TaskTbl(param.next_id,Tbl.TaskTblColumnID.evnt_name));
+0214 param.next_timer      = Timers.Event.(param.next_event_name);
+0215 param.next_page       = cell2mat(Tbl.TaskTbl(param.next_id, Tbl.TaskTblColumnID.vis_page));
+0216 param.ok = 1;</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

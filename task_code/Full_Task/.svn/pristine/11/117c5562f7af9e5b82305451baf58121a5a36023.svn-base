@@ -1,0 +1,493 @@
+function ModigChangeTask(prj)
+% ModigChangeTask(prj)
+%
+% Change currently running project.
+%
+% Menus opened in the previous task are closed
+% TaskTbl, MenuTbl, RandTbl, and StimTbl VisStat are replaced to the ones 
+% for the relevant project.
+% If parameters for the next project is stored in UserInfo.current_param, 
+%   load them in working space.
+% If paremeters are not found in UserInfo.current_param, find them in 
+%   UserInfo.default_param.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% coded by skoba (skoba-tky@umin.ac.jp) 8 June 2005
+% last modified by skoba 20 August 2005
+% RBM 26.04.07 cosmetic changes, 
+% rbm 11.07   creates new MoMaMe/prjArea
+%       3.08  no point in using subfunctions, changed to main function
+%       9.09 DIO object re-tagging
+%       4.13    Cleared Stim after every change in project
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+global ModigPrj TaskOp Task MENUs VisParam Timers Tbl UserInfo VisStat Stim
+global ExtDevice ModigDir
+
+% check input format,
+if ~isfield(ModigPrj,prj)
+    error('Input ''prj'' needs to be a field in the global ModigPrj');
+end
+
+
+%% before changing task, save the current params in the work space in to
+% the UserInfo as current_param. Parameters to save are defined in
+% 'ModigLogIn.m'
+if isfield(TaskOp,'prj')
+    ModigCopyParam('WorkSpace','current_param');    
+end
+
+%% close non relevant figures from the previous project
+[TH prev_prj EMPTY] = isfield_sk(TaskOp,'prj');
+if ~EMPTY
+    if ~strcmp(prj,TaskOp.prj)
+        fig_list = findobj('Type','Figure');
+        for ff = 1:length(fig_list)
+            tt = get(fig_list(ff),'Tag');
+            % don't close modigmainmenu 
+            if ~strcmp(tt,'ModigMainMenu') 
+                % special rule for stimSetup
+                if ~isempty(strfind(tt,'StimSetUp'))
+                    userdata = get(fig_list(ff),'userdata');
+                    [TH GENERAL EMPTY] = isfield_sk(userdata,'GENERAL');
+                    if ~EMPTY
+                        ModigStimMenuControl(GENERAL.mfilename,GENERAL.stim_name,'off');
+                    end
+                else
+                    ModigMenuControl(tt,'OFF');
+                end
+            end
+        end
+    end
+end
+
+% make sure that the pulldown menu reflects the current choice
+projects = get(MENUs.ModigMainMenu.handles.CNTR_LIST_TASK,'String');
+prjValue = find(strcmp(projects,prj));
+if prjValue ~= get(MENUs.ModigMainMenu.handles.CNTR_LIST_TASK,'Value')
+        set(MENUs.ModigMainMenu.handles.CNTR_LIST_TASK,'Value',prjValue)
+end
+
+% update handles
+MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handles.ModigMainMenu);
+guidata(MENUs.ModigMainMenu.handles.ModigMainMenu, MENUs.ModigMainMenu.handles);
+
+%% update previous project
+if ~EMPTY
+    TaskOp.EvntHist.prev_prj = prev_prj;        
+else
+    TaskOp.EvntHist.prev_prj = prj;
+end
+
+%% if coming from EYECAL close ModigMonitor and close extra screen....
+if strcmp(TaskOp.EvntHist.prev_prj,'EYECAL') && UserInfo.use_split==1,
+    clear ModigPrepareTrial_EYECAL
+    Screen('close',VisParam.scr_handle)
+    VisParam.scr_handle = VisParam.scr_holder(1);
+    VisParam.scr_rect = VisParam.scr_rect_holder(1,:);
+end
+%% remove all fields from Stim
+stimFields = fields(Stim)';
+for i = stimFields,
+    Stim = rmfield(Stim,i);
+end
+
+%% change TaskOp holder to the current project and init log
+TaskOp.prj = prj;
+%     if ~strcmp(TaskOp.EvntHist.prev_prj,TaskOp.prj)
+%        ModigLog('print_basic_header');
+%        ModigLog('print_prj_header');
+%     end
+%% initialize TaskOp rand sequence counters
+TaskOp.Trial.to_be_shuffled = 1; 
+TaskOp.count.seq = 0;
+
+
+%% update global Tbl with Task
+
+% clean global Tbl from the previous project
+if isfield(Tbl,'Task')
+    Tbl = rmfield(Tbl,'Task');
+    Tbl = rmfield(Tbl,'TaskTbl');
+    Tbl = rmfield(Tbl,'TaskTblColumn');
+    Tbl = rmfield(Tbl,'TaskTblColumnID');
+end
+
+% load global Tbl with the values of TaskTbl from ModigPrj
+Tbl.TaskTbl         = ModigPrj.(prj).TaskTbl;
+Tbl.TaskTblColumn   = ModigPrj.(prj).TaskTblColumn;
+Tbl.TaskTblColumnID = ModigPrj.(prj).TaskTblColumnID;
+
+% initialize Tbl.Task.(event_name) with the event names and id numbers
+for rr = 1:size(Tbl.TaskTbl,1)
+    param_name = cell2mat(Tbl.TaskTbl(rr,Tbl.TaskTblColumnID.evnt_name));
+    if ~isempty(param_name)
+        eval(strcat('Tbl.Task.',param_name,'=cell2struct(Tbl.TaskTbl(rr,:),Tbl.TaskTblColumn,2);'));
+        eval(strcat('Tbl.Task.',param_name,'.id=',num2str(rr),';'));
+        eval(strcat('Tbl.Task.',param_name,'.OutputTimer={};'));
+    end
+end
+Tbl.prj = prj;
+% pass Tbl.Task to global Task
+Task    = Tbl.Task;
+
+% NOTE, redundancy between ModigPrj.(prj), Task and Tbl makes maintenace much
+% more complicated than it should be
+
+%% prepare submenu 'Task' under 'TIME' in the main menu
+%[LABELS rows]= unique(Tbl.TaskTbl(:,Tbl.TaskTblColumnID.tab_name));
+for ii = 1:size(Tbl.TaskTbl,1)
+    if isempty(cell2mat(Tbl.TaskTbl(ii,Tbl.TaskTblColumnID.tab_name)))
+        % put dummy string (because function empty cell cause an error in
+        % the function 'unique' )
+        Tbl.TaskTbl(ii,Tbl.TaskTblColumnID.tab_name)= {'XXX'}; 
+    end
+end
+
+[LABELS rows]= unique(Tbl.TaskTbl(:,Tbl.TaskTblColumnID.tab_name));
+dummy_position = findcell_sk(LABELS,'XXX');
+if ~isempty(dummy_position)
+   LABELS(dummy_position(1)) = [];
+   rows(dummy_position(1)) = [];
+end
+FUNCTION_NAME = Tbl.TaskTbl(rows,Tbl.TaskTblColumnID.function_name);
+% call back function in the format of ModigMenuControl(gui_name)
+CALLS=strcat('ModigMenuControl(','''',FUNCTION_NAME,'''',');'); 
+TAGS=strcat('MENU_',FUNCTION_NAME);
+xx=get(MENUs.ModigMainMenu.handles.MENU_SET_TIME,'children');
+if ~isempty(xx)
+    delete(xx);    % delete existing submenus
+end
+% put new submenus (ModigTimingMenu)
+menu_handles=makemenu(MENUs.ModigMainMenu.handles.MENU_SET_TIME,...
+    str2mat(LABELS),str2mat(CALLS),str2mat(TAGS)); 
+
+%% Tbl.Bit: bit assignment table specific to each prj and each monkey ID
+% Bit asignment file has to have an specific name and be in the
+% definition directory of each project. (e.g. BitTbl_0053_CAL.mat)
+
+[TH animal_ID EMPTY] = isfield_sk(UserInfo,'animal_ID');
+BitAsign = ModigLoadBitAsignTbl(prj,animal_ID);
+
+% if we could load the table...
+if BitAsign.loaded
+    % ...we clean the previous values in Tbl...
+    if isfield(Tbl,'BitTbl')
+        Tbl = rmfield(Tbl,'Bit');
+        Tbl = rmfield(Tbl,'BitTbl');
+        Tbl = rmfield(Tbl,'BitTblColumn');
+        Tbl = rmfield(Tbl,'BitTblColumnID');
+    end
+    
+    % ... and asign the corresponding ones...
+% TODO, Tbl.BitAsign, Tbl.Bit and Tbl.BitTbl are REDUNDANT!
+    Tbl.BitAsign        = BitAsign;
+    Tbl.BitTbl          = BitAsign.BitTbl;
+    Tbl.BitTblColumn    = BitAsign.BitTblColumn;
+    Tbl.BitTblColumnID  = BitAsign.BitTblColumnID;
+    
+    for rr = 1:size(Tbl.BitTbl,1),
+        param_name = cell2mat(Tbl.BitTbl(rr,Tbl.BitTblColumnID.bit_event_name));
+        if ~isempty(param_name)
+            eval(strcat('Tbl.Bit.',param_name,'=cell2struct(Tbl.BitTbl(rr,:),Tbl.BitTblColumn,2);'));
+        end
+    end
+    
+    %%% re-tag DIO objects
+    if UserInfo.lab_connection,
+        % find inputs -key rests-
+        ExtDevice.inputDio.Line(1:7).LineName = '';
+        kt1 = strcmp(Tbl.BitTbl(:,1),'KT1');
+        kt2 = strcmp(Tbl.BitTbl(:,1),'KT2');
+        kt1idx = find(kt1==1);
+        kt2idx = find(kt2==1);
+        if ~isempty(kt1idx) && ~isempty(kt2idx)
+            ExtDevice.inputDio.Line(kt1idx).LineName = 'KT1';
+            ExtDevice.inputDio.Line(kt2idx).LineName = 'KT2';
+        end
+
+        % the others are outputs
+        ExtDevice.outputDio.Line(1:16).LineName = '';
+        outIdx = (~kt1 + ~kt2)==2;
+        x = 1:16;
+        for ii = x(outIdx),
+            ExtDevice.outputDio.Line(ii).LineName = Tbl.BitTbl{ii,1};
+        end
+    end
+end
+
+% setup reward output and sound output in project-specific way
+% specific_functionname = strcat('ModigPrepareOutput_',prj);
+% if exist(specific_functionname, 'file')
+% %     feval(specific_functionname);
+% end
+% NOTE, Modigprepareoutput_prj is redundant???
+
+%% update global Tbl with MenuTbl
+
+% remove old info from Tbl.Menu*?
+if isfield(Tbl,'MenuTbl')
+    Tbl = rmfield(Tbl,'Menu'); 
+    Tbl = rmfield(Tbl,'MenuTbl');
+    Tbl = rmfield(Tbl,'MenuTblColumn');
+    Tbl = rmfield(Tbl,'MenuTblColumnID');
+end
+
+
+Tbl.MenuTbl         = ModigPrj.(prj).MenuTbl;
+Tbl.MenuTblColumn   = ModigPrj.(prj).MenuTblColumn;
+Tbl.MenuTblColumnID = ModigPrj.(prj).MenuTblColumnID;
+
+num_row = size(Tbl.MenuTbl,1);
+for rr = 1:num_row,
+    param_name = cell2mat(Tbl.MenuTbl(rr,Tbl.MenuTblColumnID.function_name));
+    eval(strcat('Tbl.Menu.',param_name,...
+        '=cell2struct(Tbl.MenuTbl(rr,:),Tbl.MenuTblColumn,2);'));
+end
+
+%% update global Tbl.RandTbl
+
+% clean old variables
+if isfield(Tbl,'RandTbl')
+    Tbl = rmfield(Tbl,'Rand');
+    Tbl = rmfield(Tbl,'RandTbl');
+    Tbl = rmfield(Tbl,'RandTblColumn');
+    Tbl = rmfield(Tbl,'RandTblColumnID');
+end
+
+% if there was a randTbl for this project load it to Tbl.RandTbl
+IsRand = eval(strcat('isfield(ModigPrj.',prj,',','''','RandTbl','''',')'));
+if IsRand
+    Tbl.RandTbl         = ModigPrj.(prj).RandTbl;
+    Tbl.RandTblColumn   = ModigPrj.(prj).RandTblColumn;
+    Tbl.RandTblColumnID = ModigPrj.(prj).RandTblColumnID;
+    for rr = 1:size(Tbl.RandTbl,1)
+        rand_seq_name = cell2mat(Tbl.RandTbl(rr,Tbl.RandTblColumnID.rand_seq_name));
+        eval(strcat('Tbl.Rand.',rand_seq_name,'=cell2struct(Tbl.RandTbl(rr,:),Tbl.RandTblColumn,2);'));
+    end
+end
+
+
+
+%% Initialize global VisStat
+VisStat.prj             = prj;
+VisStat.make_correction = 0;
+VisStat.page            = [];
+VisStat.num_page        = 0;
+
+%% load current_param if they're available. if not, try the default param
+% NOTE:loading the saved values of global Task overwrites what we did before?!
+% this call loads the "session" params 
+% cb_c = ModigCopyParam('current_param','WorkSpace');  
+% if cb_c == 1
+%     ModigMessage('m','Params source: current param',5); 
+% elseif cb_c == 0
+    % if current_param is not available, load default_param
+    cb_d = ModigCopyParam('default_param','WorkSpace');    
+    if cb_d == 1
+        ModigMessage('m','Parameter source: default param',5);
+    else
+        ModigMessage('m','Parameter loading Failed',8);
+    end
+% end
+
+
+%% clear timers and delete them from memory
+if isfield(Timers,'Event') && ~isempty(Timers.Event)
+    evTims = fields(Timers.Event);
+    for i = 1: size(evTims,1)
+        if isvalid(Timers.Event.(char(evTims(i))))
+            stop(Timers.Event.(char(evTims(i))))
+            delete(Timers.Event.(char(evTims(i))))
+        end
+    end
+    Timers.Event = [];
+end
+
+%% save the accuracy of our timers
+% check that Task and Tbl.Task contain the same field names and that Task
+% contains timing data
+
+% check that Task still contains fields, this is caused by the previous
+% loading of the "parameters"
+if isempty(Task),
+%     Task = Tbl.Task; % fallback
+    Task = UserInfo.default_param.(TaskOp.prj).SavedParam.Task;
+    taFi = fields(Task);
+    
+    warning('MoChTa:emptyTask','global Task was empty, assigned default_param');
+else
+    taFi = fields(Task);
+end
+
+tbTaFi = fields(Tbl.Task);
+for i = 1:size(taFi,1)
+    % if fields in Task and Tbl.Task aren't equal call ModigTimingMenu
+    %    and verify that Task contains minimal time data
+    if strcmp(cell2mat(taFi(i)),cell2mat(tbTaFi(i)))==0 ||  ...
+            ~isfield(Task.(char(taFi(i))),'time_base')
+        Task = Tbl.Task;
+        
+        % load params or type in new ones  
+        timeQuestion = questdlg('From where do you want to load timings?',...
+            'Time definitions needed!',....
+            'Type In','Load from File', 'Load from File');
+        
+        switch timeQuestion,
+            case 'Type In',
+                waitfor(ModigTimingMenu);
+            case 'Load from File',
+                ModigCopyParam('file','WorkSpace');
+        end
+        
+%         UserInfo.default_param.(TaskOp.prj).SavedParam =
+        break
+    end
+end
+
+ModigPrepareTiming; 
+ModigSetTimer('Event', 'ITI');
+TaskOp.trecon = [];
+% TaskOp.trecon = trialRecon('init');
+
+%% update global Tbl.Stim
+% create dialogues to change Stim properties under STIM menu
+xx=get(MENUs.ModigMainMenu.handles.MENU_SET_STIM,'children');
+
+if ~isempty(xx)
+    delete(xx);    % delete existing submenus
+end
+
+% create calls
+if ~isempty(Stim),
+    stimFld = fields(Stim);
+    CALLS = cell(length(stimFld),1);
+    TAGS  = cell(length(stimFld),1);
+    LABELS = stimFld;
+    for i = 1:length(stimFld),
+        if isempty(Stim.(stimFld{i}))
+            CALLS{i} = 'warndlg(''empty!'')';
+        else
+            CALLS{i} = ['global Stim, Stim.',(stimFld{i}),' = (StructDlg(Stim.',(stimFld{i}),')); clear Stim'];
+        end
+        TAGS{i}  = ['MENU_Stim_', stimFld{i}];   
+    end
+    % put new submenus
+    menu_handles=makemenu(MENUs.ModigMainMenu.handles.MENU_SET_STIM,...
+        str2mat(LABELS),str2mat(CALLS),str2mat(TAGS)); 
+end
+
+%%% update handles for ModigMainMenu
+MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handles.ModigMainMenu);
+guidata(MENUs.ModigMainMenu.handles.ModigMainMenu, MENUs.ModigMainMenu.handles);
+
+%% prepare Menu submenu under 'TAB' in the main menu
+% labels that show up on the submenu
+eval(strcat('LABELS=ModigPrj.',prj,'.MenuTbl(:,Tbl.MenuTblColumnID.tab_name);')); 
+ % labels that show up on the submenu
+eval(strcat('FUNCTION_NAME=ModigPrj.',prj,'.MenuTbl(:,Tbl.MenuTblColumnID.function_name);'));
+% call back function in the format of ModigMenuControl(gui_name)
+CALLS=strcat('ModigMenuControl(','''',FUNCTION_NAME,'''',');'); 
+TAGS=strcat('MENU_',FUNCTION_NAME);
+xx=get(MENUs.ModigMainMenu.handles.MENU_TAB,'children');
+if ~isempty(xx)
+    delete(xx);    % delete existing submenus
+end
+
+% put new submenus
+menu_handles=makemenu(MENUs.ModigMainMenu.handles.MENU_TAB,str2mat(LABELS),str2mat(CALLS),str2mat(TAGS)); 
+
+% update handles
+MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handles.ModigMainMenu);
+guidata(MENUs.ModigMainMenu.handles.ModigMainMenu, MENUs.ModigMainMenu.handles);
+
+[TH_default default_id EMPTY_default] = isfield_sk(Tbl,'MenuTblColumnID.default_on');
+if ~EMPTY_default
+    default_on = Tbl.MenuTbl(:,default_id);
+end
+for rr = 1:num_row
+    if cell2mat(default_on(rr))
+        eval(cell2mat(CALLS(rr)));
+    end
+end
+
+MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handles.ModigMainMenu);
+guidata(MENUs.ModigMainMenu.handles.ModigMainMenu, MENUs.ModigMainMenu.handles);
+
+%% create dialogue to call directly the editor to edit project-relevant
+%% scripts
+
+% delete, if any, handles related to previous project
+oldHdls = get(MENUs.ModigMainMenu.handles.MENU_EDIT, 'children');
+delete(oldHdls)
+
+% read names of scripts in the project menu
+curDir = cd;
+fDir = sprintf('%s\\%s\\code',ModigDir.Projects,TaskOp.prj);
+cd(fDir);
+fNames = dir('*.m');
+cd(curDir);
+
+% load filenames into menu, create their callback
+CALLS  = cell(size(fNames,1),1);
+TAGS   = cell(size(fNames,1),1);
+LABELS = cell(size(fNames,1),1);
+for i = 1:size(fNames,1)
+    LABELS{i} = sprintf('Edit %s',fNames(i).name);
+    CALLS{i} = sprintf('edit %s', fNames(i).name);
+    TAGS{i}  = sprintf('MENU_Edit_%s', fNames(i).name);    
+end
+
+% update GUI
+makemenu(MENUs.ModigMainMenu.handles.MENU_EDIT,...
+        str2mat(LABELS),str2mat(CALLS),str2mat(TAGS)); 
+
+%%% update handles for ModigMainMenu
+MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handles.ModigMainMenu);
+guidata(MENUs.ModigMainMenu.handles.ModigMainMenu, MENUs.ModigMainMenu.handles);
+
+%% prepare the update area in ModigMainMenu with prj specific script
+fileStr = ['updateMoMaMe_',prj];
+if exist(fileStr,'file')
+    cmd = [fileStr,'(''initialize'')'];
+    eval(cmd)   
+    
+    % now change the current setup and initialize the update area counters,
+    % which stupidly are shared -momentarily- with the global counters
+    TaskOp.count.earlyRelease = 0;
+    TaskOp.count.noTouch = 0;
+    TaskOp.roleChangeCorrect = 1;
+    TaskOp.roleChangeTrials  = 1;
+    TaskOp.respBlackBkg      = 1;
+    if UserInfo.use_split,
+        change = activeSetupChange;
+        if change,
+            eval(cmd) 
+        end
+    end
+    
+else
+    % this means that the update area is not used in this project, we
+    % delete the handles...
+    kids = get(MENUs.ModigMainMenu.handles.prjUpArea,'children');
+    delete(kids)
+    
+     % ...change the title of the update area
+    set(MENUs.ModigMainMenu.handles.prjUpArea,'Title', prj)
+     
+    % update gui handles
+    uih = guihandles(MENUs.ModigMainMenu.handle);
+    guidata(MENUs.ModigMainMenu.handle, uih);
+
+    % and update our global
+    MENUs.ModigMainMenu.handles = sort_structure(uih);
+end
+
+%% delete all contents from exp_page
+if isfield_sk(VisParam,'exp_page')
+    VisParam = rmfield(VisParam,'exp_page');
+end
+
+% sort the structures
+Tbl = sort_structure(Tbl);
+TaskOp = sort_structure(TaskOp);

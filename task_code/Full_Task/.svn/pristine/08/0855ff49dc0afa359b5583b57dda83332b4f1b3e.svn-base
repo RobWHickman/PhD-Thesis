@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigLog</title>
+  <meta name="keywords" content="ModigLog">
+  <meta name="description" content="ModigLog(option)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">Modig</a> &gt; <a href="index.html">shell</a> &gt; ModigLog.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\shell&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>ModigLog
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>ModigLog(option)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function ModigLog(option) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ModigLog(option)
+
+ A collection of subroutines to log trial conditions into a file
+ A log file is made in &quot;modig\log&quot; directry.
+ by the name of &quot;LOG-yyyy-mm-dd.xls&quot;. (tab separated text format)
+ option: 
+     open_file           : open a log file. If it does not exist, create one
+     close_file          : close a log file
+     print_basic_header  : print out a header for common log items
+     print_basic_log     : print out data for common log items
+     print_prj_header    : print out a header for project specific log items
+     print_prj_log       : print out data for project specific log items</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>	[TF value empty] = isfield_sk(stem, fullname)</li><li><a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>	ModigLog(option)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../Modig/projects/FREE_REWARD/code/ModigLog_FREE_REWARD.html" class="code" title="function ModigLog_FREE_REWARD(option)">ModigLog_FREE_REWARD</a>	Log in FREE_REWARD project</li><li><a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>	ModigLog(option)</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function ModigLog(option)</a>
+0002 <span class="comment">% ModigLog(option)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% A collection of subroutines to log trial conditions into a file</span>
+0005 <span class="comment">% A log file is made in &quot;modig\log&quot; directry.</span>
+0006 <span class="comment">% by the name of &quot;LOG-yyyy-mm-dd.xls&quot;. (tab separated text format)</span>
+0007 <span class="comment">% option:</span>
+0008 <span class="comment">%     open_file           : open a log file. If it does not exist, create one</span>
+0009 <span class="comment">%     close_file          : close a log file</span>
+0010 <span class="comment">%     print_basic_header  : print out a header for common log items</span>
+0011 <span class="comment">%     print_basic_log     : print out data for common log items</span>
+0012 <span class="comment">%     print_prj_header    : print out a header for project specific log items</span>
+0013 <span class="comment">%     print_prj_log       : print out data for project specific log items</span>
+0014 
+0015 <span class="comment">% SK wrote it,</span>
+0016 
+0017 <span class="comment">% NOTE, check output!</span>
+0018 
+0019 <span class="keyword">global</span> ModigDir TaskOp UserInfo
+0020 
+0021 <span class="keyword">switch</span> option
+0022     <span class="keyword">case</span> <span class="string">'open_file'</span>
+0023         TaskOp.log.filename = strcat(<span class="string">'LOG-'</span>,datestr(now,29),<span class="string">'.xls'</span>);<span class="comment">% (ISO 8601 date format is used to name a log file)</span>
+0024         TaskOp.log.fullname = strcat(ModigDir.Log,<span class="string">'/'</span>,TaskOp.log.filename);
+0025         <span class="keyword">if</span> ~exist(TaskOp.log.fullname,<span class="string">'file'</span>)
+0026             TaskOp.log.prj = <span class="string">''</span>;
+0027         <span class="keyword">end</span>
+0028         TaskOp.log.handle = fopen(TaskOp.log.fullname,<span class="string">'a'</span>);
+0029     <span class="keyword">case</span> <span class="string">'close_file'</span>
+0030         [TH handle Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'log.handle'</span>);
+0031         <span class="keyword">if</span> ~Empty
+0032             fclose(handle);
+0033             TaskOp.log.filename = [];
+0034             TaskOp.log.fullname = [];
+0035             TaskOp.log.handle = [];
+0036         <span class="keyword">end</span>
+0037     <span class="keyword">case</span> <span class="string">'print_basic_header'</span>,<span class="comment">% print basic header on a file.</span>
+0038         [TF LOG_PRJ EMPTYprj] =<a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'log.prj'</span>);
+0039         <span class="keyword">if</span> EMPTYprj
+0040            LOG_PRJ = <span class="string">' '</span>; <span class="comment">% This is the case at the very first trial</span>
+0041            <span class="comment">% FIXME, struct field assignment overwrites a double</span>
+0042            TaskOp.log.prj = <span class="string">' '</span>;
+0043         <span class="keyword">end</span>
+0044         <span class="keyword">if</span> ~strcmp(TaskOp.prj,LOG_PRJ) <span class="comment">% prj changed from the previous trial. so, print header for the new prj</span>
+0045             [TH header Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'log.basic_header'</span>);
+0046             <span class="keyword">if</span> ~Empty
+0047                 <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'open_file'</span>);
+0048                 fprintf(TaskOp.log.handle,<span class="string">'header\t'</span>); <span class="comment">% print 'header'</span>
+0049                 <span class="keyword">for</span> hh = 1:size(header,2)
+0050                     str = cell2mat(header(hh));
+0051                     <span class="keyword">if</span> ischar(str)
+0052                         fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,str);
+0053                     <span class="keyword">else</span>
+0054                         fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0055                     <span class="keyword">end</span>
+0056                 <span class="keyword">end</span>
+0057                 <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'close_file'</span>);
+0058             <span class="keyword">end</span>
+0059         <span class="keyword">end</span>
+0060     <span class="keyword">case</span> <span class="string">'print_basic_log'</span>,
+0061         [TH header Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'log.basic_header'</span>);
+0062         <span class="keyword">if</span> ~Empty
+0063             <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'open_file'</span>);
+0064             fprintf(TaskOp.log.handle,<span class="string">'data\t'</span>); <span class="comment">% print 'data'</span>
+0065             <span class="keyword">for</span> hh = 1:size(header,2)
+0066                 str = cell2mat(header(hh));
+0067                 <span class="keyword">switch</span> str
+0068                     <span class="keyword">case</span> <span class="string">'subject'</span>
+0069                         [TH animal_ID Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(UserInfo,<span class="string">'animal_ID'</span>);
+0070                         <span class="keyword">if</span> ~Empty
+0071                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,num2str(animal_ID));
+0072                         <span class="keyword">else</span>
+0073                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0074                         <span class="keyword">end</span>
+0075                     <span class="keyword">case</span> <span class="string">'project'</span>
+0076                         [TH prj Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'prj'</span>);
+0077                         <span class="keyword">if</span> ~Empty
+0078                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,prj);
+0079                         <span class="keyword">else</span>
+0080                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0081                         <span class="keyword">end</span>
+0082                     <span class="keyword">case</span> <span class="string">'recorded'</span>
+0083                         [TH gettycom Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'EvntHist.gettycom'</span>);
+0084                         <span class="keyword">if</span> ~Empty
+0085                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,num2str(gettycom));
+0086                         <span class="keyword">else</span>
+0087                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0088                         <span class="keyword">end</span>
+0089                     <span class="keyword">case</span> <span class="string">'day total count'</span>
+0090                         [TH day_total Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'count.day_total'</span>);
+0091                         <span class="keyword">if</span> ~Empty
+0092                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,num2str(day_total));
+0093                         <span class="keyword">else</span>
+0094                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0095                         <span class="keyword">end</span>
+0096                     <span class="keyword">case</span> <span class="string">'block total count'</span>
+0097                         [TH block_total Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'count.block_total'</span>);
+0098                         <span class="keyword">if</span> ~Empty
+0099                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,num2str(block_total));
+0100                         <span class="keyword">else</span>
+0101                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0102                         <span class="keyword">end</span>
+0103                     <span class="keyword">case</span> <span class="string">'time start'</span>
+0104                         [TH block_total Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'count.block_total'</span>);
+0105                         <span class="keyword">if</span> ~Empty
+0106                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,datestr(TaskOp.EvntHist.cur_trial_start_time,<span class="string">'HH:MM:SS'</span>));
+0107                         <span class="keyword">else</span>
+0108                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0109                         <span class="keyword">end</span>
+0110                     <span class="keyword">case</span> <span class="string">'shuffle'</span>
+0111                         [TH shuffle Empty] = <a href="../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'Trial.just_shuffled'</span>);
+0112                         <span class="keyword">if</span> ~Empty
+0113                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>,num2str(shuffle));
+0114                         <span class="keyword">else</span>
+0115                             fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0116                         <span class="keyword">end</span>
+0117                     <span class="keyword">otherwise</span>
+0118                         fprintf(TaskOp.log.handle,<span class="string">'%s\t'</span>);
+0119                 <span class="keyword">end</span>
+0120             <span class="keyword">end</span>
+0121             <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'close_file'</span>);
+0122         <span class="keyword">end</span>
+0123     <span class="keyword">case</span> <span class="string">'print_prj_header'</span> <span class="comment">% print project specific header on a file</span>
+0124         <span class="keyword">if</span> ~strcmp(TaskOp.prj,TaskOp.log.prj)
+0125             command_filename = strcat(<span class="string">'ModigLog_'</span>,TaskOp.prj);
+0126             <span class="keyword">if</span> exist(command_filename, <span class="string">'file'</span>)
+0127                 str = strcat(command_filename,<span class="string">'('</span>,<span class="string">''''</span>,<span class="string">'print_prj_header'</span>,<span class="string">''''</span>,<span class="string">')'</span>);
+0128                 eval(str);
+0129             <span class="keyword">else</span>
+0130                 <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'open_file'</span>);
+0131                 fprintf(TaskOp.log.handle,<span class="string">'\n'</span>);
+0132                 <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'close_file'</span>);
+0133             <span class="keyword">end</span>
+0134         <span class="keyword">end</span>
+0135     <span class="keyword">case</span> <span class="string">'print_prj_log'</span> <span class="comment">% print project specific header on a file</span>
+0136         command_filename = strcat(<span class="string">'ModigLog_'</span>,TaskOp.prj);
+0137         <span class="keyword">if</span> exist(command_filename, <span class="string">'file'</span>)
+0138             str = strcat(command_filename,<span class="string">'('</span>,<span class="string">''''</span>,<span class="string">'print_prj_log'</span>,<span class="string">''''</span>,<span class="string">')'</span>);
+0139             eval(str);
+0140         <span class="keyword">else</span>
+0141             <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'open_file'</span>);
+0142             fprintf(TaskOp.log.handle,<span class="string">'\n'</span>);
+0143             <a href="ModigLog.html" class="code" title="function ModigLog(option)">ModigLog</a>(<span class="string">'close_file'</span>);
+0144         <span class="keyword">end</span>        
+0145 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

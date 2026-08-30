@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigPrepareTrial_FREE_REWARD</title>
+  <meta name="keywords" content="ModigPrepareTrial_FREE_REWARD">
+  <meta name="description" content="Prepare trial parameters in project 'FREE_REWARD'">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">FREE_REWARD</a> &gt; <a href="index.html">code</a> &gt; ModigPrepareTrial_FREE_REWARD.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\FREE_REWARD\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigPrepareTrial_FREE_REWARD
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>Prepare trial parameters in project 'FREE_REWARD'</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function cb = ModigPrepareTrial_FREE_REWARD </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Prepare trial parameters in project 'FREE_REWARD'
+
+ No pages. 
+ Epochs: 
+ pre_trial
+ US
+ post_trial
+ ITI</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function cb = ModigPrepareTrial_FREE_REWARD</a>
+0002 <span class="comment">% Prepare trial parameters in project 'FREE_REWARD'</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% No pages.</span>
+0005 <span class="comment">% Epochs:</span>
+0006 <span class="comment">% pre_trial</span>
+0007 <span class="comment">% US</span>
+0008 <span class="comment">% post_trial</span>
+0009 <span class="comment">% ITI</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">%</span>
+0012 <span class="keyword">global</span> Stim
+0013 
+0014 <span class="comment">%% possible manipulated parameter: magnitude target</span>
+0015 Stim = [];
+0016 cs = 1;
+0017 
+0018</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of Structdlg_examples</title>
+  <meta name="keywords" content="Structdlg_examples">
+  <meta name="description" content="Several examples for using StructDlg">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">Modig</a> &gt; <a href="index.html">structdlg</a> &gt; Structdlg_examples.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\structdlg&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>Structdlg_examples
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>Several examples for using StructDlg</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Several examples for using StructDlg</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>	StructDlg - A structure based definition of an input GUI. Allows for a quick and</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% Several examples for using StructDlg</span>
+0002 
+0003 <span class="comment">%%</span>
+0004 <span class="comment">% Note: The values the user enters to the dialog box for numeric fields are being 'eval'-uated,</span>
+0005 <span class="comment">% so inputs such as (sin(0.34)+2)^my_func(34.2) are possible.</span>
+0006 <span class="comment">% The field's numeric limits can be displayed by placing the mouse over the field.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Free Strings: Limited to one line string (no string arrays). If no default is required, use the</span>
+0010 <span class="comment">%                     empty string (''), otherwise the field will be treated as numeric.</span>
+0011 
+0012 clear S
+0013 S.center_frequency = { 2000 <span class="string">'Hz'</span> [30 50000] }; <span class="comment">%  default of 2000, allowed range:[30 50000].</span>
+0014 S.my_parameter     = { 43 }; <span class="comment">%  default of 43, no limits.</span>
+0015 S.size_of_matrix   = { [3 2] <span class="string">''</span> [1 Inf] }; <span class="comment">%  default of [4 12], allowed range:[1 Inf].</span>
+0016 S.Weight_Matrix = [0.3 0.4; 3.4 9.1; 10 0.4];
+0017 S.User_name = {<span class="string">''</span> <span class="string">''</span>};
+0018 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'My title'</span>)
+0019 
+0020 <span class="comment">%%</span>
+0021 <span class="comment">% Radio buttons: The definition includes a string that contains the options</span>
+0022 <span class="comment">% separated by '|'. The option that the user chooses will become the value</span>
+0023 <span class="comment">%                     of that field in P. A Default option can be specified by enclosing it with curly brackets.</span>
+0024 <span class="comment">%                     The chosen option is converted to a numeric value if possible.</span>
+0025 clear S;
+0026 S.colormap = {<span class="string">'hsv|{gray}|hot|bone|pink'</span>};
+0027 S.Sampling_rate = {<span class="string">'11500|22000|{44000}'</span>, <span class="string">'Hz'</span>};
+0028 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'Radio buttons'</span>)
+0029 
+0030 <span class="comment">%%</span>
+0031 <span class="comment">% Pop-up menu: The definition includes a Cell-array of single strings.</span>
+0032 <span class="comment">%                     The chosen option will be the value of that field in P. A default option can be</span>
+0033 <span class="comment">%                     specified by enclosing it with curly brackets. The chosen string is converted</span>
+0034 <span class="comment">%                     to a numeric value if possible.</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% Check box: The definition must be in the form: {'0' '1'}.</span>
+0037 <span class="comment">%                A default value may be specified by the curly brackets.</span>
+0038 
+0039 clear S;
+0040 S.Sampling_rate = { {<span class="string">'12207'</span> <span class="string">'24414'</span> <span class="string">'48828'</span> <span class="string">'{97656}'</span>} , <span class="string">'Hz'</span>};
+0041 S.Filter_type = { {<span class="string">'bartlett'</span> <span class="string">'{chebwin}'</span> <span class="string">'hamming'</span>} };
+0042 S.use_filter = { {<span class="string">'0'</span>,<span class="string">'{1}'</span>} };
+0043 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'Popup menus and check box'</span>)
+0044          
+0045 <span class="comment">%%</span>
+0046 <span class="comment">% File Name Dialogs: The definition includes a cell of one string that must start with 'uigetfile' or</span>
+0047 <span class="comment">%                     'uiputfile'. The getfile commands may be followed by a default file name or</span>
+0048 <span class="comment">%                     a search filter enclosed by brackets. The user will be able to specify the file</span>
+0049 <span class="comment">%                     name directly by typing it, or to push a small pushbutton that will pop-up</span>
+0050 <span class="comment">%                     Matlab's uigetfile or uipufile.</span>
+0051 clear S
+0052 S.parameters_file = { {<span class="string">'uigetfile(''c:\temp\*.mat'')'</span>} };
+0053 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'File name dialogs'</span>);
+0054 <span class="comment">%%</span>
+0055 <span class="comment">% Sub-Structure: S may contain substrucutres of the same format. The user will be able to push a</span>
+0056 <span class="comment">%                     push-button that will call 'StructDlg' recursively for the sub-structure.</span>
+0057 <span class="comment">%                     The current values of the sub-structure can be viewed by placing the mouse over</span>
+0058 <span class="comment">%                     the push-button.</span>
+0059 
+0060 <span class="comment">%%</span>
+0061 <span class="comment">% Field Self-Reference: (For numeric fields only) A numeric field may include a reference to the value of</span>
+0062 <span class="comment">%                     another numeric fields. This is done using a reserved word 'this' to refer to the</span>
+0063 <span class="comment">%                     structure.</span>
+0064 clear S
+0065 S.Window_size       = { 512 <span class="string">'samples'</span> [10 1000] };
+0066 S.Overlap           = {<span class="string">'this.Window_size / 2'</span> <span class="string">''</span> [0 Inf]}; <span class="comment">%  Note that a non-empty limits indicator is needed in order to indicate that this is a numeric field.</span>
+0067 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'Self reference fields'</span>);
+0068 <span class="comment">%%</span>
+0069 <span class="comment">% Notes: The value of the dependent field will be automatically updated when the values</span>
+0070 <span class="comment">%                     of the referenced fields changes. The automatically changed value will blink twice</span>
+0071 <span class="comment">%                     to alert the user. The user is then able to undo the automatic change using the</span>
+0072 <span class="comment">%                     mouse's right-click.</span>
+0073 <span class="comment">%                     It is not possile for a sub-structure field to reference fields in other sub-structures,</span>
+0074 <span class="comment">%                     or in other structure levels. It is possible for a field to reference fields in</span>
+0075 <span class="comment">%                     sub-structures of lower levels; however, this is highly not recommended.</span>
+0076 
+0077 <span class="comment">%     'title' is the title of the dialog-box. 'dflt' is a structure which contain default values for P.</span>
+0078 <span class="comment">%     These values will override  the default values specified in struct_def.</span>
+0079 <span class="comment">%     Note that the dflt should contain the default values ONLY, not the entire</span>
+0080 <span class="comment">%     definition as specified in S. This is useful for enabling user-specific defaults that override the</span>
+0081 <span class="comment">%     'factory defaults'.</span>
+0082 
+0083 <span class="comment">%%</span>
+0084 <span class="comment">%    Final Example:</span>
+0085 clear S;
+0086 S.Title       = { [<span class="string">'Anaysis results as of '</span> date] <span class="string">''</span>}; 
+0087 S.Input_file  = { {<span class="string">'uigetfile(''c:\*.xls'')'</span>} };
+0088 S.Output_file = { {<span class="string">'uiputfile(''c:\*.txt'')'</span>} };
+0089 S.Replace_NaNs_with_zeros = { {<span class="string">'{0}'</span> <span class="string">'1'</span>} };
+0090 S.Analysis_parameters.Method = { {<span class="string">'Linear'</span> <span class="string">'{exponential}'</span> <span class="string">'logistic'</span>} };
+0091 S.Analysis_parameters.Window_size = { 50 <span class="string">'samples'</span> [5 100] };
+0092 S.Analysis_parameters.Theta = { <span class="string">'min(this.Window_size, 10)'</span> <span class="string">''</span> [0 100] };
+0093 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'Sub Menus'</span>);
+0094 <span class="comment">% after a while, we can ask again for user input.</span>
+0095 <span class="comment">% This time, the default values will be the ones the user specified previously.</span>
+0096 <span class="comment">% new_P = StructDlg(S,'Populattion analysis',P);</span>
+0097 <span class="comment">%</span>
+0098 
+0099 <span class="comment">% clear S</span>
+0100 <span class="comment">%</span>
+0101 <span class="comment">% S.Input_file  = { {'uigetfile(''c:\Images\*.jpg'')'} };</span>
+0102 <span class="comment">% S.Filter      = { {'{None}' 'Blur' 'Sharpen' 'Edge'} };</span>
+0103 <span class="comment">% S.BWconvert   = { {'{0}','1'} 'Convert to B/W'};  % default is NO</span>
+0104 <span class="comment">% S.quality     = { 80 'Output Quality' [1 100]};   % default of 80, allowed range: 1-100</span>
+0105 <span class="comment">% S.comment     = {''};</span>
+0106 <span class="comment">% S.Output_file = { {'uiputfile(''c:\Processed_Images\*.jpg'')'} };</span>
+0107 <span class="comment">%</span>
+0108 <span class="comment">% P = StructDlg(S,'Parameters');</span>
+0109 <span class="comment">% disp(P)</span>
+0110 
+0111 clear S;
+0112 S.Name        = { <span class="string">'Untitled'</span> };
+0113 S.Width       = { 256 <span class="string">'* (pixels)'</span> [1 1024] };             <span class="comment">% default of 256, allowed range: 1-1024</span>
+0114 S.Height      = { 256 <span class="string">'* (pixels)'</span> [1 1024] };
+0115 S.Mode        = { {<span class="string">'Bitmap'</span> <span class="string">'Grayscale'</span> <span class="string">'{RGB color}'</span>} };  <span class="comment">% default is 'RGB color'</span>
+0116 S.Contents    = { <span class="string">'{White}|Background Color|Transperent'</span>}; <span class="comment">% default is 'White'</span>
+0117 S.Use_alpha   = { {<span class="string">'{0}'</span>,<span class="string">'1'</span>} <span class="string">'Use Alpha Channel'</span> };       <span class="comment">% default is NO</span>
+0118 S.Output_file = { {<span class="string">'uiputfile(''c:\Images\*.jpg'')'</span>} };
+0119 
+0120 P = <a href="StructDlg.html" class="code" title="function [P,units] = StructDlg(struct_def,title,dflt,fig_pos,visible,present_val)">StructDlg</a>(S,<span class="string">'New Image'</span>)
+0121 disp(P)</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

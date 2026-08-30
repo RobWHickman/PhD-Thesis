@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of Contents</title>
+  <meta name="keywords" content="Contents">
+  <meta name="description" content="CODE">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">EYECAL</a> &gt; <a href="index.html">code</a> &gt; Contents.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\EYECAL\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>Contents
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>CODE</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> CODE
+
+ Files
+   eyecal_gain_GUI            - M-file for eyecal_gain_GUI.fig
+   eyecal_gain_GUI2           - M-file for eyecal_gain_GUI2.fig
+   eyecal_StimParams          - M-file for eyecal_StimParams.fig
+   ModigJudgeSituation_EYECAL - param = ModigJudgeSituation_EYECAL(time_beh,prev_id)
+   ModigLog_EYECAL            - 
+   ModigMakeGettyArray_EYECAL - Make an array to send to Getty in EYECAL project
+   ModigPostTrial_EYECAL      - ModigPostTrial_EYECAL
+   ModigPrepareOutput_EYECAL  - function ModigPrepareOutput_EYECAL
+   ModigPreparePages_EYECAL   - Prepare visual pages in project 'EYECAL'
+   ModigPrepareTrial_EYECAL   - ModigPrepareTrial_EYECAL
+   updateMoMaMe_EYECAL        - updateMoMaMe_EYECAL(option)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

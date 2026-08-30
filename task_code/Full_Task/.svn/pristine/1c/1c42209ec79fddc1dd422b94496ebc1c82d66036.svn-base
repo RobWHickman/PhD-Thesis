@@ -1,0 +1,252 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigPrepareTrial_TWOAFC_TOUCH</title>
+  <meta name="keywords" content="ModigPrepareTrial_TWOAFC_TOUCH">
+  <meta name="description" content="Prepares trial parameters in project 'TWOAFC_TOUCH'">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">TWOAFC_TOUCH</a> &gt; <a href="index.html">code</a> &gt; ModigPrepareTrial_TWOAFC_TOUCH.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\TWOAFC_TOUCH\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigPrepareTrial_TWOAFC_TOUCH
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>Prepares trial parameters in project 'TWOAFC_TOUCH'</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function runned = ModigPrepareTrial_TWOAFC_TOUCH </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Prepares trial parameters in project 'TWOAFC_TOUCH'
+ 
+ Epochs:
+ 1. pre-trial
+ 2. choiceApp
+ 3. targetOn
+ 4. choiceApp
+ 5. us
+ 6. post_trial
+ 7. iti
+ 8. error
+
+ RBM 3.08
+     4.08  
+     6.08 giving option</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../Modig/projects/DICTATOR/code/ModigRandSeq_DICTATOR.html" class="code" title="function trialOrder = ModigRandSeq_DICTATOR(conditions, seqSize)">ModigRandSeq_DICTATOR</a>	trialOrder = ModigRandSeq_DICTATOR(conditions, seqSize)</li><li><a href="ModigPrepareTrial_TWOAFC_TOUCH.html" class="code" title="function runned = ModigPrepareTrial_TWOAFC_TOUCH">ModigPrepareTrial_TWOAFC_TOUCH</a>	Prepares trial parameters in project 'TWOAFC_TOUCH'</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="ModigPrepareTrial_TWOAFC_TOUCH.html" class="code" title="function runned = ModigPrepareTrial_TWOAFC_TOUCH">ModigPrepareTrial_TWOAFC_TOUCH</a>	Prepares trial parameters in project 'TWOAFC_TOUCH'</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function runned = ModigPrepareTrial_TWOAFC_TOUCH</a>
+0002 <span class="comment">% Prepares trial parameters in project 'TWOAFC_TOUCH'</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Epochs:</span>
+0005 <span class="comment">% 1. pre-trial</span>
+0006 <span class="comment">% 2. choiceApp</span>
+0007 <span class="comment">% 3. targetOn</span>
+0008 <span class="comment">% 4. choiceApp</span>
+0009 <span class="comment">% 5. us</span>
+0010 <span class="comment">% 6. post_trial</span>
+0011 <span class="comment">% 7. iti</span>
+0012 <span class="comment">% 8. error</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% RBM 3.08</span>
+0015 <span class="comment">%     4.08</span>
+0016 <span class="comment">%     6.08 giving option</span>
+0017 <span class="keyword">global</span> Stim VisParam TaskOp Timers UserInfo
+0018 
+0019     
+0020 <span class="comment">%% 5. us</span>
+0021 <span class="comment">% type of stims determines reward delivery style</span>
+0022 <span class="comment">% Stim.choiceApp.type = 'circle';</span>
+0023 Stim.choiceApp.type = <span class="string">'ring'</span>;
+0024 
+0025 <span class="comment">% decide how many, if any, pulses this trial will have on each alternative.</span>
+0026 <span class="comment">% depending on this we draw our stims... remember, the leftmost stim will</span>
+0027 <span class="comment">% be the first element in a vector or matrix....</span>
+0028 Stim.us = [];
+0029 Stim.us.interPulseDelay = 0.045;
+0030 Stim.us.solenoidCompensation = 0.04;
+0031 Stim.us.possiblePulses = 1:3; <span class="comment">% our conditions</span>
+0032 <span class="comment">% Stim.us.rewAvail = [.1 ]; % juice volume/trial</span>
+0033 <span class="comment">% Stim.us.rewRange = [.05 .5];</span>
+0034 <span class="comment">% range of vol/ms for our solenoids</span>
+0035 <span class="comment">% Stim.us.rewCalib.B = [25 0.1; 35 0.12; 20 0.09; 15 0.06];</span>
+0036 <span class="comment">% Stim.us.rewCalib.A = [35 0.06; 55 0.16; 75 0.09];</span>
+0037 
+0038  <span class="comment">% true or false. the neutral (a CS-) is the first option for the responder</span>
+0039 Stim.us.neutral = 0;
+0040 TaskOp.count.total_seq = 10; 
+0041 
+0042 <span class="keyword">if</span> TaskOp.count.seq &gt;= TaskOp.count.total_seq || TaskOp.count.seq &lt;= 1 <span class="keyword">...</span>
+0043         || isempty(TaskOp.trialOrder)
+0044     TaskOp.count.seq = 1;
+0045     conds = size(Stim.us.possiblePulses,2);
+0046     TaskOp.trialOrder = <a href="../../../../Modig/projects/DICTATOR/code/ModigRandSeq_DICTATOR.html" class="code" title="function trialOrder = ModigRandSeq_DICTATOR(conditions, seqSize)">ModigRandSeq_DICTATOR</a>(conds, TaskOp.count.total_seq);
+0047     TaskOp.count.total_seq = size(TaskOp.trialOrder,1);
+0048 <span class="keyword">end</span>
+0049 
+0050 <span class="keyword">if</span> size(TaskOp.trialOrder,1) &lt; TaskOp.count.seq,
+0051     TaskOp.count.seq = 1;
+0052     <a href="ModigPrepareTrial_TWOAFC_TOUCH.html" class="code" title="function runned = ModigPrepareTrial_TWOAFC_TOUCH">ModigPrepareTrial_TWOAFC_TOUCH</a>;
+0053 <span class="keyword">end</span>
+0054 
+0055 <span class="comment">% selCond = TaskOp.count.altCombos(TaskOp.trialOrder(TaskOp.count.seq,1),:);</span>
+0056     
+0057 Stim.us.pulses = [1 2];
+0058 
+0059 <span class="comment">%% 1. pre_trial</span>
+0060 TaskOp.trialStWarning = 0;
+0061 
+0062 <span class="comment">%% 2. choiceApp</span>
+0063 Stim.choiceApp = [];
+0064 
+0065 Stim.choiceApp.type = <span class="string">'ring'</span>;
+0066 
+0067 <span class="comment">% monitor composition--&gt;stim arrangement</span>
+0068 <span class="keyword">if</span> strcmp(TaskOp.curSetup,<span class="string">'B'</span>),
+0069     distCtr = [200; -200]; <span class="comment">% changes Left/right</span>
+0070 <span class="keyword">else</span>
+0071     distCtr = [-200; 200];
+0072 <span class="keyword">end</span>
+0073 scrCtr = repmat(VisParam.scr_rect(3:4)/2,2,1);
+0074 
+0075 switchAxis = 1;
+0076 <span class="keyword">if</span> switchAxis,
+0077     Stim.choiceApp.center = [scrCtr(:,1), scrCtr(:,2)-distCtr];
+0078     arrangeRings = [2 4];
+0079     otherAxis    = [1 3];
+0080 <span class="keyword">else</span>
+0081     Stim.choiceApp.center   = [scrCtr(:,1)-distCtr, scrCtr(:,2)+175];
+0082     arrangeRings = [1 3];
+0083     otherAxis    = [2 4];
+0084 <span class="keyword">end</span>
+0085 
+0086 <span class="comment">% set position, color and reward magnitude (if appropiate)</span>
+0087 <span class="keyword">switch</span> Stim.choiceApp.type
+0088     <span class="keyword">case</span> <span class="string">'ring'</span>
+0089         Stim.choiceApp.size  = 75;
+0090         
+0091         <span class="comment">% position(pulses,rect,leftOrRight)</span>
+0092         prePos = [Stim.choiceApp.center-(Stim.choiceApp.size/2),<span class="keyword">...</span>
+0093                   Stim.choiceApp.center+(Stim.choiceApp.size/2)];
+0094 
+0095         Stim.choiceApp.position = zeros(max(Stim.us.pulses),4,2);
+0096         <span class="keyword">for</span> j = 1:2,
+0097             pre = repmat(prePos(j,:),Stim.us.pulses(j),1);
+0098             <span class="keyword">if</span> Stim.us.pulses(j) == 2,
+0099                 pre(1,arrangeRings) =  pre(1,arrangeRings)-50;
+0100                 pre(2,arrangeRings) =  pre(2,arrangeRings)+50;
+0101             <span class="keyword">elseif</span> Stim.us.pulses(j) == 3,
+0102                 pre(1,arrangeRings) = pre(1,arrangeRings)-100;
+0103                 pre(2,arrangeRings) = pre(2,arrangeRings);
+0104                 pre(3,arrangeRings) = pre(3,arrangeRings)+100;
+0105             <span class="keyword">elseif</span> Stim.us.pulses(j) == 4,
+0106                 pre(1,arrangeRings) = pre(1,arrangeRings)-60;
+0107                 pre(2,arrangeRings) = pre(2,arrangeRings)+60;
+0108                 pre(3,otherAxis)    = pre(3,otherAxis)-60;
+0109                 pre(4,otherAxis)    = pre(4,otherAxis)+60;
+0110             <span class="keyword">end</span>
+0111             Stim.choiceApp.position(1:size(pre,1),:,j) = pre;
+0112         <span class="keyword">end</span>
+0113         
+0114     <span class="keyword">case</span> <span class="string">'circle'</span>
+0115         <span class="comment">% size is proportional to reward...</span>
+0116         Stim.choiceApp.size = [50; 100];
+0117         
+0118         <span class="comment">% position(rect,leftOrRight)</span>
+0119         Stim.choiceApp.position = <span class="keyword">...</span>
+0120                  [Stim.choiceApp.center-repmat((Stim.choiceApp.size/2),1,2),<span class="keyword">...</span>
+0121                   Stim.choiceApp.center+repmat((Stim.choiceApp.size/2),1,2)];
+0122 
+0123 <span class="keyword">end</span>
+0124 
+0125 <span class="comment">%%% monkey ring colors,</span>
+0126 mrc = zeros(62,3);
+0127 mrc(60,:) = [256 0 256];<span class="comment">% is 60</span>
+0128 mrc(61,:) = [256 256 0];<span class="comment">% is 61</span>
+0129 mrc(62,:) = [256 0 0]  ;<span class="comment">% is 62</span>
+0130 
+0131 <span class="keyword">if</span> UserInfo.use_split,
+0132     <span class="comment">% get present guy</span>
+0133     actor = eval([<span class="string">'UserInfo.setup'</span>,TaskOp.curSetup]);
+0134 <span class="keyword">else</span>
+0135     actor = UserInfo.animal_ID;
+0136 <span class="keyword">end</span>
+0137 
+0138 
+0139 Stim.choiceApp.clr = mrc(str2double(actor),:);
+0140 
+0141 
+0142 <span class="comment">%         if Stim.us.neutral,</span>
+0143 <span class="comment">%             Stim.choiceApp.neutralClr = [51 204 255];</span>
+0144 <span class="comment">%         end</span>
+0145 <span class="comment">%% 3. targetOn</span>
+0146 <span class="comment">% TARGET ON stim DEFS</span>
+0147 Stim.target = [];
+0148 Stim.target.size = repmat([100, 50],2,1); <span class="comment">%</span>
+0149 Stim.target.position = zeros(2,4);
+0150 <span class="keyword">if</span> switchAxis
+0151     Stim.target.size = Stim.target.size(:,[2,1]);  <span class="comment">% change main axis</span>
+0152     <span class="keyword">if</span> strcmp(TaskOp.curSetup,<span class="string">'B'</span>),
+0153         Stim.target.center   = [Stim.target.size(:,1),<span class="keyword">...</span>
+0154             VisParam.scr_rect(4)-Stim.choiceApp.center(:,2)];
+0155     <span class="keyword">else</span>
+0156         Stim.target.center = [VisParam.scr_rect(3)-(Stim.target.size(:,1)),<span class="keyword">...</span>
+0157             VisParam.scr_rect(4)-Stim.choiceApp.center(:,2)];
+0158     <span class="keyword">end</span>
+0159 <span class="keyword">else</span>
+0160     Stim.target.center = [VisParam.scr_rect(3)-Stim.choiceApp.center(:,1),<span class="keyword">...</span>
+0161         VisParam.scr_rect(4)-Stim.target.size(:,2)];
+0162 <span class="keyword">end</span>
+0163 Stim.target.position = [Stim.target.center-Stim.target.size,<span class="keyword">...</span>
+0164                         Stim.target.center+Stim.target.size];
+0165 Stim.target.color = [0 0 192];
+0166 
+0167 <span class="comment">%% BEHAVIOR CONTROL VARIABLS</span>
+0168 Stim.pre.hand.filter_time = Timers.Event.pre_trial.StartDelay-0.6;
+0169 Stim.pre.handInterrupt = 1;
+0170 Stim.pre.hold = 1;
+0171 Stim.pre.holdTime = .5;
+0172 
+0173 <span class="comment">%</span>
+0174 Stim.target.tolerance_window = Stim.target.size.*[4.5 1.6; 4.5 1.6];
+0175 Stim.target.filter_time = Timers.Event.targetOn.StartDelay-0.1;
+0176 
+0177 <span class="comment">%% TaskOp trial variables initialization</span>
+0178 TaskOp.eyeInterrupt = 0;
+0179 TaskOp.handInterrupt = 0;
+0180 TaskOp.touchInterrupt = 0;
+0181 TaskOp.interrupt = 0;
+0182 TaskOp.hold = 0;
+0183 TaskOp.holdTime = 0;
+0184 
+0185 TaskOp.roleChangeCorrect = 1;
+0186 TaskOp.respBlackBkg = 1;
+0187 TaskOp.roleChangeTrials = inf;
+0188 
+0189 TaskOp.choice = 0; 
+0190 
+0191 runned = 1;</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

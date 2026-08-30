@@ -1,0 +1,274 @@
+function runned = ModigPrepareTrial_PAVLOVIAN_FIX
+% Prepares trial parameters in project 'PAVLOVIAN_FIX'
+%
+%   Events:
+%  
+% pre_trial
+% fix
+% CS   
+% Trace
+% us    
+% otherUS
+% post_trial  
+% ITI         
+% error 
+%
+global Stim TaskOp VisParam Timers MENUs UserInfo ModigDir Tbl
+
+%% initialize variables/ modifiable variables.
+% variables in the GUI
+if ~isfield(MENUs,'paramGui_PAVLOVIAN') || strcmpi(MENUs.paramGui_PAVLOVIAN.status,'OFF')
+    TaskOp.count.total_seq = 50; % size of sequence 
+    TaskOp.count.trialCounter = zeros(2,10); % counter for set up, CS reward for monkey
+    TaskOp.count.socialCounter = zeros(2,10); % counter for set up, monkey vs bucket
+    TaskOp.count.bucketCounter = zeros(2,10); % counter for set up, CS reward for bucket  
+    
+    Stim.CS.cs1name = [ModigDir.Images,'\Picture 000.jpg'];
+    Stim.CS.cs2name = [ModigDir.Images,'\Picture 006.jpg'];
+    Stim.CS.cs3name = [ModigDir.Images,'\Picture 999.jpg'];
+    Stim.CS.cs4name = [ModigDir.Images,'\Picture 003.jpg'];
+    Stim.CS.cs5name = [ModigDir.Images,'\Picture 002.jpg'];
+    Stim.CS.cs6name = [ModigDir.Images,'\Picture 007.jpg'];
+    Stim.CS.cs7name = [ModigDir.Images,'\Picture 008.jpg'];
+    Stim.CS.cs8name = [ModigDir.Images,'\Picture 009.jpg'];
+    Stim.CS.cs9name = [ModigDir.Images,'\Picture 024.jpg'];
+    Stim.CS.cs10name = [ModigDir.Images,'\Picture 025.jpg'];
+    Stim.CS.active      = [0 0 1 0 0 0 0 1 0 0 ];
+   
+    Stim.us.target              = 0.5;
+    Stim.us.doMinimalReward     = 1;
+    Stim.us.minimalReward       = 0.1;%in ml
+    Stim.us.probability         = [15 35 50 65 85 15 35 50 65 85];
+    Stim.us.probabilitySocial   = [0 0 0 0 0 15 35 50 65 85];
+    Stim.us.probabilityBucket   = [0 0 0 0 0 85 65 50 35 15];
+    Stim.us.lists = zeros(TaskOp.count.total_seq,numel(Stim.us.probability));
+    Stim.us.listsSocial = zeros(TaskOp.count.total_seq,numel(Stim.us.probabilitySocial));
+    Stim.us.listsBucket = zeros(TaskOp.count.total_seq,numel(Stim.us.probabilityBucket));
+
+    TaskOp.roleChangeCorrect = 1;
+    TaskOp.respBlackBkg     = 1;
+    TaskOp.roleChangeTrials = inf;       
+end
+
+% % used for updating probability lists
+if ~isfield(TaskOp.count,'trialCounter')
+    TaskOp.count.trialCounter = zeros(2,10); 
+end
+
+if ~isfield(TaskOp.count,'socialCounter')
+    TaskOp.count.socialCounter = zeros(2,10); 
+end
+
+if ~isfield(TaskOp.count,'bucketCounter')
+    TaskOp.count.bucketCounter = zeros(2,10); 
+end
+
+if size(Stim.us.lists,1)~=TaskOp.count.total_seq,
+    Stim.us.lists       = zeros(TaskOp.count.total_seq,10);    
+end
+if size(Stim.us.listsSocial,1)~=TaskOp.count.total_seq,
+    Stim.us.listsSocial = zeros(TaskOp.count.total_seq,10);
+end
+if size(Stim.us.listsBucket,1)~=TaskOp.count.total_seq,
+    Stim.us.listsBucket = zeros(TaskOp.count.total_seq,10);
+end
+
+% how many different CSs?
+activeCSs = sum(Stim.CS.active==1);
+theseActive = find(Stim.CS.active);
+
+% update probability lists if we've surpassed the trials listed
+setupB = strcmp(TaskOp.curSetup,'B');
+for i = theseActive,
+    if mod(TaskOp.count.trialCounter(setupB+1,i),TaskOp.count.total_seq)==0         
+        Stim.us.lists(:,i) = RewardSeqGenerator(Stim.us.probability(i),TaskOp.count.total_seq);
+    end
+     if mod(TaskOp.count.socialCounter(setupB+1,i),TaskOp.count.total_seq)==0         
+        Stim.us.listsSocial(:,i) = RewardSeqGenerator(Stim.us.probabilitySocial(i),TaskOp.count.total_seq);
+     end
+    if mod(TaskOp.count.bucketCounter(setupB+1,i),TaskOp.count.total_seq)==0         
+        Stim.us.listsBucket(:,i) = RewardSeqGenerator(Stim.us.probabilityBucket(i),TaskOp.count.total_seq);
+    end
+end
+
+if TaskOp.count.seq > TaskOp.count.total_seq || TaskOp.count.seq <= 1 ...
+        || isempty(TaskOp.(TaskOp.curSetup).trialOrder) ...
+        || TaskOp.count.seq > size(TaskOp.(TaskOp.curSetup).trialOrder,1)
+    fprintf('\nWill generate a new trial sequence...\n');
+    TaskOp.count.seq = 1;
+    pre_trialOrder = ModigRandSeq_DICTATOR(activeCSs, ...
+        TaskOp.count.total_seq);
+    
+    % change trialOrder values to correspond to the CS #
+    TaskOp.(TaskOp.curSetup).trialOrder = pre_trialOrder;
+    i = 0;
+    for j = theseActive,
+        i = i+1;
+        TaskOp.(TaskOp.curSetup).trialOrder(pre_trialOrder(:,1)==i,1) = j;
+    end
+end
+%% create whole window if we don't have one yet
+persistent wholeWindow
+windowPtrs=Screen('Windows');
+kind=Screen(windowPtrs, 'WindowKind');
+
+if isempty(wholeWindow) && sum(kind==1)==2,
+    [VisParam.scr_handle, VisParam.scr_rect] = Screen('OpenWindow',1, 0);
+    TaskOp.curSetup = 'A';
+    activeSetupChange;
+    wholeWindow = 1;
+    
+    if UserInfo.use_split==1,
+        UserInfo.use_split = 0;
+    end
+end
+scrCtr = VisParam.scr_rect(3:4)/2;
+%% central fixation parameters
+% (x,y) from mon center
+Stim.centralFix.center = scrCtr; 
+
+if ~isfield(Stim.centralFix,'default') || Stim.centralFix.default == 1,
+    Stim.centralFix.hand.req            = 1;
+    
+    Stim.centralFix.size = [10 20]; %was [10 10] 
+
+    cF = Stim.centralFix;
+    Stim.centralFix.position = [cF.center-cF.size(1),...
+                                cF.center+cF.size(2)];
+
+    % [rgb] (0-256, ptb; 0-1, matlab
+    Stim.centralFix.color               = [0 256 256]; %[256 0 256] for touch choice [0 256 256] for eye choice
+
+    Stim.centralFix.tolerance_window    = 150; % was 200
+
+    Stim.centralFix.filterTime         = 1.5;
+    Stim.centralFix.hold                = 1; %was 2
+    Stim.centralFix.holdTime            = 0.5; %was 0.25;
+    Stim.centralFix.eyeInterrupt        = 1;
+    
+    Stim.centralFix.default             = 0;
+end
+
+[Stim.centralFix.tolWin  Stim.centralFix.tolWinHdl] = createTolWin2(Stim.centralFix.center, Stim.centralFix.tolerance_window);
+% generate a second tolerance window handle if we want fixation during cue
+% [Stim.centralFix.tolWin  Stim.centralFix.tolWinHdl(2)] = createTolWin2(Stim.centralFix.center, Stim.centralFix.tolerance_window);
+%% CSs
+Stim.CS.width   = 100; % distance from the center of the image to its edge
+Stim.CS.heigth  = 100;
+Stim.CS.type    = 'img';
+Stim.CS.center = repmat(VisParam.scr_rect(3:4)/2,2,1);
+
+switch Stim.CS.type,
+    case 'img'
+        % image per se, 
+         % picture to be presented
+        CSnumber = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1);
+        Stim.CS.csfname = [];
+        Stim.CS.csfname{1}   = eval(sprintf('Stim.CS.cs%dname',CSnumber));
+        
+        % position, 
+        Stim.CS.position = zeros(1,4);
+        c = Stim.CS.center;
+        w = Stim.CS.width;
+        h = Stim.CS.heigth;
+
+        Stim.CS.position(1,:) = [c(1,1)-w, c(1,2)-h, c(1,1)+w, c(1,2)+h];
+end
+
+
+%% US/otherUS        
+Stim.us.noJuiceBeep = 0; % produces the same beep as when juice is delivered
+
+thisCS  = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1);
+listIdx = 1+mod(TaskOp.count.trialCounter(setupB+1,thisCS), TaskOp.count.total_seq);
+listIdxSocial = 1+mod(TaskOp.count.socialCounter(setupB+1,thisCS), TaskOp.count.total_seq);
+listIdxBucket = 1+mod(TaskOp.count.bucketCounter(setupB+1,thisCS), TaskOp.count.total_seq);
+TaskOp.count.bucketTrial = 0;%default value
+TaskOp.count.bucketTrial = Stim.us.listsSocial(listIdxSocial,thisCS);
+
+
+%% Following code delivers reward to EITHER setup A OR setup B 
+% if TaskOp.count.bucketTrial == 0
+%     TaskOp.count.rewardNow  = Stim.us.lists(listIdx,thisCS); % monkey large reward now?    
+% 
+%     Timers.Event.us.StartFcn = {@timerTimeStamper};
+%     if  TaskOp.count.rewardNow==1,
+%         calibrateJuiceDelivery('us', Stim.us.target, 0, 1);         
+%     elseif Stim.us.doMinimalReward==1,
+%         calibrateJuiceDelivery('us', Stim.us.minimalReward, 0, 1);
+%     end
+%     fprintf('Large Reward? %d\n',TaskOp.count.rewardNow)
+% else
+%     TaskOp.count.rewardNowBucket  = Stim.us.listsBucket(listIdxBucket,thisCS); % bucket large reward now?
+%    
+%     Timers.Event.otherUS.StartFcn = {@timerTimeStamper};
+%     if  TaskOp.count.rewardNowBucket,    
+%              calibrateJuiceDelivery('otherUS',Stim.us.target,0,1);     
+%      elseif Stim.us.doMinimalReward==1,
+%          calibrateJuiceDelivery('otherUS', Stim.us.minimalReward, 0, 1);    
+%     end 
+%     fprintf('Large Reward for Bucket? %d\n',TaskOp.count.rewardNowBucket)
+% end    
+
+%% Following code delivers reward to setup A AND setup B at the same time if CS==8
+if TaskOp.count.bucketTrial == 0
+    TaskOp.count.rewardNow  = Stim.us.lists(listIdx,thisCS); % monkey large reward now?    
+    Timers.Event.us.StartFcn = {@timerTimeStamper};
+    if  TaskOp.count.rewardNow==1,
+        calibrateJuiceDelivery('us', Stim.us.target, 0, 1); 
+    elseif Stim.us.doMinimalReward==1,
+        calibrateJuiceDelivery('us', Stim.us.minimalReward, 0, 1);
+    end
+    fprintf('Large Reward? %d\n',TaskOp.count.rewardNow)
+elseif TaskOp.count.bucketTrial == 1 && thisCS ~= 8
+    TaskOp.count.rewardNowBucket  = Stim.us.listsBucket(listIdxBucket,thisCS); % bucket large reward now?
+   
+    Timers.Event.otherUS.StartFcn = {@timerTimeStamper};
+    if  TaskOp.count.rewardNowBucket,    
+             calibrateJuiceDelivery('otherUS',Stim.us.target,0,1);     
+    else  %  if Stim.us.doMinimalReward==1,
+         calibrateJuiceDelivery('otherUS', Stim.us.minimalReward, 0, 1);    
+    end 
+    fprintf('Large Reward for Bucket? %d\n',TaskOp.count.rewardNowBucket)    
+else %if TaskOp.count.bucketTrial == 1 && thisCS == 8
+    TaskOp.count.rewardNowBucket  = Stim.us.listsBucket(listIdxBucket,thisCS); % bucket large reward now?   
+    TaskOp.count.rewardNow  = Stim.us.lists(listIdx,thisCS); % monkey large reward now?    
+%     Timers.Event.otherUS.StartFcn = {@timerTimeStamper};
+    if  TaskOp.count.rewardNow==1,
+        curjuicecal_us=calibrateJuiceDelivery('us', Stim.us.target, 0, 1); 
+        curjuicecal_otherUS=calibrateJuiceDelivery('otherUS', Stim.us.target, 0, 1);
+    else  %if Stim.us.doMinimalReward==1,
+        curjuicecal_us=calibrateJuiceDelivery('us', Stim.us.minimalReward, 0, 1);
+        curjuicecal_otherUS=calibrateJuiceDelivery('otherUS', Stim.us.minimalReward, 0, 1);
+    end   
+   
+    % quick and dirty version 
+    % TODO:flexible line assignement (e.g. if B is 'us' and A is 'otherUS')
+    simultStr = sprintf('DIOjuiceSimultaneous([%g,%g],[11 12])',curjuicecal_us,curjuicecal_otherUS);
+    
+    Timers.Event.us.StartFcn =  {@timerTimeStamper, simultStr};     
+%     deliver reward simultaneously,
+%     -> obtain opening times
+%     1. call the active moneky's reward magnitude (calibrateJuiceDelivery 'us))
+%     2. call the bucket's reward magnitude (calibrateJuiceDelivery 'otherUS') 
+%     -> assign opening times to simultaneuos funxction
+%     3. substitute the timerFcn of event US for DIOjuiceSimultaneous
+    fprintf('Large Reward for Monkey+Bucket? %d\n',TaskOp.count.rewardNowBucket)
+end
+    
+%% BEHAVIOR CONTROL VARIABLES (now under GUI control)
+% Stim.centralFix.hand.req    = 0;%logical
+% Stim.centralFix.eye.req     = 'centralFixation';
+% Stim.centralFix.hold        = 1;% logical
+% Stim.centralFix.holdTime    = 0.25;% in (s)
+% Stim.centralFix.eyeInterrupt= 1;% logical
+% Stim.centralFix.filterTime  = Timers.Event.centralFix.StartDelay-Stim.centralFix.holdTime;
+  
+%% TaskOp trial variables initialization
+TaskOp.handInterrupt = 0;
+TaskOp.interrupt = 0;
+TaskOp.hold = 0;
+TaskOp.holdTime = 0;
+TaskOp.choice = 0; 
+
+runned = 1;

@@ -1,0 +1,18 @@
+function runED(a,monitors)
+% runED(a,monitors)
+%  
+%  a, if 'e', ON, else 'OFF'
+%  monitors, elo ts
+%
+
+    if a=='e'
+        onoff=1;
+    else
+        onoff=0;
+    end
+%     monitors=b;
+
+%     ShowSuccess=0;
+%     ED(onoff,monitors,ShowSuccess);
+    ED(onoff,monitors);
+end

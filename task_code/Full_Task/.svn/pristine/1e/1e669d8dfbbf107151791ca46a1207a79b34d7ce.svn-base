@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigPrepareOutput_DICTATOR</title>
+  <meta name="keywords" content="ModigPrepareOutput_DICTATOR">
+  <meta name="description" content="Prepares timers for digital output, e.g. juice trigger.">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">DICTATOR</a> &gt; <a href="index.html">code</a> &gt; ModigPrepareOutput_DICTATOR.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\DICTATOR\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigPrepareOutput_DICTATOR
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>Prepares timers for digital output, e.g. juice trigger.</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function ModigPrepareOutput_DICTATOR </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Prepares timers for digital output, e.g. juice trigger.
+ Called by PrepareBitTbl subroutine in ModigChangeTask.m
+
+ rbm 04.08
+ global Tbl IO Task Timers
+ 
+ % set FREE-reward bit and duration
+ IO.Output.free_juice.bit =  Tbl.Bit.Reward.bit_asignment; % bit asignment is constant. Read it from Tbl file
+ [TH free_juice_dur Empty] = isfield_sk(IO,'Output.free_juice.dur');
+ if Empty
+    IO.Output.free_juice.dur = 35; 
+ end
+ ModigSetTimer('Output','free_juice');
+ 
+ % set TASK-reward bit and duration
+ IO.Output.task_juice.bit =  Tbl.Bit.Reward.bit_asignment; % bit asignment is constant. Read it from Tbl file
+ [TH task_juice_dur Empty] = isfield_sk(IO,'Output.task_juice.dur');
+ if Empty
+    IO.Output.task_juice.dur = 100; 
+ end
+ ModigSetTimer('Output','task_juice');
+ if isempty(ismember(Task.us.OutputTimer,'Timers.Output.task_juice'))
+     ModigLockTimerToEvent('us','Timers.Output.task_juice');
+ else
+     Task.us.OutputTimer = unique(Task.us.OutputTimer);
+ end</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function ModigPrepareOutput_DICTATOR</a>
+0002 <span class="comment">% Prepares timers for digital output, e.g. juice trigger.</span>
+0003 <span class="comment">% Called by PrepareBitTbl subroutine in ModigChangeTask.m</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% rbm 04.08</span>
+0006 <span class="comment">% global Tbl IO Task Timers</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% % set FREE-reward bit and duration</span>
+0009 <span class="comment">% IO.Output.free_juice.bit =  Tbl.Bit.Reward.bit_asignment; % bit asignment is constant. Read it from Tbl file</span>
+0010 <span class="comment">% [TH free_juice_dur Empty] = isfield_sk(IO,'Output.free_juice.dur');</span>
+0011 <span class="comment">% if Empty</span>
+0012 <span class="comment">%    IO.Output.free_juice.dur = 35;</span>
+0013 <span class="comment">% end</span>
+0014 <span class="comment">% ModigSetTimer('Output','free_juice');</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% % set TASK-reward bit and duration</span>
+0017 <span class="comment">% IO.Output.task_juice.bit =  Tbl.Bit.Reward.bit_asignment; % bit asignment is constant. Read it from Tbl file</span>
+0018 <span class="comment">% [TH task_juice_dur Empty] = isfield_sk(IO,'Output.task_juice.dur');</span>
+0019 <span class="comment">% if Empty</span>
+0020 <span class="comment">%    IO.Output.task_juice.dur = 100;</span>
+0021 <span class="comment">% end</span>
+0022 <span class="comment">% ModigSetTimer('Output','task_juice');</span>
+0023 <span class="comment">% if isempty(ismember(Task.us.OutputTimer,'Timers.Output.task_juice'))</span>
+0024 <span class="comment">%     ModigLockTimerToEvent('us','Timers.Output.task_juice');</span>
+0025 <span class="comment">% else</span>
+0026 <span class="comment">%     Task.us.OutputTimer = unique(Task.us.OutputTimer);</span>
+0027 <span class="comment">% end</span>
+0028 
+0029 
+0030</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

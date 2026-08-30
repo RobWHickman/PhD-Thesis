@@ -1,0 +1,24 @@
+function ModigPostTrial_TWOAFC_SACC
+%
+
+% global TaskOp Stim BehaveData ModigDir
+% persistent idx choiceData
+% 
+% if isempty(choiceData),
+% %     choiceData = zeros(1,4);
+%     choiceData = 0;
+%     idx = 1;
+% end
+% % 
+% choiceData(idx).TaskOp = TaskOp; 
+% choiceData(idx).Stim   = Stim;
+% choiceData(idx).BehaveData = BehaveData;
+% 
+% %
+% if exist([ModigDir.Log,'\Two_AFC_',datestr(now,29)],'file')==0
+%     save([ModigDir.Log,'\Two_AFC_',datestr(now,29)],'choiceData')
+% else
+%     save([ModigDir.Log,'\Two_AFC_',datestr(now,29)],'-append','choiceData')
+% end
+% 
+% idx = idx +1;

@@ -1,0 +1,66 @@
+function cb = ModigPreparePages_PAVLOVIAN_FIX
+%  cb = ModigPreparePages_PAVLOVIAN
+%
+% page 1: grey background
+% page 2: CS
+% page 3: black background
+% 
+%
+% See also drawRectangle_RBM, ModigPrepareTrial_PAVLOVIAN, 
+%
+% RBM 11.10
+global Tbl VisParam Stim 
+
+VisParam.pages    = unique(cell2mat(Tbl.TaskTbl(:,Tbl.TaskTblColumnID.vis_page)));
+VisParam.pages    = VisParam.pages(VisParam.pages>0);
+VisParam.num_page = length(VisParam.pages);
+VisParam.page     = [];
+
+%% Clear offscreen windows and textures
+Screen('close');
+
+%% page 1. light grey background str
+bkgstr   = 'Screen(''FillRect'', VisParam.scr_handle, [90 90 90]);';
+%% page 2. central fixation     
+cF = Stim.centralFix;
+[ccs ctrCircusHdl]  = drawCircles(cF.color, cF.position, VisParam.h_MONITOR_AXIS, 2);
+
+%% page 3 CS
+switch Stim.CS.type
+    case 'img'
+%         if isfield(VisParam,'texture') && ~isempty(VisParam.texture),
+%             Screen('Close', VisParam.texture.tex);  
+            Screen close % all textures and offscreen windows are deleted while regular onscreen windows are left open.
+            VisParam.texture = [];
+%         end
+        [cs1draw cs1Hdl] = drawImages(Stim.CS.csfname{1}, Stim.CS.position(1,:), VisParam.h_MONITOR_AXIS, 3);
+end
+%% page 4 black background
+blkBkg = 'Screen(''FillRect'', VisParam.scr_handle, [0 0 0]);';
+
+%% flip strings
+flpstr   = 'Screen(''Flip'',VisParam.scr_handle);';
+flpnoclr = 'Screen(''Flip'',VisParam.scr_handle,[],1);';
+
+%% arm visparam
+VisParam.page(1).draw = bkgstr;
+VisParam.page(2).draw = ccs;
+VisParam.page(3).draw = cs1draw;
+VisParam.page(4).draw = blkBkg;
+
+VisParam.page(1).flip = flpstr;
+% VisParam.page(2).flip = flpstr;
+VisParam.page(2).flip = flpnoclr;
+VisParam.page(3).flip = flpstr;
+VisParam.page(4).flip = flpstr;
+
+VisParam.page(1).str = [bkgstr,flpstr];
+VisParam.page(2).str = [ccs, flpnoclr];
+VisParam.page(3).str = [cs1draw, flpstr] ;
+VisParam.page(4).str = [blkBkg, flpstr];
+
+%% arm experimenters screen
+VisParam.exp_page(1).obj_handle = [Stim.centralFix.tolWinHdl(1); ctrCircusHdl(1)];
+VisParam.exp_page(2).obj_handle = cs1Hdl(:,1); 
+
+cb = 1;

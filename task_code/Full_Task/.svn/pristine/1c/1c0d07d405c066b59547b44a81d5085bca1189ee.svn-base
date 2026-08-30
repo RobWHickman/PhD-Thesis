@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigPostTrial_OBS_LEARNFIX</title>
+  <meta name="keywords" content="ModigPostTrial_OBS_LEARNFIX">
+  <meta name="description" content="ModigPostTrial_OBS_LEARNFIX">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">OBS_LEARNFIX</a> &gt; <a href="index.html">code</a> &gt; ModigPostTrial_OBS_LEARNFIX.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\OBS_LEARNFIX\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigPostTrial_OBS_LEARNFIX
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>ModigPostTrial_OBS_LEARNFIX</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function ModigPostTrial_OBS_LEARNFIX </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ModigPostTrial_OBS_LEARNFIX
+
+ Closes the textures generated for this trial and  changes the active 
+ setup based on the conditionals defined in
+ mopreptrial_OBS_LEARNFIX</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../Modig/shell/activeSetupChange.html" class="code" title="function changed = activeSetupChange">activeSetupChange</a>	changed = activeSetupChange</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function ModigPostTrial_OBS_LEARNFIX</a>
+0002 <span class="comment">% ModigPostTrial_OBS_LEARNFIX</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Closes the textures generated for this trial and  changes the active</span>
+0005 <span class="comment">% setup based on the conditionals defined in</span>
+0006 <span class="comment">% mopreptrial_OBS_LEARNFIX</span>
+0007 <span class="comment">%</span>
+0008 
+0009 <a href="../../../../Modig/shell/activeSetupChange.html" class="code" title="function changed = activeSetupChange">activeSetupChange</a>;
+0010 
+0011</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

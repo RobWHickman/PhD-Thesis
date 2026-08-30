@@ -1,0 +1,242 @@
+function varargout = ModigTimingMenu(varargin)
+% Make a dialog menu to set timing of each event.
+% Look at the TaskTbl in the 'defined_menu' column and those events which
+% are set at 1 are included on the menu.
+%
+% coded by skoba (skoba-tky@umin.ac.jp) 23 July 2005
+% last modified by skoba 8 August 2005
+% rbm 4.09 handles page changes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin == 0,  % LAUNCH GUI
+    h_menu = CreatTimingMenu;
+    if h_menu~=-1
+        handles = guihandles(h_menu);
+        guidata(h_menu, handles);
+        ModigTimingMenu('InitializeMenu',h_menu,[],handles);
+        ModigArrangeMenuPosition(h_menu);
+    end
+    varargout = {h_menu};
+elseif ischar(varargin{1}), % INVOKE NAMED SUBFUNCTION OR CALLBACK
+    try
+        [varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
+    catch
+        disp(lasterr);
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function InitializeMenu(hObject,eventdata,handles)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OK
+global Tbl UserInfo
+GUI_Info = get_menu_contents(handles.ModigTimingMenu);
+GUI_Info.GENERAL.prj_name     = Tbl.prj;
+GUI_Info.GENERAL.menu_name    = 'default_timing';
+GUI_Info.GENERAL.mfilename    = mfilename;
+GUI_Info.GENERAL.menu_type    = 'timing';
+GUI_Info.GENERAL.menu_version = '1.00';
+for rr = 1:size(Tbl.TaskTbl,1)
+    buf(rr,1) = strcmpi(cell2mat(Tbl.TaskTbl(rr,Tbl.TaskTblColumnID.function_name)),mfilename);
+end
+buf = find(buf == 1);
+GUI_Info.GENERAL.event_names = Tbl.TaskTbl(buf,Tbl.TaskTblColumnID.evnt_name);
+GUI_Info.USER = UserInfo;
+set(handles.ModigTimingMenu,'userdata',GUI_Info);
+cb = CurSetToMenu(handles.ModigTimingMenu);     % Set menu as current setting
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function h_ModigTimingMenu = CreatTimingMenu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OK
+global Tbl
+for rr = 1:size(Tbl.TaskTbl,1)
+    buf(rr,1) = strcmpi(cell2mat(Tbl.TaskTbl(rr,Tbl.TaskTblColumnID.function_name)),mfilename);
+end
+% the code below was replaced with the code above to deal with empty cells
+% buf= ismember(Tbl.TaskTbl(:,Tbl.TaskTblColumnID.function_name),{mfilename}); 
+buf = find(buf == 1);
+h_ModigTimingMenu = figure;
+menu_height = max(100 + 40*length(buf),240);
+set(h_ModigTimingMenu,'MenuBar','non');
+set(h_ModigTimingMenu,'Name','TIMING MENU');
+set(h_ModigTimingMenu,'NumberTitle','Off');
+set(h_ModigTimingMenu,'unit','pixel');
+% determine the menu height depending on the number of items
+set(h_ModigTimingMenu,'position',[31 272 450 menu_height]); 
+set(h_ModigTimingMenu,'tag','ModigTimingMenu');
+set(h_ModigTimingMenu,'unit','pixel');
+
+ModigArrangeMenuPosition(h_ModigTimingMenu);
+y_event = 0;
+y_base = 100;
+y_var = 220;
+y_button = 320;
+% title texts
+h_TEXT_EVENTS = uicontrol(h_ModigTimingMenu,'style','text',...
+    'position',[y_event menu_height-20 80 20],...
+    'backgroundcolor',[0.8 0.8 0.8],'fontsize',12,...
+    'foregroundcolor',[1 1 1],...
+    'string','EVENT');
+h_TEXT_BASE = uicontrol(h_ModigTimingMenu,'style','text',...
+    'position',[y_base menu_height-20 50 20],...
+    'backgroundcolor',[0.8 0.8 0.8],'fontsize',12,...
+    'foregroundcolor',[1 1 1],...
+    'string','BASE');
+h_TEXT_pm = uicontrol(h_ModigTimingMenu,'style','text',...
+    'position',[y_var - 30 menu_height-20 30 20],...
+    'backgroundcolor',[0.8 0.8 0.8],'fontsize',12,...
+    'foregroundcolor',[1 1 1],...
+    'string','+/-');
+h_TEXT_VAR = uicontrol(h_ModigTimingMenu,'style','text',...
+    'position',[y_var menu_height-20 80 20],...
+    'backgroundcolor',[0.8 0.8 0.8],'fontsize',12,...
+    'foregroundcolor',[1 1 1],...
+    'string','VAR');
+h_TEXT_PAGE = uicontrol(h_ModigTimingMenu,'style','text',...
+    'position',[y_button menu_height-20 80 20],...
+    'backgroundcolor',[0.8 0.8 0.8],'fontsize',12,...
+    'foregroundcolor',[1 1 1],...
+    'string','Page');
+
+% create uicontrols for events
+for ii = 1: length(buf)
+    evnt_name   = cell2mat(Tbl.TaskTbl(buf(ii),Tbl.TaskTblColumnID.evnt_name));
+    
+    handle_name = strcat('h_TEXT_',evnt_name);
+    tag_name    = strcat('TEXT_',evnt_name);
+    h = uicontrol(h_ModigTimingMenu,'style','text',...
+        'position',[y_event menu_height-20-40*ii 80 20],...
+        'backgroundcolor',[0.8 0.8 0.8],'fontsize',12,...
+        'foregroundcolor',[0 0 0],'tag',tag_name,...
+        'string',evnt_name);
+    eval(strcat(handle_name, '= h;'));
+
+    handle_name = strcat('h_EDIT_',evnt_name,'_BASE');
+    tag_name    = strcat('EDIT_',evnt_name,'_BASE');
+    h = uicontrol(h_ModigTimingMenu,'style','edit',...
+        'position',[y_base menu_height-20-40*ii 80 20],...
+        'backgroundcolor',[1 1 1 ],...
+        'fontsize',12,'tag',tag_name);
+    eval(strcat(handle_name, '=h;'));
+
+    handle_name = strcat('h_EDIT_',evnt_name,'_VAR');
+    tag_name    =  strcat('EDIT_',evnt_name,'_VAR');
+    h = uicontrol(h_ModigTimingMenu,'style','edit',...
+        'position',[y_var menu_height-20-40*ii 80 20],...
+        'backgroundcolor',[1 1 1 ],...
+        'fontsize',12,'tag',tag_name);
+    eval(strcat(handle_name, '= h;'));
+    
+    handle_name = strcat('h_EDIT_',evnt_name,'_PAGE');
+    tag_name    =  strcat('EDIT_',evnt_name,'_PAGE');
+    h = uicontrol(h_ModigTimingMenu,'style','edit',...
+        'position',[y_button menu_height-20-40*ii 80 20],...
+        'backgroundcolor',[1 1 1 ],...
+        'fontsize',12,...
+        'tag',tag_name,...
+        'string',num2str(Tbl.TaskTbl{ii,2}));
+    eval(strcat(handle_name, '= h;'));
+end
+
+str = strcat('ModigTimingMenu(','''','SUBMIT','''',',','gcbo',',','[]',',','guidata(gcbo)',');');
+% h_BUTTON_SUBMIT = uicontrol(h_ModigTimingMenu,'style','pushbutton',...
+%     'position',[y_button menu_height-60 120 20],...
+%     'string','SUBMIT','tag','BUTTON_SUBMIT',...
+%     'Callback',str);
+h_BUTTON_SUBMIT = uicontrol(h_ModigTimingMenu,'style','pushbutton',...
+    'position',[y_var menu_height-20-40*(ii+1) 120 30],...
+    'string','SUBMIT','tag','BUTTON_SUBMIT',...
+    'FontSize',13,...
+    'Callback',str);
+
+cancelStr = strcat('ModigTimingMenu(''cancelCallback'',gcbo,[],guidata(gcbo));');
+h_BUTTON_CANCEL = uicontrol(h_ModigTimingMenu,'style','pushbutton',...
+    'position',[y_base menu_height-20-40*(ii+1) 120 30],...
+    'string','CANCEL','tag','BUTTON_CANCEL',...
+    'FontSize',13,...
+    'Callback',cancelStr);
+
+timing_menu_handles = guihandles(h_ModigTimingMenu);
+guidata(h_ModigTimingMenu, timing_menu_handles);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function SUBMIT(hObject,eventdata,handles)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OK
+% call back function when submit button is pressed.
+% put parameters set on menu onto 'Task.(event name).CurSet'
+
+global Task Stim
+cb = MenuToCurSet(handles.ModigTimingMenu);     % Put data on menu into global 'Task'
+% and update UserInfo. current_param
+close(handles.ModigTimingMenu);                 % close StimMenu
+
+%%%%%%%%%%%%
+function cancelCallback(hObject, eventdata, handles)
+%%%%%%%%%%%%
+close(handles.ModigTimingMenu);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cb = CurSetToMenu(h)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OK
+% copies current values into the menu
+global Task
+
+if ishandle(h)
+    cb = 1;
+    GUI_Info = get(h,'userdata');
+    % loop each event
+    for event = GUI_Info.GENERAL.event_names'
+        field_name = strcat(cell2mat(event),'.time_base');
+        [TH VALUE EMPTY] = isfield_sk(Task, field_name);
+        if ~EMPTY
+            h_time_base = eval(strcat('GUI_Info.CONTENTS.EDIT_',cell2mat(event),'_BASE.Handle'));
+            set(h_time_base,'String',num2str(VALUE));
+        else
+            cb = 0;
+        end
+        field_name = strcat(cell2mat(event),'.time_var');
+        [TH VALUE EMPTY] = isfield_sk(Task, field_name);
+        if ~EMPTY
+            h_time_var = eval(strcat('GUI_Info.CONTENTS.EDIT_',cell2mat(event),'_VAR.Handle'));
+            set(h_time_var,'String',num2str(VALUE));
+        else
+            cb = 0;
+        end
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cb = MenuToCurSet(h)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OK
+global Task UserInfo Tbl
+cb = 1;
+GUI_Info = get_menu_contents(h); % get updated menu information
+info = get(h,'userdata');
+for event = info.GENERAL.event_names'
+    time_base = eval(strcat('GUI_Info.CONTENTS.EDIT_',cell2mat(event),'_BASE.numerical'));
+    if ~isempty(time_base)
+        eval(strcat('Task.',cell2mat(event),'.time_base = time_base;'));
+    else
+        warning('MODIG:undefinedEpochTime','time_base at %s', char(event));
+        cb = 0;
+    end
+
+    time_var = eval(strcat('GUI_Info.CONTENTS.EDIT_',cell2mat(event),'_VAR.numerical'));
+    if ~isempty(time_var)
+        eval(strcat('Task.',cell2mat(event),'.time_var = time_var;'));
+    else
+        warning('MODIG:undefinedEpochTime',' undefinedEpochTime time_var at %s', char(event));
+        cb = 0;
+    end
+    
+    page = eval(strcat('GUI_Info.CONTENTS.EDIT_',cell2mat(event),'_PAGE.numerical'));
+    if ~isempty(page)
+%         eval(strcat('Task.',cell2mat(event),'.vis_page = page;'));
+        % find the event row. then assign page #
+        evId = strcmpi(Tbl.TaskTbl(:,1),repmat(cell2mat(event),size(Tbl.TaskTbl,1),1));
+        Tbl.TaskTbl(evId,2) = {page};
+    else
+        warning('MODIGTimingMENU:empty',' empty edit page at %s', char(event));
+        cb = 0;
+    end
+
+end
+ModigCopyParam('WorkSpace','current_param');

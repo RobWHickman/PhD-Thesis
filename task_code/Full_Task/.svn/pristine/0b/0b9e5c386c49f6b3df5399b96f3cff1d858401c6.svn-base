@@ -1,0 +1,296 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigMakeGettyArray_DICTATOR_IN_STAGES</title>
+  <meta name="keywords" content="ModigMakeGettyArray_DICTATOR_IN_STAGES">
+  <meta name="description" content="valToGetty = ModigMakeGettyArray_DICTATOR_IN_STAGES">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">DICTATOR_IN_STAGES</a> &gt; <a href="index.html">code</a> &gt; ModigMakeGettyArray_DICTATOR_IN_STAGES.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\DICTATOR_IN_STAGES\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigMakeGettyArray_DICTATOR_IN_STAGES
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>valToGetty = ModigMakeGettyArray_DICTATOR_IN_STAGES</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function valToGetty = ModigMakeGettyArray_DICTATOR_IN_STAGES </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> valToGetty = ModigMakeGettyArray_DICTATOR_IN_STAGES
+
+ Make a vector to send to Getty in DICTATOR_IN_STAGES project</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>	[TF value empty] = isfield_sk(stem, fullname)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function valToGetty = ModigMakeGettyArray_DICTATOR_IN_STAGES</a>
+0002 <span class="comment">% valToGetty = ModigMakeGettyArray_DICTATOR_IN_STAGES</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Make a vector to send to Getty in DICTATOR_IN_STAGES project</span>
+0005 <span class="comment">%</span>
+0006 
+0007 <span class="keyword">global</span> Stim Task TaskOp Timers BehaveData Pest
+0008 <span class="comment">% global Tbl</span>
+0009 
+0010 
+0011 valToGetty = zeros(1,80);
+0012 
+0013 <span class="comment">%% Task #, trial type, trial length</span>
+0014 <span class="comment">% 1. number of variables to be sent</span>
+0015 valToGetty(1) = length(valToGetty); <span class="comment">% numb of additional vars</span>
+0016 
+0017 <span class="comment">% 2. taskNumb</span>
+0018 valToGetty(2) = 24;  
+0019 
+0020 <span class="comment">% 3. combined trial type (bhvsit)</span>
+0021 <span class="comment">% 0 | 1 [stimuli on left (from active setup perspective]</span>
+0022 stimLeft = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,2)-1; 
+0023 <span class="comment">% 0 | 6 [active setup]</span>
+0024 actor    = strcmp(TaskOp.curSetup,<span class="string">'B'</span>)*6;                               
+0025 <span class="comment">% 1 | 3 | 5 [task]</span>
+0026 tk = 5;
+0027 
+0028 <span class="comment">% steps of 12 'labels'</span>
+0029 condition= 12*(TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1)-1);
+0030 finalCondition = actor + stimLeft + tk + condition;
+0031 valToGetty(3) = mod(finalCondition,256);
+0032 
+0033 <span class="comment">% longest possible trial length (w/o error time added)</span>
+0034 <span class="comment">% changed on may 7 09, send estimating US delays and pulses</span>
+0035 taFi = fields(Task);
+0036 trLAll   = 0;
+0037 trLTimer = 0;
+0038 
+0039 <span class="keyword">for</span> i = 1:length(taFi)
+0040     trLAll = trLAll + Timers.Event.(taFi{i}).StartDelay;
+0041     <span class="keyword">if</span> strcmpi(taFi{i},<span class="string">'us'</span>)
+0042         usdur = (Stim.us.interPulseDelay*max(Stim.us.pulses(2,:))) + Timers.Event.us.Startdelay;
+0043         trLTimer = trLTimer + usdur;
+0044     <span class="keyword">elseif</span> strcmpi(taFi{i},<span class="string">'otherUS'</span>)
+0045         ousdur = (Stim.us.interPulseDelay*max(Stim.us.pulses(1,:))) + Timers.Event.otherUS.Startdelay;
+0046         trLTimer = trLTimer + ousdur;
+0047     <span class="keyword">elseif</span> ~strcmpi(taFi{i},<span class="string">'error'</span>)
+0048         trLTimer = trLTimer + Timers.Event.(taFi{i}).StartDelay;        
+0049     <span class="keyword">end</span>
+0050 <span class="keyword">end</span>
+0051 
+0052 trLNoITI = trLTimer - Timers.Event.ITI.StartDelay;
+0053 trLNoITI = max(trLNoITI)*1000;
+0054 valToGetty(4) = floor(round(trLNoITI)/256);
+0055 valToGetty(5) = mod(round(trLNoITI),256);
+0056 <span class="comment">% disp(sprintf('no ITI: %g  all epochs: %g ',max(trLNoITI)*1000, trLTimer))</span>
+0057 
+0058 TaskOp.trLTimer = trLTimer;
+0059 
+0060 <span class="comment">%% stim params, always in mac coords: origin at top left</span>
+0061 <span class="keyword">switch</span> Stim.choApp.type,
+0062     <span class="keyword">case</span> <span class="string">'ring'</span>,
+0063         valToGetty(6) = 1;
+0064        basis = round([Stim.choApp.center-(Stim.choApp.size/2),<span class="keyword">...</span>
+0065                  Stim.choApp.center+(Stim.choApp.size/2)]);
+0066         
+0067         <span class="comment">% CS 'center' in the left</span>
+0068         valToGetty(7) = floor(basis(1,1)/256);
+0069         valToGetty(8) = mod(basis(1,1),256);
+0070         valToGetty(9) = floor(basis(1,2)/256);
+0071         valToGetty(10) = mod(basis(1,2),256);
+0072         valToGetty(11) = floor(basis(1,3)/256);
+0073         valToGetty(12) = mod(basis(1,3),256);
+0074         valToGetty(13) = floor(basis(1,4)/256);
+0075         valToGetty(14) = mod(basis(1,4),256);
+0076 
+0077         <span class="comment">% CS 'center' in the right</span>
+0078 <span class="comment">%        valToGetty(15) = type; %pic # when pics</span>
+0079 
+0080         <span class="comment">% CS 'center' in the right</span>
+0081         valToGetty(16) = floor(basis(2,1)/256);
+0082         valToGetty(17) = mod(basis(2,1),256);
+0083         valToGetty(18) = floor(basis(2,2)/256);
+0084         valToGetty(19) = mod(basis(2,2),256);
+0085         valToGetty(20) = floor(basis(2,3)/256);
+0086         valToGetty(21) = mod(basis(2,3),256);
+0087         valToGetty(22) = floor(basis(2,4)/256);
+0088         valToGetty(23) = mod(basis(2,4),256);
+0089 
+0090      <span class="keyword">case</span> <span class="string">'ringRect'</span>,         
+0091         valToGetty(6) =  2;
+0092         basis = round([Stim.choApp.center-(Stim.choApp.size/2),<span class="keyword">...</span>
+0093                  Stim.choApp.center+(Stim.choApp.size/2)]);
+0094         
+0095         <span class="comment">% CS 'center' in the left</span>
+0096         valToGetty(7) = floor(basis(1,1)/256);
+0097         valToGetty(8) = mod(basis(1,1),256);
+0098         valToGetty(9) = floor(basis(1,2)/256);
+0099         valToGetty(10) = mod(basis(1,2),256);
+0100         valToGetty(11) = floor(basis(1,3)/256);
+0101         valToGetty(12) = mod(basis(1,3),256);
+0102         valToGetty(13) = floor(basis(1,4)/256);
+0103         valToGetty(14) = mod(basis(1,4),256);
+0104 
+0105         <span class="comment">% CS 'center' in the right</span>
+0106         valToGetty(15) = 2; <span class="comment">%pic # when pics</span>
+0107 
+0108         <span class="comment">% CS 'center' in the right</span>
+0109         valToGetty(16) = floor(basis(2,1)/256);
+0110         valToGetty(17) = mod(basis(2,1),256);
+0111         valToGetty(18) = floor(basis(2,2)/256);
+0112         valToGetty(19) = mod(basis(2,2),256);
+0113         valToGetty(20) = floor(basis(2,3)/256);
+0114         valToGetty(21) = mod(basis(2,3),256);
+0115         valToGetty(22) = floor(basis(2,4)/256);
+0116         valToGetty(23) = mod(basis(2,4),256);
+0117 
+0118     <span class="keyword">case</span> <span class="string">'valueBar'</span>,
+0119         valToGetty(6) = 3;
+0120         <span class="comment">% if we go over 256 conditions while testing inequity , send the</span>
+0121         <span class="comment">% relevant number here.</span>
+0122         valToGetty(15) = floor(finalCondition/256); 
+0123         <span class="comment">% stim positions</span>
+0124         valToGetty([7 9 16 18]) = floor(Stim.choApp.center/256);        
+0125         valToGetty([8 10 17 19])= mod(Stim.choApp.center,256);
+0126         <span class="comment">% Pest-related variables</span>
+0127         <span class="keyword">if</span> Pest.doPest,
+0128             exitRule = round(Pest.exitRule*1000);        
+0129             valToGetty(20) = floor(exitRule/256);
+0130             valToGetty(21) = mod(exitRule,256);
+0131         <span class="keyword">end</span>        
+0132         valToGetty(22) = TaskOp.count.seq;
+0133 <span class="keyword">end</span>
+0134 
+0135 <span class="comment">% go signal - blue rectangles-</span>
+0136 tPos1 = floor(Stim.target.position/256);
+0137 tPos2 = mod(Stim.target.position,256);
+0138 
+0139 <span class="comment">% go signal in the left</span>
+0140 valToGetty(24:2:30) = tPos1(1,:);
+0141 valToGetty(25:2:31) = tPos2(1,:);
+0142 
+0143 <span class="comment">% go signal in the right</span>
+0144 valToGetty(32:2:38) = tPos1(2,:);
+0145 valToGetty(33:2:39) = tPos2(2,:);
+0146 
+0147 <span class="comment">%% TOUCH tolerance window</span>
+0148 tw = Stim.target.tolerance_window;
+0149 <span class="comment">% position L tolerance window size</span>
+0150 valToGetty([40 42]) = floor(tw(1,1:2)/256);
+0151 valToGetty([41 43]) = mod(tw(1,1:2),256);
+0152 <span class="comment">% position R tolerance window size</span>
+0153 valToGetty([44 46]) = floor(tw(2,1:2)/256);
+0154 valToGetty([45 47]) = mod(tw(2,1:2),256);
+0155 
+0156 <span class="comment">%% rewards</span>
+0157 <span class="comment">% self rew</span>
+0158 <span class="comment">% selfRwdMag = Timers.Event.us.startDelay .* Stim.us.pulses(2,:);</span>
+0159 <span class="comment">% valToGetty(48:49) = selfRwdMag;</span>
+0160 <span class="keyword">if</span> valToGetty(6) ~= 3,
+0161     valToGetty(48:49) = floor(Stim.us.pulses(2,:)/256);
+0162     valToGetty(50:51) = mod(Stim.us.pulses(2,:),256);
+0163 
+0164     <span class="comment">% other reward variables</span>
+0165     valToGetty(54:55) = floor(Stim.us.pulses(1,:)/256);
+0166     valToGetty(56:57) = mod(Stim.us.pulses(1,:),256);
+0167 <span class="keyword">else</span>
+0168     rewMagInMicroLit = round(Stim.us.pulses*1000);
+0169     <span class="comment">% possible reward magnitudes for actor (self)</span>
+0170     valToGetty(48:49) = floor(rewMagInMicroLit(2,:)/256);
+0171     valToGetty(50:51) = mod(rewMagInMicroLit(2,:),256);
+0172     
+0173     <span class="comment">% possible reward magnitude for passive (other)</span>
+0174     valToGetty(54:55) = floor(rewMagInMicroLit(1,:)/256);
+0175     valToGetty(56:57) = mod(rewMagInMicroLit(1,:),256);
+0176     
+0177     <span class="keyword">if</span> Pest.doPest,
+0178         <span class="comment">% since we have some space, send epsilon as well</span>
+0179         epsilon = round(Pest.epsilon*1000);
+0180         valToGetty(52) = floor(epsilon/256);
+0181         valToGetty(53) = mod(epsilon,256);
+0182     <span class="keyword">end</span>
+0183 <span class="keyword">end</span>
+0184 <span class="comment">%% ITI recovery</span>
+0185 <span class="keyword">if</span> isfield(TaskOp.EvntHist,<span class="string">'prev_ITI_base'</span>),
+0186     valToGetty(60) = floor(TaskOp.EvntHist.prev_ITI_base/256); <span class="comment">% previous ITI duration base</span>
+0187     valToGetty(61) = mod(TaskOp.EvntHist.prev_ITI_base,256); <span class="comment">% previous ITI duration base</span>
+0188     valToGetty(62) = floor(TaskOp.EvntHist.prev_ITI_var/256); <span class="comment">% previous ITI duration var</span>
+0189     valToGetty(63) = mod(TaskOp.EvntHist.prev_ITI_var,256); <span class="comment">% previous ITI duration var</span>
+0190 <span class="keyword">end</span>
+0191 
+0192 <span class="comment">% [this is planned ITI duration]</span>
+0193 valToGetty(64) = floor(TaskOp.EvntHist.prev_ITI_rand/256); <span class="comment">% planned ITI duration</span>
+0194 valToGetty(65) = mod(TaskOp.EvntHist.prev_ITI_rand,256);   <span class="comment">% planned ITI duration</span>
+0195 
+0196 <span class="comment">% [this is measured ITI duration]</span>
+0197 <span class="comment">% At this moment we are in ITI between (n)th and (n+1)th trial.</span>
+0198 <span class="comment">% We don't know duration of this ITI because there are several processes to</span>
+0199 <span class="comment">% happen before (n+1)th trial starts.</span>
+0200 <span class="comment">% ITI duration is sent to getty ignoring this time.</span>
+0201 <span class="comment">% ITI duration between (n)th and (n+1)th trial is logged in the data of</span>
+0202 <span class="comment">% (n+1)th trial, with some underestimation.</span>
+0203 <span class="comment">%%%%%                 prev_ITI_start_time    prev_trial_start_time     ITI_start_time          cur_trial_start_time (unknown yet)</span>
+0204 <span class="comment">%%%%%                     |                      |                           |                    |</span>
+0205 <span class="comment">%%%%%  ----|  trial (n-1) |----------------------|       trial(n)            |--------------------| trial(n+1) |--------------</span>
+0206 [TH ITI_start_time Empty] = <a href="../../../../Modig/library/isfield_sk.html" class="code" title="function [TF,value empty] = isfield_sk(stem, fullname)">isfield_sk</a>(TaskOp,<span class="string">'EvntHist.ITI_start_time'</span>);
+0207 clear TH
+0208 <span class="keyword">if</span> ~Empty
+0209     <span class="comment">% trial end @ moShEv/ShEv</span>
+0210     <span class="comment">% trial starts @ MoTaLo/StTrial</span>
+0211     prev_ITI_dur = TaskOp.EvntHist.cur_trial_start_time -  ITI_start_time;
+0212 <span class="keyword">else</span>
+0213     <span class="comment">% first trial</span>
+0214     prev_ITI_dur = 0;
+0215 <span class="keyword">end</span>
+0216 
+0217 <span class="comment">% ITI longer than 1 min 5 sec 536 msec is rounded to 65535 msec, because of</span>
+0218 <span class="comment">% 16 bit limit</span>
+0219 prev_ITI_dur = round(prev_ITI_dur*1000);
+0220 <span class="keyword">if</span> prev_ITI_dur&gt;(2^16)
+0221     valToGetty(66) = 255;
+0222     valToGetty(67) = 255;
+0223 <span class="keyword">else</span>
+0224     valToGetty(66) = floor(prev_ITI_dur/256);
+0225     valToGetty(67) = mod(prev_ITI_dur,256);
+0226 <span class="keyword">end</span>
+0227 
+0228 <span class="comment">%% send eye gain values...</span>
+0229 gx = TaskOp.Cal.Eye.Gain.x;
+0230 gy = TaskOp.Cal.Eye.Gain.y;
+0231 valToGetty([68 78]) = round(gx./10);
+0232 valToGetty([69 79]) = round(gy./10);
+0233 
+0234 <span class="comment">%% send touch interrupt coordinates</span>
+0235 <span class="comment">% 5.09</span>
+0236 <span class="keyword">if</span> ~isempty(BehaveData.tchInt)
+0237     valToGetty(70:71) = floor(BehaveData.tchInt/256);
+0238     valToGetty(72:73) = mod(BehaveData.tchInt,255);
+0239 <span class="keyword">end</span>
+0240 
+0241 <span class="comment">%% send voltage P.O.R.</span>
+0242 porx = round(TaskOp.Cal.Eye.Offset.x*100);
+0243 pory = round(TaskOp.Cal.Eye.Offset.y*100);
+0244 valToGetty(74) = floor(porx/256);
+0245 valToGetty(75) = mod(porx,255);
+0246 valToGetty(76) = floor(pory/256);
+0247 valToGetty(77) = mod(pory,255);</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

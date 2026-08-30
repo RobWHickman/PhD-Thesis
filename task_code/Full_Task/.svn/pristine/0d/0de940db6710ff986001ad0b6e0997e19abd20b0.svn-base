@@ -1,0 +1,71 @@
+function runned = ModigPrepareTrial_TWOAFC_SACC
+% Prepares trial parameters in project 'TWOAFC_SACC'
+%
+
+% RBM 09.07
+global Stim TaskOp VisParam
+
+type = 'bars';
+clr = [255 0 255; 255 255 0];
+
+% central fixation parameters
+Stim.centralFix.size = [10 10]; % pix,  
+Stim.centralFix.position = [0 0]; % (x,y) from mon center
+Stim.centralFix.color = clr(strcmp(TaskOp.curSetup,'B')+1,:);  
+% Stim.centralFix.color = [256 0 0]; % [rgb] (0-256, ptb; 0-1, matlab
+Stim.centralFix.tolerance_window = 200;
+Stim.centralFix.filter_time = 1.4;
+
+Stim.centralFix.hand.filter_time = 0.4;
+
+TaskOp.choPos = randperm(2);
+TaskOp.choice = 0;
+
+switch type
+    case 'circles'
+        % choices parameters
+        dc = [-400 400];
+        cc = [256 256 0; 192 0 192];
+        TaskOp.choJuice(TaskOp.choPos) = [0.080 0.060]-0.0054;
+
+        Stim.choices.size      = [20 20]; 
+        Stim.choices.position  = [dc', [0;0]]; 
+        Stim.choices.chocolor  = cc(TaskOp.choPos,:); 
+        Stim.choices.acqcolor  = [0 256 0];
+        stim.choices.acqrad    = 50;
+        Stim.choices.tolerance_window = 200;
+        Stim.choices.filter_time = 0.5;
+
+        Stim.choices.hand.filter_time = 0.5;
+    otherwise % case bars
+        scrCtr = VisParam.scr_rect(3:4)/2;
+
+        Stim.choices.target_center.x = scrCtr(1) + [-300; 300]; % stim center
+        Stim.choices.target_center.y = repmat(scrCtr(2),2,1);
+
+        % bar stim params     
+        Stim.choices.barH = 150;
+        Stim.choices.size = 30;
+        Stim.choices.distCtr = 300;
+        Stim.choices.szHB = 30;
+        
+        % proportional payoff in the bars:
+        rew = [0 50 75 100];
+        Stim.choices.alt = rew;
+        selRew = randperm(length(rew)); % equal prob. 
+        Stim.choices.rewRange = [50 150];
+        Stim.choices.actRew = rew(sort(selRew(1:2)));
+        Stim.choices.bkgclr = [255 255 255];
+       
+        Stim.choices.chocolor = Stim.centralFix.color;
+        Stim.choices.tolerance_window = 200;
+        Stim.choices.filter_time = 4.75;
+        
+        TaskOp.choJuice(TaskOp.choPos) = abs((Stim.choices.actRew ./1000)-0.005);
+end
+TaskOp.eyeInterrupt = 0;
+TaskOp.handInterrupt = 0;
+TaskOp.interrupt = 0;
+TaskOp.hold = 0;
+TaskOp.holdTime = 0;
+runned = 1;

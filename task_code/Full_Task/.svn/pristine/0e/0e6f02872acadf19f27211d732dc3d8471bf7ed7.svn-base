@@ -1,0 +1,6 @@
+function [ImOut]=TransposeImage(ImIn)
+%Transpose the image so vertical becomes horizontal
+
+ImOut(:,:,1)=ImIn(:,:,1)';
+ImOut(:,:,2)=ImIn(:,:,2)';
+ImOut(:,:,3)=ImIn(:,:,3)';

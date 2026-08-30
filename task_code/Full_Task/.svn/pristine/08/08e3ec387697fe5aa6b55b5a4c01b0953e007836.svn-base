@@ -1,0 +1,616 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigInitialize</title>
+  <meta name="keywords" content="ModigInitialize">
+  <meta name="description" content="ModigInitialize">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">Modig</a> &gt; <a href="index.html">shell</a> &gt; ModigInitialize.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\shell&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>ModigInitialize
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>ModigInitialize</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function ModigInitialize </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">   ModigInitialize
+
+ Called by Modig
+
+ Initial parameter loading and setting.
+ Load global parameters
+ Check projects in the 'projects' directory
+ Each project needs to have a specific set of files. 
+   If a project satisfies the requirements, it is registered and appears
+   in the main menu
+ Checks USB devices using PTB-3 on a MAC/OSX</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../Modig/library/ScreenWarmer.html" class="code" title="function ScreenWarmer(scrHdl,scrRect,warmTime)">ScreenWarmer</a>	ScreenWarmer(scrHdl,scrRect,warmTime)</li><li><a href="../../Modig/library/dioAutoTest.html" class="code" title="function result = dioAutoTest(dio)">dioAutoTest</a>	result = dioAutoTest(dio)</li><li><a href="../../Modig/library/shiftSetupMoMaMe.html" class="code" title="function varargout = shiftSetupMoMaMe(varargin)">shiftSetupMoMaMe</a>	varargout = shiftSetupMoMaMe(varargin)</li><li><a href="../../Modig/library/typeHandshakeSelection.html" class="code" title="function typeHandshakeSelection(source, eventdata)">typeHandshakeSelection</a>	typeHandshakeSelection(source, eventdata)</li><li><a href="Modig.html" class="code" title="function Modig(varargin)">Modig</a>	A function called to start "Modig", our on-line task control program</li><li><a href="ModigCreateAnalogInput.html" class="code" title="function aiObject = ModigCreateAnalogInput(sampling)">ModigCreateAnalogInput</a>	</li><li><a href="ModigCreateDio.html" class="code" title="function dioObject = ModigCreateDio(type)">ModigCreateDio</a>	dioObject = ModigCreateDio(type)</li><li><a href="ModigSetTimer.html" class="code" title="function cb = ModigSetTimer(timer_category,timer_name)">ModigSetTimer</a>	cb = ModigSetTimer(timer_category,timer_name)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="Modig.html" class="code" title="function Modig(varargin)">Modig</a>	A function called to start "Modig", our on-line task control program</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function ModigInitialize</a>
+0002 <span class="comment">%   ModigInitialize</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Called by Modig</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Initial parameter loading and setting.</span>
+0007 <span class="comment">% Load global parameters</span>
+0008 <span class="comment">% Check projects in the 'projects' directory</span>
+0009 <span class="comment">% Each project needs to have a specific set of files.</span>
+0010 <span class="comment">%   If a project satisfies the requirements, it is registered and appears</span>
+0011 <span class="comment">%   in the main menu</span>
+0012 <span class="comment">% Checks USB devices using PTB-3 on a MAC/OSX</span>
+0013 
+0014 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+0015 <span class="comment">% coded by skoba (skoba-tky@umin.ac.jp) 8 June 2005</span>
+0016 <span class="comment">% modified by skoba 22 August 2005</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% RBM 30.03.07 changed path where it looks for projects, included errodlg</span>
+0019 <span class="comment">%               for debugging, commented out PTB initialization codes</span>
+0020 <span class="comment">% RBM 25.04.07 some cosmetic changes, mainly erased directory changes /time</span>
+0021 <span class="comment">%               consuming, redundant and I heard they flush out MEX files</span>
+0022 <span class="comment">%               from memory?! TRY-catch 4 PTB calls</span>
+0023 <span class="comment">% rbm 06.08 gettyhandshake</span>
+0024 <span class="comment">% rbm 6.12  audio playback initialization</span>
+0025 
+0026 <span class="keyword">global</span> ModigDir   <span class="comment">% directory information</span>
+0027 <span class="keyword">global</span> ModigPrj   <span class="comment">% stores info collected from the DEFINITION files found on each prj folder</span>
+0028 <span class="keyword">global</span> MENUs      <span class="comment">% stores menu handles</span>
+0029 <span class="keyword">global</span> TaskOp     <span class="comment">% stores parameters used to operate a task</span>
+0030 <span class="keyword">global</span> VisParam   <span class="comment">% related to visual presentation</span>
+0031 <span class="keyword">global</span> ExtDevice  <span class="comment">% related to IO device</span>
+0032 <span class="keyword">global</span> inside_task  
+0033 <span class="keyword">global</span> inside_session <span class="comment">% holder, used in MoCommand</span>
+0034 <span class="keyword">global</span> BehaveData <span class="comment">% structure where we save behavioral data</span>
+0035 <span class="keyword">global</span> VisStat    <span class="comment">% legacy</span>
+0036 <span class="keyword">global</span> IO         <span class="comment">% redundant with ExtDevice, but legacy</span>
+0037 <span class="keyword">global</span> UserInfo   <span class="comment">% Modigliani user information</span>
+0038 <span class="keyword">global</span> AudParam   <span class="comment">% handle for audio playback (PTB-3)</span>
+0039 
+0040 inside_task = 0; inside_session = 0;
+0041 
+0042 <span class="comment">% UserInfo must be present in Matlab's workspace --call first ModigLogIn</span>
+0043 <span class="keyword">if</span> isempty(UserInfo)
+0044     error(<span class="string">'UserInfo must be present in Matlab''s workspace call first ModigLogIn'</span>);
+0045 <span class="keyword">end</span>
+0046 
+0047 <span class="comment">%% pre-set directories</span>
+0048 <span class="comment">% look for Modig and possible multiple instances</span>
+0049 allPaths = which(<span class="string">'modig.m'</span>,<span class="string">'-all'</span>);
+0050 mypath = allPaths{1,:};
+0051 <span class="keyword">if</span> size(allPaths,1)&gt;1,
+0052     fprintf(<span class="string">' Found %d copies of Modig. \n All are shadowed by:\n%s \n'</span>,size(allPaths,1),<span class="keyword">...</span>
+0053         mypath)
+0054 <span class="keyword">end</span>
+0055 
+0056 backslash = strfind(mypath,<span class="string">'\'</span>);
+0057 myRootDir = mypath(1:backslash(end-1));
+0058 
+0059 ModigDir.MainCode = [myRootDir, <span class="string">'shell'</span>];    
+0060 ModigDir.Projects = [myRootDir, <span class="string">'projects'</span>]; 
+0061 ModigDir.Images   = [myRootDir, <span class="string">'images'</span>];   
+0062 ModigDir.Log      = [myRootDir, <span class="string">'log'</span>];      
+0063 
+0064 <span class="comment">% Check projects in the directory get directory names in the projects folder</span>
+0065 DirInfo = dir(ModigDir.Projects); 
+0066 <span class="comment">% if the directories defined above do not apply, get directory information by GUI dialog.</span>
+0067 <span class="keyword">if</span> isempty(DirInfo)     
+0068     RootDir = uigetdir(<span class="string">'\'</span>, <span class="string">'Point to folder named &quot;Modig&quot;'</span>);
+0069     ModigDir.MainCode = strcat(RootDir,<span class="string">'\shell'</span>);
+0070     ModigDir.Projects = strcat(RootDir,<span class="string">'\projects'</span>);
+0071     ModigDir.Images   = strcat(RootDir,<span class="string">'\images'</span>);
+0072     ModigDir.Log      = strcat(RootDir,<span class="string">'\log'</span>);
+0073     DirInfo = dir(ModigDir.Projects);
+0074     UserInfo.ModigDir = ModigDir;
+0075 <span class="keyword">end</span>
+0076 <span class="comment">% get rid of '.','..','.DS_Store', etc.</span>
+0077 ProjectDir = DirInfo([DirInfo.isdir]==1 &amp; ~strcmp({DirInfo.name},<span class="string">'.'</span>) &amp; <span class="keyword">...</span>
+0078     ~strcmp({DirInfo.name},<span class="string">'..'</span>)); 
+0079 
+0080 <span class="comment">% each project need to have  a MenuTbl_xxx.mat file,</span>
+0081 <span class="comment">%                            a TaskTbl_xxx.mat file,</span>
+0082 <span class="comment">% the RandTbl is alternative</span>
+0083 <span class="comment">% These should be found in 'definition' folder under a folder in the</span>
+0084 <span class="comment">% name of each project.</span>
+0085 
+0086 <span class="comment">%% loop all project directories and load their default values</span>
+0087 <span class="keyword">for</span> pd=1:length(ProjectDir)
+0088     MenuTbl_name = strcat(ModigDir.Projects,<span class="string">'/'</span>,ProjectDir(pd).name,<span class="keyword">...</span>
+0089         <span class="string">'/definition/'</span>,<span class="string">'MenuTbl_'</span>,ProjectDir(pd).name,<span class="string">'.mat'</span>);
+0090     TaskTbl_name = strcat(ModigDir.Projects,<span class="string">'/'</span>,ProjectDir(pd).name,<span class="keyword">...</span>
+0091         <span class="string">'/definition/'</span>,<span class="string">'TaskTbl_'</span>,ProjectDir(pd).name,<span class="string">'.mat'</span>);
+0092     RandTbl_name = strcat(ModigDir.Projects,<span class="string">'/'</span>,ProjectDir(pd).name,<span class="keyword">...</span>
+0093         <span class="string">'/definition/'</span>,<span class="string">'RandTbl_'</span>,ProjectDir(pd).name,<span class="string">'.mat'</span>);
+0094     
+0095     <span class="comment">% Check whether each table exists or not.</span>
+0096     ProjectDir(pd).name = ProjectDir(pd).name;
+0097     <span class="keyword">if</span> exist(MenuTbl_name,<span class="string">'file'</span>)==2,
+0098         load(MenuTbl_name);
+0099         ModigPrj.(ProjectDir(pd).name).MenuTbl       =MenuTbl; 
+0100         ModigPrj.(ProjectDir(pd).name).MenuTblColumn =MenuTbl(1,:); 
+0101         ModigPrj.(ProjectDir(pd).name).MenuTbl(1,:)  =[]; 
+0102         <span class="comment">%%% putting MenuTbl information in ModigPrj</span>
+0103         MenuTblColumn = MenuTbl(1,:);
+0104         MenuTbl(1,:) = [];
+0105         [NumRowTbl NumColTbl] = size(MenuTbl);
+0106         <span class="comment">% make a table of title name and column number</span>
+0107         <span class="keyword">for</span> t_id = 1:NumColTbl
+0108             str1 = cell2mat(MenuTblColumn(t_id));
+0109             blanks = findstr(str1,<span class="string">' '</span>);
+0110             str1(blanks) = <span class="string">'_'</span>; <span class="comment">% if space in column name, replace it with underbar</span>
+0111             str = strcat(<span class="string">'ModigPrj.'</span>,ProjectDir(pd).name,<span class="string">'.MenuTblColumnID.'</span>,<span class="keyword">...</span>
+0112                 str1,<span class="string">'='</span>,num2str(t_id),<span class="string">';'</span>);
+0113             eval(str);
+0114         <span class="keyword">end</span>
+0115         clear MenuTbl; <span class="comment">% clear loaded TaskTbl</span>
+0116     <span class="keyword">else</span>
+0117         warning(<span class="string">'MODIG:problemLoadingTbl'</span>, <span class="keyword">...</span>
+0118             <span class="string">'Couldn''t find MenuTbl_%s. Skipping to the next project'</span>,<span class="keyword">...</span>
+0119             ProjectDir(pd).name)
+0120         <span class="keyword">continue</span>
+0121     <span class="keyword">end</span>
+0122     <span class="comment">% TaskTbl</span>
+0123     <span class="keyword">if</span> exist(TaskTbl_name,<span class="string">'file'</span>)==2,
+0124         load(TaskTbl_name);
+0125         ModigPrj.(ProjectDir(pd).name).TaskTbl=TaskTbl; 
+0126         ModigPrj.(ProjectDir(pd).name).TaskTblColumn=TaskTbl(1,:); 
+0127         ModigPrj.(ProjectDir(pd).name).TaskTbl(1,:)=[]; 
+0128         <span class="comment">%%% putting TaskTbl information in ModigPrj</span>
+0129         TaskTblColumn = TaskTbl(1,:);
+0130         TaskTbl(1,:) = [];
+0131         [NumRowTbl NumColTbl] = size(TaskTbl); 
+0132         <span class="comment">% x = size(y,2);  % Even better</span>
+0133         <span class="comment">% make a table of title name and column number</span>
+0134         <span class="keyword">for</span> t_id = 1:NumColTbl
+0135             str1 = cell2mat(TaskTblColumn(t_id));
+0136             blanks = findstr(str1,<span class="string">' '</span>);
+0137             <span class="comment">% if space in column name, replace it with underbar</span>
+0138             str1(blanks) = <span class="string">'_'</span>; 
+0139             str = strcat(<span class="string">'ModigPrj.'</span>,ProjectDir(pd).name,<span class="string">'.TaskTblColumnID.'</span>,<span class="keyword">...</span>
+0140                 str1,<span class="string">'='</span>,num2str(t_id),<span class="string">';'</span>);
+0141             eval(str);
+0142         <span class="keyword">end</span>
+0143         clear TaskTbl;
+0144     <span class="keyword">else</span>
+0145         warning(<span class="string">'MODIG:problemLoadingTbl'</span>, <span class="keyword">...</span>
+0146             <span class="string">'Couldn''t find TaskTbl_%s. Skipping to the next project'</span>,<span class="keyword">...</span>
+0147             ProjectDir(pd).name)
+0148         <span class="keyword">continue</span>
+0149     <span class="keyword">end</span>
+0150     
+0151     <span class="keyword">if</span> exist(RandTbl_name,<span class="string">'file'</span>)
+0152         load(RandTbl_name);
+0153         ModigPrj.(ProjectDir(pd).name).RandTbl      =RandTbl;
+0154         ModigPrj.(ProjectDir(pd).name).RandTblColumn=RandTbl(1,:); 
+0155         ModigPrj.(ProjectDir(pd).name).RandTbl(1,:) =[]; 
+0156         <span class="comment">% putting RandTbl information in ModigPrj</span>
+0157         RandTblColumn = RandTbl(1,:);
+0158         RandTbl(1,:) = [];
+0159         [NumRowTbl NumColTbl] = size(RandTbl);
+0160         <span class="comment">% make a table of title name and column number</span>
+0161         <span class="keyword">for</span> t_id = 1:NumColTbl
+0162             str1 = cell2mat(RandTblColumn(t_id));
+0163             blanks = findstr(str1,<span class="string">' '</span>);
+0164             str1(blanks) = <span class="string">'_'</span>; <span class="comment">% if space in column name, replace it with underbar</span>
+0165             str = strcat(<span class="string">'ModigPrj.'</span>,ProjectDir(pd).name,<span class="string">'.RandTblColumnID.'</span>,str1,<span class="string">'='</span>,num2str(t_id),<span class="string">';'</span>);
+0166             eval(str);
+0167         <span class="keyword">end</span>
+0168         clear RandTbl;
+0169     <span class="keyword">end</span>
+0170 <span class="keyword">end</span>
+0171 
+0172 <span class="comment">% show all the project names on the listbox in the main menu. If the</span>
+0173 <span class="comment">%   ModigMainMenu GUI is open (mainly a debugging error)</span>
+0174 <span class="keyword">if</span> ~isempty(MENUs) 
+0175     set(MENUs.ModigMainMenu.handles.CNTR_LIST_TASK,<span class="string">'string'</span>,<span class="keyword">...</span>
+0176         {ProjectDir.name});
+0177 <span class="keyword">else</span>
+0178     error(<span class="string">'ModigMainMenu.fig must be opened--call first ModigMenuControl(''ModigMainMenu'',''On''); '</span>);
+0179 <span class="keyword">end</span>    
+0180 
+0181 <span class="comment">% check connected USB devices..</span>
+0182 <span class="keyword">if</span> IsOSX || IsOS9
+0183     DeviceStruct=PsychHID(<span class="string">'Devices'</span>);
+0184     <span class="keyword">for</span> a = 1:length(DeviceStruct)
+0185         <span class="keyword">if</span> strcmpi(DeviceStruct(a).usageName,<span class="string">'keyboard'</span>),
+0186             ExtDevice.keyboard.device_num = a;
+0187         <span class="keyword">elseif</span> strcmpi(DeviceStruct(a).usageName,<span class="string">'mouse'</span>),
+0188             ExtDevice.mouse.device_num = a;
+0189         <span class="keyword">end</span>
+0190     <span class="keyword">end</span>
+0191 <span class="keyword">end</span>
+0192 
+0193 <span class="comment">%% Initial settings for task operation</span>
+0194 
+0195 <span class="comment">% [0 - 2] setting at 0, task process can be interupted by key input and</span>
+0196 <span class="comment">% mouse click, but timing may get less accurate.</span>
+0197 TaskOp.priority_level = 2; 
+0198 <span class="comment">% show less messages (only important) at higher level</span>
+0199 TaskOp.message_level = 0;  
+0200 TaskOp.running_mode = <span class="string">'infinite'</span>; 
+0201 <span class="comment">% 'infinite' or 'fixed_num_trials'.</span>
+0202 
+0203 <span class="comment">% an array to store event history in each trial</span>
+0204 TaskOp.EvntHist.Tbl                    = {}; 
+0205 TaskOp.EvntHist.Column.evnt_num        = 1;
+0206 TaskOp.EvntHist.Column.evnt_name       = 2;
+0207 TaskOp.EvntHist.Column.dur_error       = 3;
+0208 TaskOp.EvntHist.Column.link_var_status = 4;
+0209 TaskOp.EvntHist.Column.time_beh        = 5;
+0210 TaskOp.EvntHist.Column.planned_dur     = 6;
+0211 TaskOp.EvntHist.Column.adjusted_dur    = 7;
+0212 TaskOp.EvntHist.Column.actual_dur      = 8;
+0213 TaskOp.EvntHist.Column.end_time        = 9;
+0214 TaskOp.mode                            = <span class="string">'debug'</span>;
+0215 TaskOp.prj                             = <span class="string">'IMP_GIVING'</span>;
+0216 
+0217 <span class="comment">% handle of eye position marker on experimenter's screen</span>
+0218 TaskOp.eye_handle           = [];  
+0219 TaskOp.touchHandle          = []; 
+0220 
+0221 TaskOp.repeatError          = 0;
+0222 TaskOp.curSetup             = 0;
+0223 <span class="comment">% we'll save on the index the pulses we've sent on that particular line</span>
+0224 TaskOp.reward               = zeros(16,1); 
+0225 <span class="comment">% TaskOp.count.freeRew = 0;</span>
+0226 
+0227 <span class="comment">% initalization for double setup</span>
+0228 TaskOp.curSetup = <span class="string">'A'</span>;
+0229 TaskOp.roleChangeTrials = 1;
+0230 TaskOp.roleChangeCorrect=[];
+0231 TaskOp.respBlackBkg=1;
+0232 
+0233 
+0234 <span class="comment">% note, I'll be using only one gain and one offset value for each chanel,</span>
+0235 <span class="comment">%       I'll keep the old variables for consistency</span>
+0236 TaskOp.Cal.Eye.Gain.x   = 550;
+0237 TaskOp.Cal.Eye.Gain.y   = 850;
+0238 TaskOp.Cal.Eye.Offset.x = 1;
+0239 TaskOp.Cal.Eye.Offset.y = 1;
+0240 <span class="comment">% if UserInfo.use_split==1,</span>
+0241 TaskOp.Cal.Eye.gainHolder = zeros(2);
+0242 <span class="comment">% end</span>
+0243 
+0244 <span class="comment">% trial counter related</span>
+0245 TaskOp.count.total_seq          = 12;
+0246 TaskOp.count.day_total          = 0;
+0247 TaskOp.count.day_correct        = 0;
+0248 TaskOp.count.day_error          = 0;
+0249 TaskOp.count.block_total        = 0;
+0250 TaskOp.count.block_correct      = 0;
+0251 TaskOp.count.block_error        = 0;
+0252 TaskOp.count.seq                = 0;
+0253 TaskOp.count.total_seq          = 10;
+0254 TaskOp.count.set_total          = 1;
+0255 TaskOp.count.set_remaining      = 1;
+0256 TaskOp.count.block_ignored      = 0;
+0257 TaskOp.count.day_ignored        = 0;
+0258 TaskOp.count.block_rew          = 0;
+0259 TaskOp.count.day_rew            = 0;
+0260 TaskOp.count.block_noRew        = 0;
+0261 TaskOp.count.day_noRew          = 0;
+0262 TaskOp.count.prjCount           = 0;
+0263 TaskOp.count.choiceRT           = 0;
+0264 TaskOp.count.earlyRelease       = 0;
+0265 TaskOp.count.noTouch            = 0;
+0266 TaskOp.count.block_ignored  = 0;
+0267 TaskOp.count.day_ignored    = 0;
+0268 TaskOp.count.block_rew      = 0;
+0269 TaskOp.count.day_rew        = 0;
+0270 TaskOp.count.block_noRew    = 0;
+0271 TaskOp.count.day_noRew      = 0;
+0272 TaskOp.count.prjCount       = 0;
+0273 TaskOp.count.choiceRT       = 0;
+0274 TaskOp.count.trialOrder     = 0; <span class="comment">% if we're using one setup</span>
+0275 
+0276 TaskOp.Trial.to_be_shuffled     = 1;
+0277 TaskOp.Trial.just_shuffled      = 0;
+0278 
+0279 TaskOp.task_juice.start_time    = [];
+0280 TaskOp.task_juice.end_time      = [];
+0281 TaskOp.task_juice.dur           = [];
+0282 TaskOp.free_juice.start_time    = [];
+0283 TaskOp.free_juice.end_time      = [];
+0284 TaskOp.free_juice.dur           = [];
+0285 
+0286 <span class="comment">% log</span>
+0287 TaskOp.log.filename     = [];
+0288 TaskOp.log.fullname     = [];
+0289 TaskOp.log.handle       = [];
+0290 TaskOp.log.on           = 1;
+0291 TaskOp.log.basic_header = [{<span class="string">'subject'</span>},<span class="keyword">...</span>
+0292                            {<span class="string">'project'</span>},<span class="keyword">...</span>
+0293                            {<span class="string">'recorded'</span>},<span class="keyword">...</span>
+0294                            {<span class="string">'day total count'</span>},<span class="keyword">...</span>
+0295                            {<span class="string">'block total count'</span>},<span class="keyword">...</span>
+0296                            {<span class="string">'time start'</span>},<span class="keyword">...</span>
+0297                            {<span class="string">'shuffle'</span>}];
+0298 
+0299 <span class="comment">% behavior control</span>
+0300 TaskOp.lostHold = 0;
+0301 TaskOp.handInterrupt = 0;
+0302 TaskOp.eyeInterrupt = 0;
+0303 TaskOp.touchInterrupt = 0;
+0304 TaskOp.hold = 0;
+0305 TaskOp.trialStWarning = 1;
+0306 TaskOp.correct = 0;
+0307 TaskOp.roleChangeCorrect=[];
+0308 
+0309                        
+0310 <span class="comment">%% IO asignment etc.</span>
+0311 IO.Input.eye.cur_monitor_device = <span class="string">'iscan'</span>;
+0312 IO.Input.eye.monitor            = 1;
+0313 IO.Input.eye.tracking_method    = <span class="string">'eye scan'</span>; <span class="comment">% Options are in ModigInputMenu</span>
+0314 IO.Input.eye.ch                 = [0 1];<span class="comment">% analog x,y</span>
+0315 
+0316 IO.Input.hand.monitor         = 1;
+0317 IO.Input.hand.tracking_method = <span class="string">'daq'</span>; <span class="comment">% options are daq or key</span>
+0318 IO.Input.hand.sampling_rate   = 20;
+0319 
+0320 IO.Input.behavior.sampling_rate = 50; <span class="comment">% Hz</span>
+0321 
+0322 <span class="comment">% IO.Output.task_juice.dur = 50; % legacy</span>
+0323 IO.Output.free_juice.dur = 35; <span class="comment">% in ms</span>
+0324 
+0325 <a href="ModigSetTimer.html" class="code" title="function cb = ModigSetTimer(timer_category,timer_name)">ModigSetTimer</a>(<span class="string">'Output'</span>,<span class="string">'free_juice'</span>);
+0326 
+0327 <span class="comment">%% an array to store eye position input in each trial</span>
+0328 BehaveData.Tbl              = []; 
+0329 BehaveData.Column.time      = 1;
+0330 BehaveData.Column.eye_x_raw = 2;
+0331 BehaveData.Column.eye_y_raw = 3;
+0332 BehaveData.Column.eye_x_cal = 4;
+0333 BehaveData.Column.eye_y_cal = 5;
+0334 BehaveData.tchInt           = [];
+0335 
+0336 <span class="comment">%% External data acquisition system</span>
+0337 <span class="keyword">if</span> UserInfo.lab_connection
+0338     ExtDevice.outputDio         = <a href="ModigCreateDio.html" class="code" title="function dioObject = ModigCreateDio(type)">ModigCreateDio</a>(<span class="string">'out'</span>);
+0339     <a href="../../Modig/library/dioAutoTest.html" class="code" title="function result = dioAutoTest(dio)">dioAutoTest</a>(ExtDevice.outputDio);
+0340     ExtDevice.inputDio          = <a href="ModigCreateDio.html" class="code" title="function dioObject = ModigCreateDio(type)">ModigCreateDio</a>(<span class="string">'in'</span>);    
+0341 <span class="comment">%     dioAutoTest(ExtDevice.inputDio); % it creates conflict</span>
+0342     ExtDevice.aiObject          = <a href="ModigCreateAnalogInput.html" class="code" title="function aiObject = ModigCreateAnalogInput(sampling)">ModigCreateAnalogInput</a>;
+0343     ExtDevice.CurDevice         = <span class="string">'NIDAQ'</span>; <span class="comment">% No alternative</span>
+0344     
+0345     set(MENUs.ModigMainMenu.handles.MENU_EnableHandshake,<span class="keyword">...</span>
+0346         <span class="string">'enable'</span>,<span class="string">'on'</span>,<span class="string">'checked'</span>,<span class="string">'on'</span>)
+0347     set(MENUs.ModigMainMenu.handles.MENU_ModigBitMonitor,<span class="string">'enable'</span>,<span class="string">'on'</span>)
+0348     UserInfo.gettyHandshake = 1;
+0349     UserInfo.typeOfHandshake = <span class="string">'NI'</span>;
+0350 <span class="keyword">else</span>
+0351     set(MENUs.ModigMainMenu.handles.MENU_EnableHandshake,<span class="keyword">...</span>
+0352         <span class="string">'enable'</span>,<span class="string">'off'</span>,<span class="string">'checked'</span>,<span class="string">'off'</span>)
+0353     set(MENUs.ModigMainMenu.handles.MENU_ModigBitMonitor,<span class="string">'enable'</span>,<span class="string">'off'</span>)
+0354     UserInfo.gettyHandshake = 0;
+0355 <span class="keyword">end</span>
+0356 
+0357 <span class="comment">%% Open PTB</span>
+0358 <span class="keyword">try</span>
+0359     Screen(<span class="string">'CloseAll'</span>);                                   <span class="comment">% close all first</span>
+0360     Screen(<span class="string">'Preference'</span>, <span class="string">'SkipSyncTests'</span>,0); <span class="comment">% use 1 to skip the sync tests</span>
+0361     Screen(<span class="string">'Preference'</span>, <span class="string">'VBLTimestampingMode'</span>, 2);
+0362     VisParam.scr_num = max(Screen(<span class="string">'Screens'</span>));
+0363     
+0364     <span class="keyword">if</span> VisParam.scr_num==1,
+0365         warning(<span class="string">'Modig:MoInit'</span>,<span class="keyword">...</span>
+0366             <span class="string">'Modig isn''t meant to be used with one monito. Starting debug mode'</span>)      
+0367         [VisParam.scr_holder, VisParam.scr_rect_holder] = Screen(<span class="string">'OpenWindow'</span>,<span class="keyword">...</span>
+0368             VisParam.scr_num, 0, [0 0 200 200]);
+0369     <span class="keyword">elseif</span> VisParam.scr_num==2 &amp;&amp; UserInfo.use_split==0,
+0370         <span class="comment">% two monitors--&gt; % 0: dual, 1:control, 2:subject,</span>
+0371         [VisParam.scr_holder, VisParam.scr_rect_holder] = Screen(<span class="string">'OpenWindow'</span>,<span class="keyword">...</span>
+0372             1, 0);
+0373     <span class="keyword">elseif</span> VisParam.scr_num==2 &amp;&amp; UserInfo.use_split==1,
+0374         <span class="comment">% two monitors, one of which is split in two windows</span>
+0375         expRect = Screen(<span class="string">'Rect'</span>,0);
+0376         <span class="keyword">if</span> expRect(4)==768,
+0377             <span class="comment">% experimental setup (rect values are relative to the monitor)</span>
+0378             [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = <span class="keyword">...</span>
+0379                 Screen(<span class="string">'OpenWindow'</span>, 0,0,[512 0 1024 768]);
+0380             [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = Screen(<span class="string">'Openwindow'</span>,<span class="keyword">...</span>
+0381                 0,0,[0 0 512 768]);
+0382         <span class="keyword">else</span>
+0383             <span class="comment">% open in laptop screen</span>
+0384             fprintf(<span class="string">'Move all GUIs to LCD monitor...\n'</span>)
+0385             keyboard
+0386             
+0387             <span class="comment">% laptop debug setup</span>
+0388             scrRects(1,:) = Screen(<span class="string">'Rect'</span>,1);
+0389             scrRects(2,:) = Screen(<span class="string">'Rect'</span>,2);
+0390             
+0391             <span class="comment">% Open both screens on Screen 1</span>
+0392 <span class="comment">%             middle = scrRects(1,1)+((scrRects(1,3)-scrRects(1,1))/2);</span>
+0393 <span class="comment">%             [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = ...</span>
+0394 <span class="comment">%                 Screen('OpenWindow',0,0,[middle,scrRects(1,2:4)]);</span>
+0395 <span class="comment">%             [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = ...</span>
+0396 <span class="comment">%                 Screen('OpenWindow',0,0,[scrRects(1,1:2),middle,scrRects(1,4)]);</span>
+0397             
+0398 <span class="comment">%              % Open both screens on Screen 2</span>
+0399 <span class="comment">%             middle = scrRects(1,3)+(scrRects(2,3)/2);</span>
+0400 <span class="comment">%             [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = ...</span>
+0401 <span class="comment">%                 Screen('OpenWindow', 0, 0, [scrRects(1,3) 0 middle scrRects(2,4)]);</span>
+0402 <span class="comment">%             [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = ...</span>
+0403 <span class="comment">%                 Screen('OpenWindow', 0, 0, [scrRects(1,3)+middle 0 scrRects(1,3)+middle+scrRects(2,3) scrRects(2,4)]);</span>
+0404 
+0405             <span class="comment">% open both screens on monitor 1, which is the leftmost monitor</span>
+0406              [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = <span class="keyword">...</span>
+0407                 Screen(<span class="string">'OpenWindow'</span>, 0, 0, [0 0 scrRects(1,3)/2 scrRects(1,4)]);
+0408             [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = <span class="keyword">...</span>
+0409                 Screen(<span class="string">'OpenWindow'</span>, 0, 0, [scrRects(1,3)/2 0 scrRects(1,3) scrRects(1,4)]);
+0410         <span class="keyword">end</span>
+0411         TaskOp.curSetup = <span class="string">'A'</span>;
+0412         
+0413         
+0414         <span class="comment">% warm up</span>
+0415         warmUp = 300;
+0416         <a href="../../Modig/library/ScreenWarmer.html" class="code" title="function ScreenWarmer(scrHdl,scrRect,warmTime)">ScreenWarmer</a>(VisParam.scr_holder(1),VisParam.scr_rect_holder(1,:),warmUp);
+0417         <a href="../../Modig/library/ScreenWarmer.html" class="code" title="function ScreenWarmer(scrHdl,scrRect,warmTime)">ScreenWarmer</a>(VisParam.scr_holder(2),VisParam.scr_rect_holder(2,:),warmUp);
+0418     <span class="keyword">elseif</span> VisParam.scr_num==3,
+0419         <span class="comment">% create two windows, spanning each one monitor in our double setup</span>
+0420         <span class="comment">% three monitors in dual mode --&gt; 0:stereo, 1:disp2, 2:disp1, 3:disp3.</span>
+0421         <span class="comment">% note that either calling 0 or 1 will hang Matlab since disp2 isn't</span>
+0422         <span class="comment">% controlled by the primary gfx card</span>
+0423         <span class="comment">% two ELOs 1024x768</span>
+0424         <span class="comment">% three monitors with dual head gfx card in span mode--&gt;  0:full</span>
+0425         <span class="comment">% desktop, 1:display 2, 2: two monitors in span mode. check the rect value!</span>
+0426 <span class="comment">%         [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)]=Screen(...</span>
+0427 <span class="comment">%             'OpenWindow',3, 0, [0 0 1024 768]);</span>
+0428 <span class="comment">%         [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)]=Screen(...</span>
+0429 <span class="comment">%             'OpenWindow',1, 0,[1024 0 1024*2 768]);</span>
+0430 <span class="comment">%         VisParam.scr_rect_holder(1,:) = Screen('Rect', 1);</span>
+0431         [VisParam.scr_holder(1)  VisParam.scr_rect_holder(1,:)]=Screen(<span class="string">'OpenWindow'</span>,1, 0);
+0432 <span class="comment">%         VisParam.scr_rect_holder(2,:) = Screen('Rect',3);</span>
+0433         [VisParam.scr_holder(2)  VisParam.scr_rect_holder(2,:)]=Screen(<span class="string">'OpenWindow'</span>,3, 0);
+0434         TaskOp.curSetup = <span class="string">'A'</span>;
+0435         
+0436         <a href="../../Modig/library/shiftSetupMoMaMe.html" class="code" title="function varargout = shiftSetupMoMaMe(varargin)">shiftSetupMoMaMe</a>;
+0437     <span class="keyword">end</span>
+0438     VisParam.scr_handle = VisParam.scr_holder(1);
+0439     VisParam.scr_rect   = VisParam.scr_rect_holder(1,:);
+0440     
+0441     Priority(MaxPriority(VisParam.scr_handle));
+0442     Screen(<span class="string">'Flip'</span>,VisParam.scr_handle);
+0443     <span class="comment">% Nice picture to start with</span>
+0444     <span class="keyword">if</span> exist(<span class="string">'nu_couche_dos.jpg'</span>,<span class="string">'file'</span>)
+0445         pic = imread(<span class="string">'nu_couche_dos.jpg'</span>);
+0446         txt_handle = Screen(<span class="string">'MakeTexture'</span>,VisParam.scr_handle,pic);
+0447         Screen(<span class="string">'DrawTexture'</span>,VisParam.scr_handle,txt_handle);
+0448         <span class="keyword">if</span> UserInfo.use_split==1,
+0449             txt_handle2 = Screen(<span class="string">'MakeTexture'</span>,VisParam.scr_holder(2),pic);
+0450             Screen(<span class="string">'DrawTexture'</span>,VisParam.scr_holder(2),txt_handle2);
+0451         <span class="keyword">end</span>
+0452     <span class="keyword">else</span>
+0453         <span class="comment">% not found?!</span>
+0454         Screen(<span class="string">'FillRect'</span>, VisParam.scr_handle, 255/2);
+0455         Screen(<span class="string">'DrawText'</span>, VisParam.scr_handle, <span class="string">'couldn''t load nice pic!'</span>, 0, VisParam.scr_rect(4)/2)
+0456         Screen(<span class="string">'Flip'</span>,VisParam.scr_handle);
+0457     <span class="keyword">end</span>
+0458     
+0459     <span class="comment">% Initalize audio</span>
+0460     InitializePsychSound;
+0461     <span class="comment">% Open the default audio device [], with default mode [] (==Only playback),</span>
+0462     <span class="comment">% and a required latencyclass of zero 0 == no low-latency mode, as well as</span>
+0463     <span class="comment">% a frequency of freq and nrchannels sound channels.</span>
+0464     <span class="comment">% This returns a handle to the audio device:</span>
+0465     <span class="keyword">try</span>
+0466         <span class="comment">% Try with the 'freq'uency we wanted:</span>
+0467         AudParam.fs = 8192;
+0468         AudParam.nrchannels = 1;
+0469         AudParam.pahandle = PsychPortAudio(<span class="string">'Open'</span>, [], [], 0, AudParam.fs, AudParam.nrchannels);
+0470     <span class="keyword">catch</span>
+0471         <span class="comment">% Failed. Retry with default frequency as suggested by device:</span>
+0472         fprintf(<span class="string">'\nCould not open device at wanted playback frequency of %i Hz. Will retry with device default frequency.\n'</span>, freq);
+0473         fprintf(<span class="string">'Sound may sound a bit out of tune, ...\n\n'</span>);
+0474 
+0475         psychlasterror(<span class="string">'reset'</span>);
+0476         AudParam.pahandle = PsychPortAudio(<span class="string">'Open'</span>, [], [], 0, [], AudParam.nrchannels);
+0477     <span class="keyword">end</span>
+0478 <span class="keyword">catch</span>
+0479       <span class="comment">% We fucked it up, and we want control back!</span>
+0480     Priority(0);
+0481     Screen(<span class="string">'CloseAll'</span>);
+0482     <a href="Modig.html" class="code" title="function Modig(varargin)">Modig</a> exit
+0483     <span class="comment">% Restore preferences</span>
+0484 <span class="comment">%     Screen('Preference', 'VisualDebugLevel', oldVisualDebugLevel);</span>
+0485 <span class="comment">%     Screen('Preference', 'SuppressAllWarnings', oldSupressAllWarnings);</span>
+0486     psychrethrow(psychlasterror);
+0487 <span class="comment">%     rethrow(lasterror)</span>
+0488 
+0489     <span class="keyword">return</span>
+0490 <span class="keyword">end</span>
+0491 
+0492 <span class="comment">%% Load screen parameters to global VisParam</span>
+0493 <span class="comment">% [VisParam.scr_center_x, VisParam.scr_center_y] = RectCenter(rect);</span>
+0494 VisParam.scr_center_x   = VisParam.scr_rect(3) /2;
+0495 VisParam.scr_center_y   = VisParam.scr_rect(4)/2;
+0496 VisParam.view_dist      = 500;                                   <span class="comment">% distance between screen and subject in mm</span>
+0497 VisParam.scr_width_mm   = 308;                                <span class="comment">% size of subject monitor width in mm</span>
+0498 VisParam.scr_height_mm  = 231;                                <span class="comment">% size of subject monitor height in mm</span>
+0499 VisParam.scr_width_pix  = VisParam.scr_rect(3);              <span class="comment">% size of subject monitor width in pixels //redundant!</span>
+0500 VisParam.scr_height_pix = VisParam.scr_rect(4);             <span class="comment">% size of subject monitor height in pixels</span>
+0501 scr_deg=atan(VisParam.scr_width_mm/VisParam.view_dist)*180/pi;
+0502 <span class="comment">%scr_deg = pi * (VisParam.scr_rect(3)-VisParam.scr_rect(1)) / atan(VisParam.scr_width_mm/VisParam.view_dist/2) / 360;</span>
+0503 VisParam.pix_per_deg    = VisParam.scr_width_pix/scr_deg;
+0504 VisParam.deg_per_pix    = scr_deg/VisParam.scr_width_pix;
+0505 VisParam.draw_eye_pos   = 1;
+0506 VisParam.draw_stimuli   = 1;
+0507 VisParam.report_hand    = 1;
+0508 <span class="comment">% ISCAN INFO FOR CALIBrATION //note, not used at the moment</span>
+0509 <span class="comment">% VisParam.iscan.volt_range = 10.239;</span>
+0510 
+0511 <span class="comment">% note, params to make adjustment for monitor retrace delay are commented</span>
+0512 <span class="comment">%       out in the function --&gt; no corrections</span>
+0513 VisStat.make_correction = 1;
+0514 VisStat.num_test        = 10;
+0515 VisStat.prj             = [];
+0516 VisStat.page            = [];
+0517 VisStat.num_page        = 0;
+0518 VisStat.page_interval   = 1;
+0519 VisStat.randomize_trial = 1;
+0520 
+0521 
+0522 <span class="comment">%% Arm the close request function in main menu</span>
+0523 <span class="keyword">if</span> strcmpi(MENUs.ModigMainMenu.status,<span class="string">'on'</span>)
+0524     buf = get(MENUs.ModigMainMenu.handles.ModigMainMenu,<span class="string">'CloseRequestFcn'</span>);
+0525     str = strcat(buf,<span class="string">'ModigCommand('</span>,<span class="string">''''</span>,<span class="string">'exit'</span>,<span class="string">''''</span>,<span class="string">');'</span>);
+0526     set(MENUs.ModigMainMenu.handles.ModigMainMenu,<span class="string">'CloseRequestFcn'</span>,str);
+0527 <span class="keyword">end</span>
+0528 
+0529 <span class="comment">%% Generate the handshake radio button group for ModigMainMenu</span>
+0530 <span class="keyword">if</span> UserInfo.lab_connection,
+0531     <span class="comment">% Create the button group.</span>
+0532     h = uibuttongroup(<span class="string">'parent'</span>,MENUs.ModigMainMenu.handle,<span class="keyword">...</span>
+0533             <span class="string">'units'</span>,<span class="string">'characters'</span>,<span class="keyword">...</span>
+0534             <span class="string">'title'</span>,<span class="string">'Type of Handshake'</span>,<span class="keyword">...</span>
+0535             <span class="string">'visible'</span>,<span class="string">'on'</span>,<span class="string">'Position'</span>,[50 21.5 23.5 4.5],<span class="keyword">...</span>
+0536             <span class="string">'tag'</span>,<span class="string">'typeOfHandshake'</span>);
+0537     <span class="comment">% Create three radio buttons in the button group.</span>
+0538     radioNI = uicontrol(<span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'NI'</span>,<span class="keyword">...</span>
+0539         <span class="string">'Position'</span>,[19 25 87 15],<span class="string">'parent'</span>,h,<span class="string">'tag'</span>,<span class="string">'radioNI'</span>);
+0540     radioTCP = uicontrol(<span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'TCP'</span>,<span class="keyword">...</span>
+0541         <span class="string">'Position'</span>,[19 5 87 15],<span class="string">'parent'</span>,h,<span class="string">'tag'</span>,<span class="string">'radioTCP'</span>);
+0542 
+0543     <span class="comment">% Initialize some button group properties.</span>
+0544     set(h,<span class="string">'SelectionChangeFcn'</span>,@<a href="../../Modig/library/typeHandshakeSelection.html" class="code" title="function typeHandshakeSelection(source, eventdata)">typeHandshakeSelection</a>);
+0545     set(h,<span class="string">'SelectedObject'</span>,radioNI);  
+0546     set(h,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0547 
+0548     <span class="comment">% pass handles to global</span>
+0549     MENUs.ModigMainMenu.handles.typeOfHandshake = h;
+0550     MENUs.ModigMainMenu.handles.radioNI = radioNI;
+0551     MENUs.ModigMainMenu.handles.radioTCP = radioTCP;
+0552 <span class="keyword">else</span>
+0553     set(MENUs.ModigMainMenu.handles.togglebutton_openConnection,<span class="string">'enable'</span>,<span class="string">'off'</span>)
+0554 <span class="keyword">end</span>
+0555 
+0556 <span class="comment">% update GUI handles</span>
+0557 MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handle);
+0558 guidata(MENUs.ModigMainMenu.handle, MENUs.ModigMainMenu.handles);
+0559</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

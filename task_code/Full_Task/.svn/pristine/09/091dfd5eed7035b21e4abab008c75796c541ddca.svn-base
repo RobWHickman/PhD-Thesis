@@ -1,0 +1,24 @@
+function [Result]=GetAnalogData(Channels, readfromdevice)
+%return the state of the specified channel(s). If readfromdevice is set to 1
+%then read value from the device, otherwise just use the most recent stored
+%values
+% 
+% 
+% global ExtDevice LatestInData
+% 
+% %First collect data from device if necessary
+% 
+% [a,b]=size(LatestInData);
+% if (readfromdevice==1)||((a*b)==0)
+%     LatestInData=ITC_AsyncIO(ExtDevice.ITC.dev_handle,ExtDevice.ITC.CommData);
+% end
+% 
+% %Now creat output list (in same order as "Channels" is specified 
+% [a,b]=size(Channels);
+% Result=[];
+% for i=1:(a*b)
+%     Result(i)=LatestInData(Channels(i)+1);
+% end
+warning('Modig:Legacy','GetAnalogData is due to be deprecated, use daq/getdata or AIcallback')
+
+disp('function GetAnalogData has been depracated, used instead daq/getdata or AIcallback')

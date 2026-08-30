@@ -1,0 +1,154 @@
+function valToGetty = ModigMakeGettyArray_OBS_LEARN
+% valToGetty = ModigMakeGettyArray_OBS_LEARN
+%
+% Make a vector to send to Getty in OBS_LEARN project.
+% Note that shares task number (24), Imperative giving AND dictator, this
+% one is the "pavlovian" version (in terms of labels in getty).
+%
+% Right now only 40 to 59 are free
+% 
+% rbm 11.10
+
+global Stim Task TaskOp Timers BehaveData
+
+valToGetty = zeros(1,80);
+
+%% basic stuff
+% 1. fixed
+valToGetty(1) = length(valToGetty); % numb of additional vars
+
+% 2. taskNumb
+valToGetty(2) = 24;  
+
+% 3. combined trial type (bhvsit)
+
+% 0 | 1
+stimLeft = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,2)-1; 
+% 0 | 6
+actor    = strcmp(TaskOp.curSetup,'B')*6;                               
+% 1 | 3 | 5: 1, imperative; 3, pavlovian; 5, choice
+tk = 3;
+
+% steps of 12 'labels'
+condition= 12*(TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1)-1);
+
+valToGetty(3) = (actor + stimLeft + tk + condition);
+
+% longest possible trial length (w/o error time added)
+taFi = fields(Task);
+trLAll   = 0;
+trLTimer = 0;
+
+for i = 1:length(taFi)
+    trLAll = trLAll + Timers.Event.(taFi{i}).StartDelay;
+    if ~strcmpi(taFi{i},'error')
+        trLTimer = trLTimer + Timers.Event.(taFi{i}).StartDelay;        
+    end
+end
+
+trLNoITI = trLTimer - Timers.Event.ITI.StartDelay;
+trLNoITI = max(trLNoITI)*1000;
+valToGetty(4) = floor(trLNoITI/256);
+valToGetty(5) = mod(trLNoITI,256);
+
+% disp(sprintf('no ITI: %g  all epochs: %g ',max(trLNoITI)*1000, trLTimer))
+
+TaskOp.trLTimer = trLTimer;
+
+%% stim params,
+
+% picture IDs
+cs1 = str2double(Stim.choApp.cs1name(end-7:end-4));
+cs2 = str2double(Stim.choApp.cs2name(end-7:end-4));
+valToGetty(6) = floor(cs1/256); 
+valToGetty(7) = mod(cs1,256); 
+valToGetty(8) = floor(cs2/256); 
+valToGetty(9) = mod(cs2,256); 
+
+% CS position
+valToGetty(10) = floor(Stim.choApp.distCtr/256);
+valToGetty(11) = mod(Stim.choApp.distCtr,256);
+valToGetty(12) = floor(Stim.choApp.width/256);
+valToGetty(13) = mod(Stim.choApp.width,256);
+valToGetty(14) = floor(Stim.choApp.heigth/256);
+valToGetty(15) = mod(Stim.choApp.heigth,256);
+
+% go signal ->we need the size [W H] 
+tPos1 = floor(Stim.target.size(1,:)/256);
+tPos2 = mod(Stim.target.size(1,:),256);
+
+valToGetty(16:2:18) = tPos1;
+valToGetty(17:2:19) = tPos2;
+
+%% TOUCH tolerance window
+tl1 = floor(Stim.target.touchLimits/256);
+tl2 = mod(Stim.target.touchLimits,256);
+
+valToGetty(20:2:26) = tl1(1,:);
+valToGetty(21:2:27) = tl2(1,:);
+valToGetty(28:2:34) = tl1(2,:);
+valToGetty(29:2:35) = tl2(2,:);
+
+%% reward
+% open time
+valToGetty(36) = floor((Timers.Event.us.startDelay*1000)/256);
+valToGetty(37) = mod((Timers.Event.us.startDelay*1000),256);
+
+% reward probability,
+valToGetty(38:39) = Stim.us.probability*100;
+
+
+%% ITI recovery
+if isfield(TaskOp.EvntHist,'prev_ITI_base'),
+    valToGetty(60) = floor(TaskOp.EvntHist.prev_ITI_base/256); % previous ITI duration base
+    valToGetty(61) = mod(TaskOp.EvntHist.prev_ITI_base,256); % previous ITI duration base
+    valToGetty(62) = floor(TaskOp.EvntHist.prev_ITI_var/256); % previous ITI duration var
+    valToGetty(63) = mod(TaskOp.EvntHist.prev_ITI_var,256); % previous ITI duration var
+end
+
+% [this is planned ITI duration]
+valToGetty(64) = floor(TaskOp.EvntHist.prev_ITI_rand/256); % planned ITI duration
+valToGetty(65) = mod(TaskOp.EvntHist.prev_ITI_rand,256);   % planned ITI duration
+
+% [this is measured ITI duration]
+[TH ITI_start_time Empty] = isfield_sk(TaskOp,'EvntHist.ITI_start_time');
+if ~Empty
+    % trial end @ moShEv/ShEv
+    % trial starts @ MoTaLo/StTrial
+    prev_ITI_dur = round((TaskOp.EvntHist.cur_trial_start_time-TaskOp.EvntHist.prev_ITI_start_time)*1000);
+else
+    % first trial
+    prev_ITI_dur = 0;
+end
+
+% ITI longer than 1 min 5 sec 536 msec is rounded to 65535 msec, because of
+% 16 bit limit
+if prev_ITI_dur>2^16 
+    valToGetty(66) = 255;
+    valToGetty(67) = 255;
+else
+    valToGetty(66) = floor(prev_ITI_dur/256);
+    valToGetty(67) = mod(prev_ITI_dur,256); 
+end
+
+%% send eye gain values...
+% gains = [TaskOp.Cal.Eye.Gain.x, TaskOp.Cal.Eye.Gain.y];
+% valToGetty(68:69) = floor(gains/256);
+% valToGetty(70:71) = mod(gains,256);
+
+%% send touch interrupt coordinates
+if ~isempty(BehaveData.tchInt)
+    ersteTeil = floor(BehaveData.tchInt/256);
+    zweiteTeil= mod(BehaveData.tchInt,255);
+    valToGetty(73:74) = ersteTeil;
+    valToGetty(75:76) = zweiteTeil;
+end
+
+%% send voltage P.O.R.
+% Oct 21, 2009
+porx = round(TaskOp.Cal.Eye.Offset.x*100);
+pory = round(TaskOp.Cal.Eye.Offset.y*100);
+valToGetty(77) = floor(porx/256);
+valToGetty(78) = mod(porx,255);
+valToGetty(79) = floor(pory/256);
+valToGetty(80) = mod(pory,255);

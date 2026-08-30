@@ -1,0 +1,63 @@
+function ModigLog_IMP_GIVING
+% ModigLog_IMP_GIVING
+%
+% Saves:
+%   -the stims params, 
+%   -the timer time stamps. takes the ITI previous to the start of the 
+%         current trial)
+%   -the behavioral data
+%   -flipping time stamps
+%
+% into a *momentarily* MAT file (less overhead as with an XLS) but bigger
+% files
+
+% RBM 6.08
+global BehaveData Stim TaskOp UserInfo ModigDir
+persistent idx impGiving taskOpSelect stimSelect
+
+if isempty(impGiving)
+    stimSelect = {'touchHold','CSon','target','us'};
+    taskOpSelect = {'reward', 'error_event','curSetup','choice','trecon',...
+        'correct','roleChangeTrials'};
+    idx = 1;
+end
+
+% get trial results from TaskOp 
+for i = 1:length(taskOpSelect),
+   impGiving(idx).TaskOp.(char(taskOpSelect(i))) = TaskOp.(char(taskOpSelect(i))); 
+end
+% clean TaskOp.trecon, so that it doesn't "overloads" memory
+% TaskOp.trecon = TaskOp.trecon(:,:,1);
+TaskOp.trecon = [];
+
+% get behavior table
+impGiving(idx).BehaveData = BehaveData.Tbl;
+
+% get stimuli details, which contain *most* behavioral requirements
+for j = 1:length(stimSelect),
+    impGiving(idx).Stim.(char(stimSelect(j))) = Stim.(char(stimSelect(j))); 
+end
+
+% get animal ids --> can go in the *header*
+impGiving(idx).animalIds = [UserInfo.setupA,'_', UserInfo.setupB];
+
+% get 'human' time -->fallible when we re set the cpu "clock"
+impGiving(idx).logTime = clock;
+
+%
+if UserInfo.use_split,
+    str = TaskOp.curSetup;
+    aID = eval(['UserInfo.setup',str]);
+else
+    aID = UserInfo.animal_ID;
+end
+
+fileName = [ModigDir.Log,'\',(TaskOp.prj),'_',datestr(now,29),'_',aID];
+if ~exist('fileName','file'),
+    save(fileName, 'impGiving')
+%     TaskOp.log.filename = fileName;
+    TaskOp.log.filename = [(TaskOp.prj),'_',datestr(now,29),'_',aID];
+else
+    save(fileName, 'impGiving', '-append')
+end
+idx = idx + 1;

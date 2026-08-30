@@ -1,0 +1,264 @@
+function valToGetty = ModigMakeGettyArray_DICTATOR
+% valToGetty = ModigMakeGettyArray_DICTATOR
+%
+% Make a vector to send to Getty in DICTATOR project
+%
+% rbm 5.08 original, CC from Boticelli
+%     6.08 similar to log, incl "bhvsit"  
+%     5.09 better estimate of trial time, sends eye data
+%     7.11 valueBars, 2 gain values
+
+global Stim Task TaskOp Timers BehaveData Pest
+% global Tbl
+
+
+valToGetty = zeros(1,80);
+
+%% Task #, trial type, trial length
+% 1. number of variables to be sent
+valToGetty(1) = length(valToGetty); % numb of additional vars
+
+% 2. taskNumb
+valToGetty(2) = 24;  
+
+% 3. combined trial type (bhvsit)
+% 0 | 1 [stimuli on left (from active setup perspective]
+stimLeft = TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,2)-1; 
+% 0 | 6 [active setup]
+actor    = strcmp(TaskOp.curSetup,'B')*6;                               
+% 1 | 3 | 5 [task]
+tk = 5;
+
+% steps of 12 'labels'
+condition= 12*(TaskOp.(TaskOp.curSetup).trialOrder(TaskOp.count.seq,1)-1);
+finalCondition = actor + stimLeft + tk + condition;
+valToGetty(3) = mod(finalCondition,256);
+
+% longest possible trial length (w/o error time added)
+% changed on may 7 09, send estimating US delays and pulses
+taFi = fields(Task);
+trLAll   = 0;
+trLTimer = 0;
+
+for i = 1:length(taFi)
+    trLAll = trLAll + Timers.Event.(taFi{i}).StartDelay;
+    if strcmpi(taFi{i},'us')
+        usdur = (Stim.us.interPulseDelay*max(Stim.us.pulses(2,:))) + Timers.Event.us.Startdelay;
+        trLTimer = trLTimer + usdur;
+    elseif strcmpi(taFi{i},'otherUS')
+        ousdur = (Stim.us.interPulseDelay*max(Stim.us.pulses(1,:))) + Timers.Event.otherUS.Startdelay;
+        trLTimer = trLTimer + ousdur;
+    elseif ~strcmpi(taFi{i},'error')
+        trLTimer = trLTimer + Timers.Event.(taFi{i}).StartDelay;        
+    end
+end
+
+trLNoITI = trLTimer - Timers.Event.ITI.StartDelay;
+trLNoITI = max(trLNoITI)*1000;
+valToGetty(4) = floor(round(trLNoITI)/256);
+valToGetty(5) = mod(round(trLNoITI),256);
+% disp(sprintf('no ITI: %g  all epochs: %g ',max(trLNoITI)*1000, trLTimer))
+
+TaskOp.trLTimer = trLTimer;
+
+%% stim params, always in mac coords: origin at top left
+switch Stim.choApp.type,
+    case 'ring',
+        valToGetty(6) = 1;
+       basis = round([Stim.choApp.center-(Stim.choApp.size/2),...
+                 Stim.choApp.center+(Stim.choApp.size/2)]);
+        
+        % CS 'center' in the left
+        valToGetty(7) = floor(basis(1,1)/256);
+        valToGetty(8) = mod(basis(1,1),256);
+        valToGetty(9) = floor(basis(1,2)/256);
+        valToGetty(10) = mod(basis(1,2),256);
+        valToGetty(11) = floor(basis(1,3)/256);
+        valToGetty(12) = mod(basis(1,3),256);
+        valToGetty(13) = floor(basis(1,4)/256);
+        valToGetty(14) = mod(basis(1,4),256);
+
+        % CS 'center' in the right
+        valToGetty(15) = type; %pic # when pics
+
+        % CS 'center' in the right
+        valToGetty(16) = floor(basis(2,1)/256);
+        valToGetty(17) = mod(basis(2,1),256);
+        valToGetty(18) = floor(basis(2,2)/256);
+        valToGetty(19) = mod(basis(2,2),256);
+        valToGetty(20) = floor(basis(2,3)/256);
+        valToGetty(21) = mod(basis(2,3),256);
+        valToGetty(22) = floor(basis(2,4)/256);
+        valToGetty(23) = mod(basis(2,4),256);
+
+     case 'ringRect',         
+        valToGetty(6) =  2;
+        basis = round([Stim.choApp.center-(Stim.choApp.size/2),...
+                 Stim.choApp.center+(Stim.choApp.size/2)]);
+        
+        % CS 'center' in the left
+        valToGetty(7) = floor(basis(1,1)/256);
+        valToGetty(8) = mod(basis(1,1),256);
+        valToGetty(9) = floor(basis(1,2)/256);
+        valToGetty(10) = mod(basis(1,2),256);
+        valToGetty(11) = floor(basis(1,3)/256);
+        valToGetty(12) = mod(basis(1,3),256);
+        valToGetty(13) = floor(basis(1,4)/256);
+        valToGetty(14) = mod(basis(1,4),256);
+
+        % CS 'center' in the right
+        valToGetty(15) = 2; %pic # when pics
+
+        % CS 'center' in the right
+        valToGetty(16) = floor(basis(2,1)/256);
+        valToGetty(17) = mod(basis(2,1),256);
+        valToGetty(18) = floor(basis(2,2)/256);
+        valToGetty(19) = mod(basis(2,2),256);
+        valToGetty(20) = floor(basis(2,3)/256);
+        valToGetty(21) = mod(basis(2,3),256);
+        valToGetty(22) = floor(basis(2,4)/256);
+        valToGetty(23) = mod(basis(2,4),256);
+
+    case 'valueBar',
+        valToGetty(6) = 3;
+        % if we go over 256 conditions while testing inequity , send the 
+        % relevant number here.
+        valToGetty(15) = floor(finalCondition/256); 
+        % stim positions
+        valToGetty([7 9 16 18]) = floor(Stim.choApp.center/256);        
+        valToGetty([8 10 17 19])= mod(Stim.choApp.center,256);
+        % Pest-related variables
+        if Pest.doPest,
+            exitRule = round(Pest.exitRule*1000);        
+            valToGetty(20) = floor(exitRule/256);
+            valToGetty(21) = mod(exitRule,256);
+        end        
+        valToGetty(22) = TaskOp.count.seq;
+    case 'rewDetect',
+        valToGetty(6) = 4;
+        
+        % stim positions
+        valToGetty([7 9 16 18]) = floor(Stim.choApp.center/256);        
+        valToGetty([8 10 17 19])= mod(Stim.choApp.center,256);
+        
+        % Which option is CS1?
+        valToGetty(20) = Stim.choApp.CSsides
+        
+        
+end
+%% What a waste! (7.12)
+% go signal - blue rectangles-
+tPos1 = floor(Stim.target.position/256);
+tPos2 = mod(Stim.target.position,256);
+
+% go signal in the left
+valToGetty(24:2:30) = tPos1(1,:);
+valToGetty(25:2:31) = tPos2(1,:);
+
+% go signal in the right
+valToGetty(32:2:38) = tPos1(2,:);
+valToGetty(33:2:39) = tPos2(2,:);
+
+%% TOUCH tolerance window
+tw = Stim.target.tolerance_window;
+% position L tolerance window size 
+valToGetty([40 42]) = floor(tw(1,1:2)/256);
+valToGetty([41 43]) = mod(tw(1,1:2),256);
+% position R tolerance window size
+valToGetty([44 46]) = floor(tw(2,1:2)/256);
+valToGetty([45 47]) = mod(tw(2,1:2),256);
+
+%% rewards
+% self rew
+% selfRwdMag = Timers.Event.us.startDelay .* Stim.us.pulses(2,:);
+% valToGetty(48:49) = selfRwdMag;
+if valToGetty(6) ~= 3,
+    valToGetty(48:49) = floor(Stim.us.pulses(2,:)/256);
+    valToGetty(50:51) = mod(Stim.us.pulses(2,:),256);
+
+    % other reward variables
+    valToGetty(54:55) = floor(Stim.us.pulses(1,:)/256);
+    valToGetty(56:57) = mod(Stim.us.pulses(1,:),256);
+else
+    rewMagInMicroLit = round(Stim.us.pulses*1000);
+    % possible reward magnitudes for actor (self)
+    valToGetty(48:49) = floor(rewMagInMicroLit(2,:)/256);
+    valToGetty(50:51) = mod(rewMagInMicroLit(2,:),256);
+    
+    % possible reward magnitude for passive (other)
+    valToGetty(54:55) = floor(rewMagInMicroLit(1,:)/256);
+    valToGetty(56:57) = mod(rewMagInMicroLit(1,:),256);
+    
+    if Pest.doPest,
+        % since we have some space, send epsilon as well
+        epsilon = round(Pest.epsilon*1000);
+        valToGetty(52) = floor(epsilon/256);
+        valToGetty(53) = mod(epsilon,256);
+    end
+end
+%% ITI recovery
+if isfield(TaskOp.EvntHist,'prev_ITI_base'),
+    valToGetty(60) = floor(TaskOp.EvntHist.prev_ITI_base/256); % previous ITI duration base
+    valToGetty(61) = mod(TaskOp.EvntHist.prev_ITI_base,256); % previous ITI duration base
+    valToGetty(62) = floor(TaskOp.EvntHist.prev_ITI_var/256); % previous ITI duration var
+    valToGetty(63) = mod(TaskOp.EvntHist.prev_ITI_var,256); % previous ITI duration var
+end
+
+% [this is planned ITI duration]
+valToGetty(64) = floor(TaskOp.EvntHist.prev_ITI_rand/256); % planned ITI duration
+valToGetty(65) = mod(TaskOp.EvntHist.prev_ITI_rand,256);   % planned ITI duration
+
+% [this is measured ITI duration]
+% At this moment we are in ITI between (n)th and (n+1)th trial.
+% We don't know duration of this ITI because there are several processes to 
+% happen before (n+1)th trial starts.
+% ITI duration is sent to getty ignoring this time.
+% ITI duration between (n)th and (n+1)th trial is logged in the data of 
+% (n+1)th trial, with some underestimation.
+%%%%%                 prev_ITI_start_time    prev_trial_start_time     ITI_start_time          cur_trial_start_time (unknown yet)
+%%%%%                     |                      |                           |                    |
+%%%%%  ----|  trial (n-1) |----------------------|       trial(n)            |--------------------| trial(n+1) |--------------
+[TH ITI_start_time Empty] = isfield_sk(TaskOp,'EvntHist.ITI_start_time');
+clear TH
+if ~Empty
+    % trial end @ moShEv/ShEv
+    % trial starts @ MoTaLo/StTrial
+    prev_ITI_dur = TaskOp.EvntHist.cur_trial_start_time -  ITI_start_time;
+else
+    % first trial
+    prev_ITI_dur = 0;
+end
+
+% ITI longer than 1 min 5 sec 536 msec is rounded to 65535 msec, because of
+% 16 bit limit
+if prev_ITI_dur>(2^16) || prev_ITI_dur<0
+    valToGetty(66) = 255;
+    valToGetty(67) = 255;
+else
+    prev_ITI_dur = round(prev_ITI_dur*1000);    % introduced on 1.8.2011
+    valToGetty(66) = floor(prev_ITI_dur/256);
+    valToGetty(67) = mod(prev_ITI_dur,256);
+end
+
+%% send eye gain values...
+% 5.09
+% 7.11 two gain values
+gx = TaskOp.Cal.Eye.Gain.x;
+gy = TaskOp.Cal.Eye.Gain.y;
+valToGetty([68 74]) = round(gx./10);
+valToGetty([69 75]) = round(gy./10);
+%% send touch interrupt coordinates
+% 5.09
+if ~isempty(BehaveData.tchInt)
+    valToGetty(70:71) = floor(BehaveData.tchInt/256);
+    valToGetty(72:73) = mod(BehaveData.tchInt,256);
+end
+
+%% send voltage P.O.R.
+% Oct 27, 2011
+porx = round(TaskOp.Cal.Eye.Offset.x*100);
+pory = round(TaskOp.Cal.Eye.Offset.y*100);
+valToGetty(76) = floor(porx/256);
+valToGetty(77) = mod(porx,256);
+valToGetty(78) = floor(pory/256);
+valToGetty(79) = mod(pory,256);

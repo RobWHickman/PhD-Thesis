@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ModigPreparePages_TOUCH_TRAINING</title>
+  <meta name="keywords" content="ModigPreparePages_TOUCH_TRAINING">
+  <meta name="description" content="cb = ModigPreparePages_TOUCH_TRAINING">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../../index.html">Home</a> &gt;  <a href="../../../index.html">Modig</a> &gt; <a href="#">projects</a> &gt; <a href="#">TOUCH_TRAINING</a> &gt; <a href="index.html">code</a> &gt; ModigPreparePages_TOUCH_TRAINING.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../../index.html"><img alt="<" border="0" src="../../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for Modig\projects\TOUCH_TRAINING\code&nbsp;<img alt=">" border="0" src="../../../../right.png"></a></td></tr></table>-->
+
+<h1>ModigPreparePages_TOUCH_TRAINING
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>cb = ModigPreparePages_TOUCH_TRAINING</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function cb = ModigPreparePages_TOUCH_TRAINING </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">  cb = ModigPreparePages_TOUCH_TRAINING
+
+ page 1: grey background
+ page 2: touch target
+ page 3: target touched feedback
+ page 4: black background
+
+ See also drawRectangle_RBM, drawImages, <a href="ModigPrepareTrial_TOUCH_TRAINING.html" class="code" title="function runned = ModigPrepareTrial_TOUCH_TRAINING">ModigPrepareTrial_TOUCH_TRAINING</a>
+ rbm 6.11 streamlined coding
+ RBM 01.08</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../Modig/library/drawImages.html" class="code" title="function [imgStr imgHdl] = drawImages(fname, pos, parentAxisHdl, axisKids,rotation)">drawImages</a>	[imgStr imgHdl] = drawImages(fname, pos, parentAxisHdl, axisKids,rotation)</li><li><a href="../../../../Modig/library/drawRectangle_RBM.html" class="code" title="function [rectStr rectHdl] = drawRectangle_RBM(clr,pos,parentAxisHdl, axisKids)">drawRectangle_RBM</a>	[rectStr rectHdl] = drawRectangle_RBM(clr,pos,parentAxisHdl, axisKids)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function cb = ModigPreparePages_TOUCH_TRAINING</a>
+0002 <span class="comment">%  cb = ModigPreparePages_TOUCH_TRAINING</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% page 1: grey background</span>
+0005 <span class="comment">% page 2: touch target</span>
+0006 <span class="comment">% page 3: target touched feedback</span>
+0007 <span class="comment">% page 4: black background</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% See also drawRectangle_RBM, drawImages, ModigPrepareTrial_TOUCH_TRAINING</span>
+0010 <span class="comment">% rbm 6.11 streamlined coding</span>
+0011 <span class="comment">% RBM 01.08</span>
+0012 <span class="keyword">global</span> Tbl VisParam Stim 
+0013 
+0014 <span class="comment">% prepare VisParam params</span>
+0015 VisParam.pages    = unique(cell2mat(Tbl.TaskTbl(:,Tbl.TaskTblColumnID.vis_page)));
+0016 VisParam.pages    = VisParam.pages(VisParam.pages&gt;0);
+0017 VisParam.num_page = length(VisParam.pages);
+0018 
+0019 <span class="comment">% clear, if any, stored textures and clean the structure. This will save</span>
+0020 <span class="comment">% some memory</span>
+0021 <span class="keyword">if</span> isfield(VisParam,<span class="string">'texture'</span>) &amp;&amp; ~isempty(VisParam.texture)
+0022     Screen(<span class="string">'close'</span>,VisParam.texture(1).tex)
+0023     VisParam.texture = [];
+0024 <span class="keyword">end</span>
+0025 <span class="comment">%% page 1</span>
+0026 <span class="comment">% String for Drawing with PTB on subject's screen the fixation spot,</span>
+0027 bkgstr   = <span class="string">'Screen(''FillRect'', VisParam.scr_handle, [127 127 127]);'</span>;
+0028 <span class="comment">%% page 2</span>
+0029 <span class="comment">% draw target or load target image</span>
+0030 <span class="keyword">switch</span> Stim.target.type
+0031     <span class="keyword">case</span> <span class="string">'square'</span>
+0032         [tstr tarHdl] = <a href="../../../../Modig/library/drawRectangle_RBM.html" class="code" title="function [rectStr rectHdl] = drawRectangle_RBM(clr,pos,parentAxisHdl, axisKids)">drawRectangle_RBM</a>(Stim.target.color,Stim.target.position,VisParam.h_MONITOR_AXIS,2);
+0033     <span class="keyword">case</span> <span class="string">'img'</span>
+0034         [tstr tarHdl] = <a href="../../../../Modig/library/drawImages.html" class="code" title="function [imgStr imgHdl] = drawImages(fname, pos, parentAxisHdl, axisKids,rotation)">drawImages</a>(Stim.target.fname, Stim.target.position, VisParam.h_MONITOR_AXIS, 2);
+0035     <span class="keyword">case</span> <span class="string">'rectangle'</span>
+0036         [tstr tarHdl] = <a href="../../../../Modig/library/drawRectangle_RBM.html" class="code" title="function [rectStr rectHdl] = drawRectangle_RBM(clr,pos,parentAxisHdl, axisKids)">drawRectangle_RBM</a>(Stim.target.color,Stim.target.position,VisParam.h_MONITOR_AXIS,2);
+0037 <span class="keyword">end</span>
+0038 
+0039 <span class="comment">%% page 3:draw target touched feedback</span>
+0040 fbpos = num2str(Stim.targetFB.position);
+0041 fbclr = num2str(Stim.targetFB.color); 
+0042 fbstr = strcat(<span class="string">'Screen(''FrameOval'', VisParam.scr_handle, ['</span>,fbclr,<span class="string">'],['</span>,fbpos,<span class="string">'],3);'</span>);
+0043 
+0044 <span class="comment">%% page 4</span>
+0045 blkStr   = <span class="string">'Screen(''FillRect'', VisParam.scr_handle, [0 0 0]);'</span>;
+0046 
+0047 <span class="comment">%% flip strings</span>
+0048 flpstr   = <span class="string">'Screen(''Flip'',VisParam.scr_handle);'</span>;
+0049 flpnoclr = <span class="string">'Screen(''Flip'',VisParam.scr_handle,[],1);'</span>;
+0050 
+0051 <span class="comment">%% load draw commands into VisParam global</span>
+0052 VisParam.page(1).draw = bkgstr;
+0053 VisParam.page(2).draw = tstr;
+0054 VisParam.page(3).draw = [tstr fbstr];
+0055 VisParam.page(4).draw = blkStr;
+0056 
+0057 VisParam.page(1).flip = flpstr;
+0058 VisParam.page(2).flip = flpnoclr;
+0059 VisParam.page(3).flip = flpnoclr;
+0060 VisParam.page(4).flip = flpstr;
+0061 
+0062 VisParam.page(1).str = [bkgstr, flpstr];
+0063 VisParam.page(2).str = [tstr, flpnoclr];
+0064 VisParam.page(3).str = [fbstr, flpnoclr];
+0065 VisParam.page(4).str = [blkStr, flpstr];
+0066 
+0067 <span class="comment">%% Draw stimulus on experimenter's monitor (ModigMonitor)</span>
+0068 VisParam.exp_page(1).obj_handle = [tarHdl(:,1); Stim.target.tolWinHdl];
+0069 VisParam.exp_page(2).obj_handle = tarHdl(:,2);
+0070 
+0071 
+0072 cb=1;</pre></div>
+<hr><address>Generated on Tue 05-Mar-2013 12:51:50 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
