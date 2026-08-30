@@ -1,0 +1,258 @@
+RPE / CAUSAL LEARNING — WRITING PLAN (Category F + G, combined)
+==================================================================
+
+Our position (agreed 2026-08-02): dopamine firing is directly proportional to /
+an encoding of economic value to the animal. This is framed as a REFINEMENT of
+RPE (the existing Schultz-lab utility tradition: Stauffer 2014, Lak 2014,
+already cited in Ch1; reinforced by own-lab's concurrent Ferrari-Toniolo
+Cell Reports paper, already cited in Ch5), not a rejection of it. Causal
+learning (ANCCR) is treated as answering a DIFFERENT question (which events
+get credited as causes) rather than a rival account of value-magnitude coding.
+Our task varied subjective value while holding causal structure fixed, so we
+can state this scope honestly rather than claiming to adjudicate ANCCR.
+
+IMPORTANT FINDING: Chapter5/chapter5.tex:83 already contains a thin, exposed
+attempt to address this exact tension:
+  "This utility signalling occurred even though monkey's theoretically had
+  perfect information about the forthcoming water payment from the moment
+  the computer bid is revealed. We discuss why these responses persist
+  despite the canonical extinction of reward prediction errors
+  (\cite{schultzNeuralSubstratePrediction1997}) as an animal learns to
+  expect a reward. Namely, the substantial time delay between the
+  signalling of trial outcome and the heterogeneity of individual BDM
+  trials, which makes such calculations difficult."
+This is very likely the specific sentence examiners are reacting to. The new
+Ch5 subsection must explicitly return to and strengthen/replace this
+explanation, not just add new material alongside it elsewhere. Open question
+for later: do we also lightly edit this line (e.g. forward-reference to the
+new subsection) once it exists? Flagging, not doing yet.
+
+==================================================================
+PLAN 1 — CHAPTER 1  (revised 2026-08-02, per Robert's steer)
+==================================================================
+
+Section: "A Dopaminergic Neural Substrate of Utility" (Chapter1/chapter1.tex:167)
+This section currently builds the case RPE -> utility-PE (Fiorillo/Tobler ->
+Lak 2014 -> Day 2007 -> Kobayashi/Burrell -> Stauffer 2014) and presents RPE
+as settled/uncontested throughout. No mention anywhere yet of the predicted-
+outcome tension, causal learning, or any alternative framework. This is the
+gap examiners are pointing at with "especially in the first ... chapters."
+
+WHERE IT FITS IN — REVISED PLACEMENT: insert BETWEEN the Stauffer 2014
+paragraph and the "other brain regions" aside, not after it. This keeps the
+utility-PE argument's own capstone (Stauffer) immediately followed by the
+caveat that this isn't the whole story, with the other-regions aside now
+reading as a secondary side-note after the main theoretical point has landed.
+
+Preceding paragraph (chapter1.tex:177), quoted exactly, in full:
+
+  "Finally, employing an experimental paradigm using gambles to construct
+  the utility function (the 'fractal method'; \cite{machinaChoiceUncertaintyProblems1987}),
+  \cite{staufferDopamineRewardPrediction2014} found that the normalized
+  dopaminergic phasic activity associated with the reward increased
+  non-linearly as the expected value of a gamble increased linearly. Such
+  nonlinearities in utility versus value are the foundational theoretical
+  finding of Bernoulli's work on the St. Petersburg paradox. That the
+  increase in dopaminergic cell firing mirrors this asymmetry is more
+  evidence that the activity of these dopaminergic projections signal a
+  utility-prediction error."
+
+[NEW PARAGRAPH GOES HERE]
+
+...then continues, unchanged, into the existing next paragraph (chapter1.tex:179):
+
+  "Although we have focused on the dopaminergic midbrain in this
+  introduction (and throughout the rest of this thesis), other areas of the
+  brain have also been proposed as encoding economic value. ... see
+  Appendix C."
+
+...and the transition-out paragraph (chapter1.tex:181) after that, unchanged.
+
+No other edits to the rest of 1.3 proposed at this stage — paragraph 1
+(chapter1.tex:169) states RPE as an established finding, which is still
+accurate (the debate is about whether that's the *whole* story, not whether
+RPE-like signals exist at all), so it reads fine standing ahead of the new
+paragraph without modification. Flag if this reads wrong once drafted.
+
+NEW PARAGRAPH — 1 mid-size paragraph, ~150-200 words. Shape per Robert's
+steer: open with the thesis's own framing choice, name the tension, pivot to
+TWO named alternative interpretations (not just causal learning — also
+state/belief-based inference, which has the bonus of already being cited
+elsewhere in the thesis), then close with a deliberately loose gesture at
+"a rich/growing body of work" rather than explaining each paper, ending on
+an explicit forward-pointer to Ch5.
+
+- Open (close to Robert's own phrasing): "We focus on the utility-PE account
+  of dopamine in this thesis, but it is important to note that other
+  interpretations of the computational role of dopaminergic activity exist"
+- State the tension in one sentence: dopamine can respond strongly even to
+  clearly/fully predicted outcomes, which classical RPE does not
+  straightforwardly predict — light citation only, not explained here
+    - Howe et al. (2013), Nature
+    - Hamid et al. (2016), Nat Neurosci
+- Pivot into TWO named alternative interpretations prompted by that tension:
+    - Causal learning — Jeong et al. (2022), Science (ANCCR); Namboodiri
+      (2024), Curr Opin Behav Sci (concise "why")
+    - State/belief-based inference — Starkweather, Babayan, Uchida &
+      Gershman (2017) — dopamine RPE reflecting hidden-state inference
+      rather than a simple scalar value-PE. NOTE: already cited in this
+      thesis at Chapter5/chapter5.tex:100 ("Recent work has also shown that
+      dopamine reward prediction errors reflect hidden state inference...")
+      — reusing an existing citation, not introducing a new one, nice
+      internal consistency
+- Close loosely, not explained paper-by-paper: gesture at a rich/growing
+  body of work on other dimensions of dopaminergic coding (e.g.
+  distributional coding across the population), citing Dabney et al. (2020)
+  plus 2-3 more recent papers as a cluster (Lowet et al. 2024, Sousa et al.
+  2025) — no individual explanation, just the citation cluster signalling
+  breadth
+- Final sentence, explicit forward-pointer: "We discuss this in the context
+  of our own results in Section 5.4.3." (section number provisional until
+  the thesis recompiles and cross-references settle — placeholder for now)
+
+==================================================================
+PLAN 2 — CHAPTER 5
+==================================================================
+
+New subsection, CONFIRMED title: "What does the dopamine signal actually
+compute?" — inserted as \subsection after
+the existing 5.4.2 ("A distributed code for dopaminergic signalling",
+chapter5.tex:106-110) and before \clearpage / Section 5.5 "Concluding
+Remarks" (chapter5.tex:112-113). This slots in right after the heterogeneity/
+distributional-coding discussion, which is itself already asking "what does
+the population signal actually compute" — natural segue into RPE-vs-
+alternatives.
+
+WHERE IT FITS IN — preceding paragraph (chapter5.tex:110), quoted exactly,
+in full (end of subsection 5.4.2):
+
+  "This heterogeneity raises important methodological considerations for
+  studying dopaminergic signalling. If dopamine neurons implement a
+  distributed code in which individual cells vary in their response
+  properties and computational roles, then standard approaches that average
+  responses across trials may inadvertently flatten this heterogeneity.
+  Rather than every neuron performing the canonical reward prediction error
+  (RPE) computation identically on each trial, individual neurons may
+  contribute distinct components to the overall population signal.
+  Trial-by-trial analysis of single neurons, rather than trial-averaged
+  population responses, may therefore be necessary to uncover the true
+  computational diversity within the dopaminergic system and understand how
+  heterogeneous individual signals combine to produce reliable
+  population-level representations of reward value."
+
+[NEW SUBSECTION 5.4.3 GOES HERE — 4 paragraphs, ~700-900 words total]
+
+...then \clearpage, Section 5.5 Concluding Remarks, unchanged.
+
+Also must explicitly reference back to chapter5.tex:83 (Section 5.3.1) — see
+"IMPORTANT FINDING" above. Para 1 below does this.
+
+---- PARAGRAPH 1 — own the tension, ground it in the field ----
+Claims to make:
+- OPENING MOVE (new): draw a distinction between two different questions —
+  HOW dopamine encodes information (the population-/distributional-code
+  question — already covered in 5.4.2 via Dabney, Lowet, Sousa) versus WHAT
+  it is encoding (the semantic content: value? causal contingency?
+  state-belief? — the question this subsection, and its title, is actually
+  about). Not verbatim, just the guiding idea: "Dabney et al. and related
+  work in 5.4.2 concern how dopamine encodes information, not what it is
+  encoding." This sets 5.4.2's material aside cleanly rather than re-treading
+  it, and gives the subsection's title a direct answer to build toward.
+- Restate plainly (this is the "restate extinguish" beat): classical RPE
+  predicts a response should extinguish once an outcome is fully predicted
+- Explicitly reference Section 5.3.1's own result (chapter5.tex:83): bid-,
+  profit-, and liquid-received-locked responses persisted despite monkeys
+  having "perfect information" about forthcoming payment; name the existing
+  "trial heterogeneity" explanation and flag it as incomplete, motivating
+  what follows
+- Establish this is a recognised, general phenomenon in the field, not a
+  quirk of this dataset or a weakness of the existing explanation alone
+Papers:
+- Howe et al. (2013), Nature — seminal ramping-to-predicted-reward result
+- Hamid et al. (2016), Nat Neurosci — value-of-work tracking despite
+  prediction
+- Sharpe, Chang, Liu, Batchelor, Mueller, Jones, Niv & Schoenbaum (2017),
+  Nat Neurosci — dopamine transients sufficient/necessary for model-based
+  associations, i.e. doing more than canonical RPE
+
+---- PARAGRAPH 2 — state the position, resolve the tension ----
+Claims to make:
+- Position: dopamine's response tracks SUBJECTIVE utility, not objective
+  predictability of physical magnitude — "perfect information about
+  payment" (line 83) is not the same as "no remaining value-relevant
+  variance," because bid (subjective value) still fluctuates trial-to-trial
+- Callback (not new citations, already in Ch1): Stauffer & Glimcher (2014),
+  Lak et al. (2014) — the existing utility-RPE lineage this thesis already
+  sits inside
+- New: Ferrari-Toniolo, Seak & Schultz (2025/2026) — own lab's concurrent,
+  independent Cell Reports result (utility + weighted probability
+  integration in the dopamine population signal) — converging evidence,
+  same lab, separate analysis
+- Gershman (2024), Nat Neurosci — even RPE's own defenders now reframe
+  "prediction error" around richer state/value representations (ramping,
+  sensory/motor features, action selection) rather than a fixed naive
+  target — supports treating our account as a refinement, not a rejection
+Net effect: reframes line 83's "hasn't extinguished yet" into "was never
+expected to fully extinguish."
+
+---- PARAGRAPH 3 — introduce causal learning / ANCCR properly ----
+Claims to make:
+- Explain what ANCCR actually claims: retrospective, causal-contingency-
+  based credit assignment — a claim about WHICH events get credited as
+  causes, not about how much value an event carries
+- Treat it as a genuine, serious alternative worth real engagement (this is
+  the examiner-named alternative — needs more than a citation-drop)
+Papers:
+- Jeong, Taylor, Floeder et al. (2022), Science — foundational ANCCR theory
+  and evidence
+- Namboodiri (2024), Curr Opin Behav Sci — concise statement of the "why"
+- Garr, Cheng, Jeong, Brooke, Castell, Bal, Magnard, Namboodiri & Janak
+  (2024), Science Advances — strongest single citation: direct within-paper
+  model comparison where TDRL fails and ANCCR succeeds (contingency
+  degradation, dopamine unchanged in timing but selectively reduced when
+  statistical contingency — not temporal contiguity — is degraded)
+
+---- PARAGRAPH 4 — position our findings relative to ANCCR; close ----
+Claims to make:
+- Honest scope claim: our task varied subjective value trial-to-trial while
+  holding causal structure/contingency fixed throughout (cue-outcome link
+  never degraded or ambiguous) — so our data speak directly to the
+  value-magnitude question and are largely silent on the causal-contingency
+  question ANCCR targets
+- Note the two accounts are not necessarily mutually exclusive — gesture
+  (briefly, as a future-work note, not a claim) toward value-weighted
+  causal credit assignment as a possible synthesis
+- Brief, explicitly scope-limited nod to other newer accounts so "other
+  newer developments" is covered without diluting the argument:
+    - Greenstreet, Martinez Vergara et al. (2025), Nature — "value-free"
+      action-prediction-error signal; different pathway (tail of striatum)
+      and species (mouse) — doesn't directly compete with our primate
+      VTA/ventral-striatum value result
+    - Friedman et al. (2025) — information-gain framing, similarly a
+      different proposed signal, noted not adjudicated
+    - Starkweather, Babayan, Uchida & Gershman (2017) — hidden-state
+      inference framing, already named in the new Ch1 paragraph as one of
+      only two alternatives flagged there; needs at least a clause here so
+      the Ch1 forward-pointer isn't a dropped thread
+    - Forward-reference (do not re-explain) the distributional-coding /
+      heterogeneity discussion already given in 5.4.2 (Dabney 2020, Lowet
+      2024, Ferrari-Toniolo) as another axis of "beyond simple scalar RPE"
+- Close on synthesis: our findings most directly extend the utility-coding
+  tradition; how value-based and causal-structure-based accounts of
+  dopamine relate remains an open question this work raises rather than
+  resolves
+
+==================================================================
+OPEN QUESTIONS BEFORE DRAFTING PROSE
+==================================================================
+1. RESOLVED 2026-08-02 — Ch5 subsection title: "What does the dopamine
+   signal actually compute?" (5.4.3, after 5.4.2, before Section 5.5)
+2. RESOLVED 2026-08-02 — added bold forward-pointer "(see Section 5.4.3)"
+   at chapter5.tex:83, end of the existing "trial heterogeneity" sentence.
+   Bold, not \ref{}, matching the Ch1 placeholder convention, since 5.4.3
+   doesn't have a \label yet — swap for a real \ref once it does.
+3. RESOLVED 2026-08-02 — paragraph count confirmed at 4 for Ch5 / 1 for Ch1,
+   no restructure needed; Paragraph 1 gains a new opening beat (see above)
+   but stays one paragraph
+4. RESOLVED 2026-08-02 — paragraph order (1 tension -> 2 resolution -> 3
+   named alternative -> 4 honest positioning) confirmed as is, no swap

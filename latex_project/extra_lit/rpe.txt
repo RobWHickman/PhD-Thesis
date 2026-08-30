@@ -1,0 +1,247 @@
+RPE / CAUSAL LEARNING — DRAFT PROSE
+==================================================================
+Companion to rpe_plan.txt. This is drafting only — nothing here has been
+written into the actual .tex files yet.
+
+Citation key status:
+  REAL (already in references.bib, confirmed):
+    starkweatherDopamineRewardPrediction2017
+    dabneyDistributionalCodeValue2020
+    Lowet_Zheng_Meng_Matias_Drugowitsch_Uchida_2025
+  PLACEHOLDER (paper not yet added to references.bib — key below is a
+  best-guess following the existing camelCase author+shorttitle+year
+  convention, needs confirming/replacing once actually added):
+    howeProlongedDopamineSignalling2013
+    hamidMesolimbicDopamineSignals2016
+    jeongMesolimbicDopamineRelease2022
+    namboodiriButWhyDopamine2024
+    sousaMultidimensionalDistributionalMap2025
+    sharpeDopamineTransientsAre2017
+
+==================================================================
+IMPLEMENTED 2026-08-02 — written into Chapter1/chapter1.tex between the
+Stauffer paragraph and the "other brain regions" paragraph. Placeholder
+citations (Howe, Hamid, Jeong, Namboodiri, Sousa) left as bold
+"(Author, Year)" text rather than \cite{} — deliberately, so they're
+obviously wrong/unfinished rather than silently broken, until real bibtex
+entries are added. Starkweather, Dabney, Lowet used real \cite{} since
+those keys already exist in references.bib.
+==================================================================
+CHAPTER 1 — NEW PARAGRAPH (approved placement: between the Stauffer 2014
+paragraph, chapter1.tex:177, and the "other brain regions" paragraph,
+chapter1.tex:179)
+==================================================================
+
+We focus on the utility-prediction error account of dopamine throughout
+this thesis, but it is important to note that this is not the only current
+interpretation of the computational role of dopaminergic activity. A number
+of findings in the wider literature sit uneasily with a strict reading of this theory. Most notably, dopamine neurons can respond
+strongly to outcomes that are already clearly and reliably predicted, which
+a fully-trained, canonical prediction error signal should not do
+(\cite{howeProlongedDopamineSignalling2013};
+\cite{hamidMesolimbicDopamineSignals2016}). These findings have motivated
+several alternative or extended accounts of dopaminergic computation. One
+prominent recent proposal holds that dopamine instead signals the
+retrospective causal contingency between events, rather than a
+moment-to-moment prediction error over value
+(\cite{jeongMesolimbicDopamineRelease2022};
+\cite{namboodiriButWhyDopamine2024}). Others have proposed that
+dopaminergic prediction errors reflect the animal's own uncertain, evolving
+belief about what situation or stage of a task it is in, rather than a
+simple, fixed link between a cue and its outcome
+(\cite{starkweatherDopamineRewardPrediction2017}). More broadly still,
+dopaminergic activity is increasingly understood to be far more varied than
+accounts that put forward just one single interpretation of what it does,
+with different dopamine neurons shown to respond quite differently
+depending on the type of task, stimuli, and conditions involved
+(\cite{dabneyDistributionalCodeValue2020};
+\cite{Lowet_Zheng_Meng_Matias_Drugowitsch_Uchida_2025};
+\cite{sousaMultidimensionalDistributionalMap2025}). We discuss these
+alternative accounts in the context of our own results in Section 5.4.3.
+
+[~215 words]
+
+==================================================================
+PROPOSED (not yet approved) — small addition to EXISTING paragraph 2,
+chapter1.tex:171, re: Robert's question about a necessity/sufficiency paper
+==================================================================
+
+The paper is almost certainly Sharpe, Chang, Liu, Batchelor, Mueller,
+Jones, Niv & Schoenbaum (2017), Nat Neurosci — "Dopamine transients are
+sufficient andt necessary for acquisition of model-based associations." It's
+already in the RPE deep-dive foundations tier (this is the paper from your
+screenshot of Namboodiri's reference list, single-circle annoated).
+
+It fits well "further up," in the existing necessity/sufficiency paragraph
+(chapter1.tex:171), which currently makes the sufficiency case via
+optogenetic mimicry (Kim 2012, Chang 2016, Steinberg 2013, Stauffer 2016)
+and the necessity case via NMDA disruption (Zweifel 2009) — but doesn't yet
+cite a paper that demonstrates both in one place, or one that extends the
+point to model-based (not just model-free) associations. Bonus: it also
+quietly seeds the "more than canonical RPE" theme that the new Chapter 1
+paragraph and Chapter 5 Section 5.4.3 (Paragraph 1) return to later.
+
+Existing paragraph currently ends:
+  "...(\cite{zweifelDisruptionNMDARdependentBurst2009}), implicating these
+  cells as a neuronal substrate of utility."
+
+Proposed new final sentence, appended:
+
+  More directly still, dopamine transients have been shown to be both
+  necessary and sufficient for the acquisition of associative learning,
+  including learning that goes beyond simple model-free associations to
+  model-based ones (\cite{sharpeDopamineTransientsAre2017}).
+
+Awaiting confirmation before adding.
+
+==================================================================
+IMPLEMENTED 2026-08-02 — written into Chapter5/chapter5.tex as new
+\subsection{What does the dopamine signal actually compute?}, with
+\label{subsec:what_does_da_compute} added. Placeholder citations bold, same
+convention as Chapter 1. \ref{subsec:distributed_code} and
+\ref{subsec:stereotyped_rpe} (5.4.2, 5.3.1) also don't resolve yet, since
+neither of those existing headers has a \label -- rendered as bold plain
+text "Section 5.4.2" / "Section 5.3.1" instead (numbers confirmed correct
+against thesis.toc, just not yet robust \ref links). Recompiled clean: 0
+errors, 0 undefined citations/refs, 242 pages (was 240).
+==================================================================
+CHAPTER 5 — new \subsection 5.4.3, "What does the dopamine signal actually
+compute?", inserted after 5.4.2 (chapter5.tex:110) and before \clearpage /
+Section 5.5.
+==================================================================
+
+Additional placeholder citation keys introduced in this draft (bold
+"(Author, Year)", not \cite{} — same convention as Chapter 1, not yet in
+references.bib):
+    gershmanExplainingDopamine2024   (Gershman, 2024)
+    garrMesostriatalDopamine2024     (Garr et al., 2024)
+    greenstreetValueFreeSignal2025   (Greenstreet et al., 2025)
+    friedmanStriosomeInformation2025 (Friedman et al., 2025)
+    coneFlexiblyLearned2024          (Cone et al., 2024) -- the FLEX paper
+    kahntCuriousCaseDopaminergic2025 (Kahnt & Schoenbaum, 2025) -- added 2026-08-02, closes out Category F
+  (Howe, Hamid, Jeong, Namboodiri, Sousa, Sharpe carried over from rpe.txt's
+  Chapter 1 section, same placeholder treatment.)
+
+LABELS NEEDED IN chapter5.tex AT IMPLEMENTATION TIME (none exist yet,
+checked — chapter5.tex has zero \label commands anywhere currently):
+    \label{subsec:stereotyped_rpe}  -- add to the 5.3.1 header (chapter5.tex:71)
+    \label{subsec:distributed_da_code} -- add to the 5.4.2 header (chapter5.tex:106)
+    \label{subsec:what_does_da_compute}    -- add to the new 5.4.3 header, once created
+  Once these exist, the bold "Section 5.4.3" placeholders in the Chapter 1
+  text and at chapter5.tex:83 can also be swapped for real Section~\ref{}
+  calls — noting that here, not doing it now (out of scope for this pass).
+
+Confirmed 5.3.1 is the correct existing cross-reference for "stereotyped
+RPE responses" (checked against thesis.toc: subsection 5.3.1, p.156).
+
+---- PARAGRAPH 1 ----
+
+The work discussed in Section~\ref{subsec:distributed_code} concerns how dopamine encodes
+information, either as a single scalar signal or as a richer, distributed
+code across a population of neurons. It does not, however, settle \textit{what} that
+signal is actually encoding, which is a question we return to here.
+Classical reward prediction error theory predicts that once an outcome is fully and reliably predicted, the error signal
+should extinguish, since there is nothing left to be surprised about. Yet in
+Section~\ref{subsec:stereotyped_rpe}, we reported that dopaminergic responses reflecting the
+monkeys' bids, their trial profit, and their final liquid payment persisted
+even though the animals theoretically had perfect information about the
+forthcoming reward from the moment the computer's bid was revealed. We
+offered a partial explanation at the time -- the substantial delay between
+trial outcome and payment, together with the heterogeneity of individual
+BDM trials, which makes the calculations involved difficult. Similar persistent responses to
+well-predicted outcomes have been reported widely elsewhere in the
+dopaminergic literature, most notably as dopamine "ramps" that build
+steadily toward a reward whose timing and magnitude are already known to
+the animal (\textbf{Howe et al., 2013}; \textbf{Hamid et al., 2016}), and as
+dopamine transients that are necessary and sufficient for learning that
+goes beyond simple, fully-extinguishable associations (\textbf{Sharpe et
+al., 2017}). This persistence appears to be a general property of the
+dopaminergic system, not a peculiarity of our own task or dataset.
+
+[~230 words]
+
+---- PARAGRAPH 2 ----
+
+The central proposal of this thesis is that the resolution of this potential tension lies in recognising that dopamine tracks
+subjective utility, not the objective predictability of physical reward
+magnitude. That is, the dopaminergic cells encode the value to a monkey of some juice to be received, not just the volume. Having "perfect information" about the forthcoming
+payment, as our monkeys did, is not the same as there being no
+value-relevant variance left to signal: the animal's own subjective
+valuation, indexed by its bid, continued to fluctuate from trial to trial
+even though the physical reward on offer did not. This is a natural
+extension of the utility-prediction error account developed in Chapter 1
+(\cite{staufferDopamineRewardPrediction2014};
+\cite{lakDopaminePredictionError2014}), and is independently reinforced by
+a concurrent analysis from our own laboratory, which found that the
+dopamine population signal integrates both utility and subjectively
+weighted probability into a single measure of subjective value
+(\cite{ferrari-tonioloCodingBasicComponents2025}). It is also consistent
+with more recent treatments of prediction error itself. Rather than
+abandoning the concept, it has instead been argued that dopamine's error signal
+should be understood as operating over a much richer representation of
+state and value than the fixed, physical targets assumed by the earliest
+models (\textbf{Gershman, 2024}). One concrete example of this comes from a
+model in which a cue's timing is learned rather than fixed in advance, and
+which reproduces dopamine responses that otherwise look like violations of
+a strict prediction-error rule (\textbf{Cone et al., 2024}). It is possible that the persistence we
+reported in Section~\ref{subsec:stereotyped_rpe} was never a puzzle to be explained away by trial
+heterogeneity: a response that tracks subjective value should not be
+expected to extinguish just because the objective payment became
+predictable.
+
+[~210 words]
+
+---- PARAGRAPH 3 ----
+
+An alternative, and increasingly prominent, explanation has been put
+forward by the Namboodiri laboratory and colleagues, who argue that
+dopamine is better understood as a retrospective, causal-learning signal
+than as a moment-to-moment prediction error over value (\textbf{Jeong et
+al., 2022}; \textbf{Namboodiri, 2024}). On this account, dopamine tracks
+how reliably one event actually causes or predicts another, calculated by
+looking backwards from a meaningful outcome to work out what was
+responsible for it, rather than tracking how much value an anticipated
+outcome carries. This is a genuinely different kind of claim from the
+utility account above: it is a proposal about which events get credited as
+causes, not about how much any given event is worth. The strongest evidence
+for this proposal comes from a study in which
+dopamine responses to a cue-reward pair were selectively reduced when the
+statistical contingency between the cue and the reward was degraded, even
+though the timing between them, and therefore the temporal-difference
+prediction, was left completely unchanged (\textbf{Garr et al., 2024}). A purely
+value-based account struggles to explain this finding, which a causal-contingency
+framework predicts directly.
+
+[~215 words]
+
+---- PARAGRAPH 4 ----
+
+Our task was designed
+to elicit trial-by-trial variation in subjective value, not to manipulate
+the causal structure of the task itself. The link between the fractal cue,
+the bid, and the eventual reward was constant and unambiguous throughout
+every trial the monkeys completed. Our results therefore speak to how much value dopamine assigns to an anticipated
+outcome, but they are largely silent on the separate question of how
+reliably that outcome's cause is being tracked, which is the crux of the
+causal-learning account. The two accounts are not
+necessarily in competition: a system that assigns credit to causes could
+plausibly weight that credit by subjective value, and testing such a hybrid
+account directly would be a natural extension of this work. Other recent
+proposals extend this landscape in different directions, without directly
+competing with our own result. These include a dopamine signal proposed to
+track actions rather than value in a different pathway and species
+(\textbf{Greenstreet et al., 2025}), one framed around information gain
+rather than prediction error (\textbf{Friedman et al., 2025}), and one in
+which dopamine's error signal is computed against the animal's own
+uncertain beliefs about the task
+(\cite{starkweatherDopamineRewardPrediction2017}). Taken
+together, our findings most directly extend the utility-coding tradition in
+which this thesis sits; how that tradition ultimately relates to causal and
+other accounts of dopaminergic function is a question this work raises
+rather than resolves.
+
+[~255 words]
+
+TOTAL: ~910 words across 4 paragraphs (target was 700-900, first draft runs
+slightly long -- flag if it should be tightened before going into
+chapter5.tex).

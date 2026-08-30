@@ -1,0 +1,701 @@
+%!TEX root = ../thesis.tex
+%*******************************************************************************
+%****************************** Third Chapter **********************************
+%*******************************************************************************
+\chapter{Non-Human Primate Behaviour on the BDM Task}
+
+% **************************** Define Graphics Path **************************
+\ifpdf
+    \graphicspath{{Chapter3/Figs/Raster/}{Chapter3/Figs/PDF/}{Chapter3/Figs/}}
+\else
+    \graphicspath{{Chapter3/Figs/Vector/}{Chapter3/Figs/}}
+\fi
+
+In the second chapter of this thesis, we described a second-price auction task in which participants reveal their utility for any good on a single trial basis. We concluded the chapter discussing the budding neuroscientific literature of human functional imaging studies employing the BDM. Needless to say, it is a far simpler task to train a human (even one laying in an MRI machine) to perform second-price auctions than a model organism. This chapter details the task design, training, and behavioural results of two adult rhesus macaques on a task consisting of repeated BDM auction trials using liquid budgets and rewards. 
+
+\clearpage
+\section{Materials and Methods}
+
+Below we discuss the task design, equipment required, and model non-human primates used to gather data during the project, attempting to provide the reasoning behind any decision. All items discussed can be assumed to be consistent throughout the various experiments in the remainder of this thesis, unless otherwise specified.
+
+\subsection{Task Design}
+
+The epochs of the BDM tasks are shown in Figure \ref{fig:task_epochs}. Animals were sat in a chair adjusted to their height in front of a task screen (Figure \ref{fig:task_epochs}A). They were presented with a cue (a yellow cross in the centre of the screen) indicating the beginning of a trial at time 0. After a fixed delay of 1.2 seconds, a large fractal was displayed on the left-hand side of the task screen (Figure \ref{fig:task_epochs}B). This fractal indicated the offered good on any single auction trial, corresponding to a fixed amount of blackcurrant juice reward. The magnitude of juice represented by the fractal was learned via repeated experience over multiple sessions using the same offered goods. The value (either a 'low','medium', or 'large' magnitude of juice) of the fractal was drawn pseudo-randomly, decreasing the probability of seeing the fractal multiple times in a row. During this period, the monkey was required to touch the joystick and to keep it 'centred', that is, in a vertical upright position. If either of these requirements were violated, the monkey ‘failed’ the trial and received neither juice reward nor ‘budget’ water and incurred a time penalty of the time remaining on the trial plus two extra seconds.
+
+\begin{figure}[htbp!] 
+\centering    
+\includegraphics[width=1\textwidth]{Chapter3/Figs/task_epochs_fig}
+\caption[The components of the BDM task used in this thesis.]{\textbf{The components of the BDM task used in this thesis.} A) The monkey uses a joystick to interact with the task presented on a computer screen at head height 70cm from itself. To manipulate their bid, the monkey moves the joystick towards or away from them (‘up/down’). B) the payouts of any trial of the task are defined by the juice offer fractal (indicating a certain magnitude of blackcurrant juice of constant concentration) to be bid for, and the water budget. A ‘full’ budget represents 1.2ml of water. Any payment a monkey makes on a winning auction trial is subtracted from this and indicating by a reversal of hatching. C) The epochs of the BDM task as seen by the monkey (not to scale; task does not include arrows in ‘monkey bidding’ epoch). Times are in seconds and indicate the change of the display and the delivery of liquids to the monkey. When the computer bid is revealed, trials are resolved into ‘monkey wins’ and ‘computer wins’ categories. When the monkey’s bid (purple) is higher than the random computer bid (green), the monkey wins and pays for the juice offer. In comparison, when the monkey’s bid is lower than the computer’s bid, the monkey retains the full 1.2ml water budget but does not receive any juice. After each trial, a random 2.5-3.5 second intertrial interval is interleaved.}
+\label{fig:task_epochs}
+\end{figure}
+
+Another 1.2 seconds after the display of the good to be offered in the trial, a large, black and white, hatched bar was presented on the right-hand side of the screen, crossed by an orthogonal, thinner purple bar. The black and white bar represented the bidding range from 0\% (minimum bid, bottom of the bar) to 100\% (maximum bid, top of the bar) of the budget liquid. This bar can be thought of as analogous to those presented in Figure \ref{fig:bdm_outcomes} of the previous chapter.
+
+The purple bar that crosses the 'budget bar' represents the monkey bid and appears at a random location on the vertical axis of the budget bar. Such random starts of the bid position were found to give rise to consistent mean bids between sessions in the original training of the monkeys (\cite{almohammadRewardValueRevealed2022}). During this epoch, the monkey has four seconds within which to place their bid vertically using the up/down axis of the joystick. The bids were considered 'placed' when there had been no movement of the bid indicator (see Equation \ref{eq:joystick}) in the last second. This one-second placement period was shortened for Monkey V to 700 ms to improve behaviour. Past this point, any movement of the joystick had no effect on the task. To ensure attention to the task and encourage swift decision-making, if no movement was detected within the first second of possible bidding, the monkey failed the trial and incurred the same penalty two second + time remaining penalty described above until the trial was repeated with the same offered good.
+
+After the four-second bidding epoch finishes, a second green bar appears that represents the computer bid, drawn randomly, as described in Chapter 2 of this thesis. As with any BDM auction tasks, the monkey ‘wins’ the auction if its bid is greater than that of the computer and loses if it is not. If the monkey has won the trial, it is also signalled by the segment of the budget bar below the computer bid flips horizontally to indicate the budget that has been paid by the monkey.
+
+1.5 seconds after the result of the trial is revealed, the monkey is rewarded with juice in the case that it has won the trial. A further 1.5 seconds later, whatever remains of the monkey’s water budget is delivered to the monkey. In between trials, a variable 2.5-3.5 second blank inter-trial interval is interleaved between trials. This summary of a single trial of the BDM task is illustrated in Figure \ref{fig:task_epochs}C.
+
+Monkeys were initially trained on the task from 2016-2017. The monkeys were then re-trained in 2017-2019 while their head was fixed in place. All behavioural data shown here are from sessions completed by the two monkeys over July 2019-November 2020. We limit our analysis to behavioural data obtained during the neuronal recording phase of the task during which the magnitudes of juice offered to the monkeys and the magnitude of the water budget were held constant. Before this, the flavour, dilution, and magnitude of the juice were varied to encourage behaviour on the task.
+
+\subsection{Equipment}
+
+Monkeys were seated in a (Crist Instruments) in a darkened sound reducing booth for the duration of task sessions to reduce distractions. During the session, monkeys and their interaction with the task were monitored using two CCTV cameras.
+
+Attached to the front of the chair was a joystick (custom-made, Biotronix workshop, Department of Psychology, University of Cambridge) which the monkey could reach through a window in the front panel of the chair. The joystick permitted movement across two dimensions (left/right and up/down), which changed the resistance, and therefore voltage, across the joystick circuit. This change in voltage is used for control of stimuli that indicated the monkey’s bid (BDM task) or choice (a binary choice task described later). The joystick was also touch sensitive to record whether the monkey was holding the joystick at any time, emitting a binary voltage signal. The position and touch data on the joystick were digitised on the computer using a National Instruments Data Acquisition Card (PCI-6229). The movement of stimuli controlled by the joystick was defined by the following:
+
+\begin{equation}
+\begin{aligned}
+x_{t+\Delta t} = 
+\begin{cases}
+x_t + GV_t & \text{if } |V_t| > V_{\tau} \\
+x_t & \text{if } |V_t| < V_{\tau}
+\end{cases}
+\end{aligned}
+\label{eq:joystick}
+\end{equation}
+
+The position of an object controlled by the joystick remains in position ($x_t$) if the absolute change in voltage ($V$) produced by the deflection of the joystick at time t is less than the voltage threshold ($V_\tau$). Otherwise, it is updated to the original position plus the change in voltage in the joystick circuit multiplied by a gain constant $G$. The maximum speed of the bidding indicator is capped at 46\% of the total bidding range per second for both monkeys. The thresholds and gains for each joystick vary slightly, so the task was regularly tested by human experimenters for consistency.
+
+Stimuli were presented to the monkeys on a computer monitor placed 70cm in front of the monkeys at head height. These stimuli were produced and displayed using a custom software suite (\cite{paper_supplement}), using the Psychophysics Toolbox (\cite{Kleiner2007}) for MATLAB (\cite{MATLAB}). The computers were run with the Windows 10 operating system. The delivery of juice and water to the animals was mediated by gravity and the opening of solenoid valves (SCB262C068; ASCO).
+
+\subsection{Data Analysis}
+
+All analysis presented here was performed in R 4.0.2 (\cite{rcore}) with additional analysis for publication done in MATLAB (\cite{MATLAB}) on a 64-bit Windows machine. The publication analysis notebooks can be found at \cite{paper_supplement}. Graphics were made using the \texttt{ggplot2} package (\cite{Wickham2016}) and the vast majority of munging was carried out using \texttt{tidyverse} grammar (\cite{Wickham2019}).
+
+Wilcoxon and Spearman’s rank tests were carried out using functions from the inbuilt \texttt{stats} package. K-means clustering of the joystick movement was also done using a function from this package. Beta regressions were carried out using functions from the \texttt{betareg} package (\cite{cribarinetoBetaRegression2010}), after the distribution of monkey bids was fitted using the \texttt{fitdistrplus} package (\cite{delignettemullerFitdistrplusPackageFitting2015}) and checked using the \texttt{gamlss} packages (\cite{stasinopoulosGeneralizedAdditiveModels2007}). The models were selected primarily on the basis of minimising the Akaike information criteria (\cite{akaike1974new}) using the formula:
+
+\begin{equation}
+\begin{aligned}
+x_{t+\Delta t} = 
+\begin{cases}
+AIC = 2k - 2\ln(\hat{L})
+\end{cases}
+\end{aligned}
+\label{eq:AIC}
+\end{equation}
+
+Where $k$ (the number of parameters) for the selected beta distribution is 2 and $\hat(L)$ represents the maximum value for the likelihood function of the model.
+
+\subsection{Data and Code Availability}
+
+The processed behavioural and neuronal data underlying this thesis, together with the analysis code used to produce the published results (\cite{Hill2024-my}), have been deposited in the Figshare database (10.6084/m9.figshare.25734288). The additional scripts used specifically for the corrections described in this thesis are available at \url{https://github.com/RobWHickman/PhD-Thesis}.
+
+\subsection{Animals}
+All procedures in this project were carried out under UK Home Office licence, in accordance with the Animals (Scientific Procedures) Act 1986 (Regulations 2012). The work was ethically reviewed, approved, and supervised by the University of Cambridge's Animal Welfare and Ethical Review Body (AWERB), together with the University's Biomedical Service Certificate Holder, Welfare Officer, Governance and Strategy Committee, Named Veterinary Surgeon, and Named Animal Care and Welfare Officer, alongside external oversight from the local UK Home Office Inspector, the UK Animals in Science Committee, and the UK National Centre for the Replacement, Refinement and Reduction of Animals in Research (NC3Rs).
+
+All experiments and data in this thesis were collected from two adult rhesus macaques (\textit{Macaca mulatta}), referred to as Monkey U and Monkey V. Both primates were born in captivity at the Medical Research Council’s Centre for Macaques at Porton Down in the United Kingdom (Monkey U: 2010-02-10, Monkey V: 2011-06-08) and were housed within the departmental facilities. Both were group-housed at various times prior to and during the duration of this project, but were singularly housed for much of the time this data was recorded. The weights of each monkey recorded weekly for the duration of the project are shown in Figure \ref{fig:monkey_weights}.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/monkey_weight_fig.svg}
+\caption[The weights of the two monkeys over the recording phase of the project.]{\textbf{The weights of the two monkeys over the recording phase of the project.} Monkeys were weighed prior to task performance on a weekly basis. The weights of the two monkeys remained steady over the entirety of the project. Monkey U (blue) was relatively large and heavy and Monkey V relatively small and light, but both were within the normal physiological range for \textit{Macaca mulatta} primates. The weights of the monkeys were used to calculate the liquid supplement given to each after experiments to maintain a minimum level of liquid deprivation.}
+\label{fig:monkey_weights}
+\end{figure}
+
+Rhesus macaques are the most widely distributed non-human primate species, found in most of continental Asia (\cite{singhNonhumanPrimatesBiomedical2021}). They are the most commonly used nonhuman primate animal model in the neuroscientific literature (\cite{capitanioContributionsNonhumanPrimates2008}) due to their dexterity and ability to reproduce complex decisions, such as in economic decision-making tasks (\cite{ferraritonioloNonhumanPrimatesSatisfy2021}; \cite{fiorilloDiscreteCodingReward2003}; \cite{grabenhorstPredictionEconomicChoice2012}; \cite{padoaschioppaNeuronsOrbitofrontalCortex2006}).
+
+To incentivise participation in the tasks, primates were fluid restricted for 6 days per week (from Saturday evening until Friday afternoon), during which time the majority of liquid available to the monkeys was earned through behavioural tasks. For the remainder of the week, primates had unrestricted access to fluid and were also given unrestricted access on any days where they were not working on the task, after any surgeries, and also for at least one full week every month.
+
+Both monkeys had been trained on a similar BDM auction task previously (referred to as 'Monkey A' and 'Monkey B' in \cite{almohammadRewardValueRevealed2022}), though due to time between projects, differing needs of the experiments (e.g. head-fixing of monkeys), and subtle changes to the task, both were retrained in the period October 2017-July 2019\footnote{Changes in the task consisted primarily of reducing the number of task epochs and shortening of the bidding epoch to shorten the overall task time and the removal of any stimuli not considered absolutely necessary for behaviour (e.g. changing of bidding bars to indicate the finalisation of bids, and the occlusion of the budget bar to indicate payment).}. In short, training of the monkeys consisted of:
+
+Prior to the project, the two macaques had been acclimated to the hardware, experimenters, and laboratory set up over a course of 6+ months. This includes the personal chair the primates sit in during the task, the joystick (without stimuli feedback at this point), and the liquid taps through which either a flavoured juice or water would be delivered to their mouth. To encourage work for liquid rewards, monkeys were liquid controlled when not working, but throughout the project were ‘topped up’ with liquids to a daily requirement.
+Once primates were settled, the next stage of training consisted of teaching the monkey the association between the stimuli presented and the liquid rewards they represented. A detailed discussion of this stage in the initial training of the monkeys is presented in \cite{almohammadRewardValueRevealed2022}, where over the course of three weeks for each stimulus, subjects were presented with a stimulus before the value of that stimulus was delivered to them. In such a Pavlovian stimulus learning task, the primates were not required to make any choice behaviour, but were required to hold the joystick in an upright position throughout.
+    In both the original training and throughout this project, we used fractals to represent the discrete magnitude of juice rewards offered due to their benign associations for the monkey. During the retraining phase of this project, the fractals shown to the monkeys were changed on a semiregular basis to try and maintain a noticeable difference in bids across the range of the budget made by the subjects. Over many days of sessions, monkey’s utilities for a good (i.e. $x$ml of a juice flavour $j$) as measured by bidding behaviour were not perfectly static. This drift in utility for a learnt magnitude might be due to internal (e.g. change in tastes) or external (e.g. the commercial juice used might change its ingredients over time) factors. Once electrophysiological recording began, both the fractals presented and the magnitude and concentration of juice they indicated were held static. Examples of fully trained monkeys learning the magnitude of juice associated with novels sets of fractals are shown in Figure \ref{fig:monkey_learning}.
+Once trained that visual stimuli on the computer screen represent the future possibility of reward, monkeys are trained on an operant conditioning task to teach the function of the joystick within the BDM context. An opaque red ‘target’ box was placed over the budget bar and whenever the monkey used the joystick to move their bidding indicator to within this area, the box immediately changed colour to green and the bid was taken as ‘fixed’. The trial then proceeded as if it were the BDM trial described in Figure \ref{fig:task_epochs}. Over thousands of trials, monkeys were able to learn that their interaction with the joystick was able to influence the payment of rewards.
+    
+    As monkeys became more adept at this task, the requirements for a bid to be placed became stricter: monkeys were required to place and hold a bid inside the target box for a set amount of time, and the proportion of the budget that this box took up was reduced.  Monkeys were able to reliably place bids, even when forced to bid in an area $\leq 1\%$ of the total bidding area. For the original training of the monkeys, this represented their first exposure to the BDM auction paradigm. A similar task was used to retrain monkey's at the outset of this project and during head-fixation training.
+After this, monkeys were allowed to freely bid on the BDM task and explore the total bidding range. Requirements to properly hold the joystick and only move it during the bidding epoch before returning to steadily hold the joystick centred were kept during the whole of the recording phase of the project.
+A separate 'bundle choice' task described at the end of this chapter was trained similarly to the above with the same requirements on joystick control, though this time with the monkey manipulating a circle in the x-dimension of the screen.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/redone_figs/monkey_learning_fig.svg}
+\caption[Monkeys were able to quickly learn the magnitude of juice associated with novel fractal stimuli.]{\textbf{Monkeys were able to quickly learn the magnitude of juice associated with novel fractal stimuli.} Data from sessions for each monkey (Monkey U left; Monkey V right) where a novel set of fractal stimuli was presented. Lines show average over last 5 (where <5 trials per offer level, mean is taken) trials per fractal offer level. Dots show trials on which the monkey's bid was greater than the computer bid, and the juice reward was paid out. Over the first 100 trials (<40 per offer level) monkeys show rough ordering of bid levels.}
+\label{fig:monkey_learning}
+\end{figure}
+
+\clearpage
+\section{Bidding Behaviour of Non-Human Primates on the BDM Task}
+
+\subsection{Rhesus Macaques Show Significant Rank Ordering by Offer Level}\label{sec:bidding_rank_ordered}
+
+Over the total course of these projects, the two monkeys faced at least 80,000 BDM trials each\footnote{Imprecision due to data not included before the rewrite of the software for the task in the first two months of the project. Total trials numbers broken down by monkey, task, and completed are shown in Table \ref{tab:behaviour_trials}}. We restrict our further analysis to the sessions completed during the neuronal 'recording' phase of the project, where offered goods were static and monkeys were consistently tested on the BDM.
+
+During the recording phase of the project, Monkey U completed 233 sessions, averaging 130.6 trials per session with a standard deviation of 34.3 trials, whereas Monkey V completed 174 BDM sessions and on average also completed 130.6 trials per session with a standard deviation: 30.0 trials. The full distribution of trials completed per session is shown in Figure \ref{fig:monkey_trials}. Peaks for both monkeys occur at 200 and 240 trials, where sessions were halted by the experimenter to maintain behaviour on subsequent sessions.
+
+Over the recording phase, electrophysiological recording was not attempted every day, most notably, rarely on Mondays due to any lingering satiety from the unrestricted liquid access over the weekend. We remove trials from these unrecorded sessions and also from any session in which the monkey completes less than 50\% of initiated trials without error. We are left with 163 and 142 sessions for Monkey U and Monkey V respectively, with an average of 115.9 and 114.3 trials completed in each session. The full number of trials completed by each monkey over this project is shown in Table \ref{tab:behaviour_trials} and per day in Figure \ref{fig:monkey_trials}.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{l@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r@{\hspace{0.3cm}}r}
+\hline
+& \multicolumn{3}{c}{\textbf{All Sessions}} & \multicolumn{3}{c}{\textbf{Recording}} & \multicolumn{3}{c}{\textbf{Post Exclusion}} \\
+\cline{2-10}
+\textbf{Monkey} & \textbf{Trials} & \textbf{Sess.} & \textbf{Mean} & \textbf{Trials} & \textbf{Sess.} & \textbf{Mean} & \textbf{Trials} & \textbf{Sess.} & \textbf{Mean} \\
+\hline
+Monkey U & 79677 & 549 & 145.1 & 30441 & 233 & 130.6 & 18893 & 163 & 115.9 \\
+Monkey V & 99750 & 554 & 180.0 & 22728 & 174 & 130.6 & 16240 & 142 & 114.3 \\
+\hline
+\end{tabular}
+\caption[Each monkey was extensively trained on the BDM task over the course of the project.]{\textbf{Each monkey was extensively trained on the BDM task over the course of the project.} The number of task sessions and trials completed is shown per monkey over the entirety of the project. Both monkeys completed many trials prior to the 'Recording' phase of the project (July 2019-November 2020) where electrophysiological recording of dopaminergic neurons was attempted. Sessions were excluded from further analysis on days where recording was not attempted, or the monkey showed poor task performance (fewer than 50\% of trials successfully completed without an error). In general, both monkeys were willing to complete just over 100 trials per session.}
+\label{tab:behaviour_trials}
+\end{table}
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=0.9\textwidth,inkscapelatex=false]{Chapter3/redone_figs/monkey_bids_per_day_fig.svg}
+\caption[Performance of two monkeys on the BDM task over the duration of this project.]{\textbf{Performance of two monkeys on the BDM task over the duration of this project.} Two monkeys (‘U’, left, blue and ‘V’, right, orange) were trained on the BDM (see \cite{almohammadRewardValueRevealed2022}). Monkeys were trained 5 times per week, completing many trials per session (A). ‘Complete’ trials indicate that monkeys successfully made bids which were compared against a randomly drawn computer bid. Incomplete trials resulted in an error timeout and no receipt of juice or water budget. B) During the initial retraining phase, we aimed for monkeys to complete at least 200 trials per session which they regularly achieved. Dashed vertical lines indicate surgeries to implant head fixation devices. C-D) BDM trials where electrophysiological recording took place resulted in a smaller number of sessions and trials per session. Dashed horizontal lines indicate mean number of trials (115.9 for Monkey U and 114.3 for Monkey V).}
+\label{fig:monkey_trials}
+\end{figure}
+
+Under 120 trials per session is fewer trials than we had hoped for during recording from dopamine neurons; for each of a set of 3 fractals shown, we will have data from fewer than 40 bids made by the monkey. During the initial months of the project, we aimed to train monkeys to complete at least 200 trials of the BDM for any behavioural testing session, which we frequently achieved (Figure \ref{fig:monkey_trials}A-B). Sessions ended when monkeys stopped performing the task, defined as follows: on days where the 200-trial target was met, sessions continued until the monkey made 5 consecutive errors, while on days where fewer trials were completed, sessions continued for a further 15 minutes after the monkey's last response, to prevent the animal from learning that withholding participation would end the session early. The reduction in the number of trials successfully completed by each monkey during the neuronal recording phase  (Table \ref{tab:behaviour_trials}) is thought to be due to 3 factors: 
+
+Dashed lines on Figure \ref{fig:monkey_trials}B the surgical implantation of recording apparatus. These occur in April 2018 (head-fixation bars after which monkey was trained to complete the tasks while head was fixed in place) and in October 2018 for Monkey U. The single dashed line for Monkey V (September 2019) refers to the surgical implantation of headbars and a recording chamber after which the monkey was immediately trained to perform auctions while head-fixed. This lack of head freedom can lead to annoyance from the animal and reduce their willingness to participate in tasks.
+
+When electrophysiological recording is taking place, identifying putative dopamine neurons takes time and the receipt of an unexpected liquid reward. This can further reduce willingness to participate due to frustration at being head-fixed for longer periods, and also due to partial satiety from the freely given liquid before completing any trials. See the opening of Chapter 4 for more detail on the neuronal recording procedure.
+
+Finally, the relatively low number of trials completed by the monkeys may have been in part due to the large liquid payout per trial. Total expected liquid received per trial is derived in Chapter 2 and varies by bid (see Figure \ref{fig:bdm_payoff}), but for a minimum expected volume\footnote{Not strictly true as it depends on the magnitudes of rewards but for both monkeys in this project the lowest magnitude fractal during the recording phase represented 0.2 and 0.3ml of juice respectively.}, a monkey who bids the maximum for the lowest magnitude of juice can anticipate half the bidding range (0.6ml) of water and the magnitude of juice reward. Even on the theoretical very ‘worst’ trials where both the monkey and computer 'over'-bid near the maximum for this lowest juice magnitude offer, the monkeys will be certain to receive the juice reward (0.2ml for Monkey U, 0.3ml for Monkey V) which is commensurate with other studies of non-human primate decision-making (\cite{ferraritonioloNonhumanPrimatesSatisfy2021}; \cite{pastorMonkeysChooseIf2017}) plus a negligible amount of the remaining water budget.
+
+In contrast, on particularly lucky trials where the monkey wins the high value fractal and only pays a negligible amount of their budget, the animal can receive 1.2ml of their water budget and the magnitude of juice offered (0.7ml for Monkey U, 1.7ml for Monkey V). As derived in Chapter 2, the cost of misbehaviour is proportional to the utility (proportional to the magnitude) of the juice reward offer and the size of the water budget with which to bid (see Appendix E). However, increasing the utility of these necessarily will decrease the time it takes for a monkey to become sated on liquid, and thus decrease future performance. Striking a delicate balance in this trade-off between accurate behaviour per trial and number of trials is likely to be key to any future non-human auction experiments. However, as previously noted, one of the key benefits of auction paradigms is that they reveal the utility of the organism for an offered good in each individual trial, so (in contrast to binary choices, see Figure \ref{fig:binary_choice}) there is no reduction in accuracy or resolution to the utility estimate from a reduced number of trials. In fact, it may be the case that fewer trials with greater incentive for a subject to behave truthfully (larger signal-to-noise ratio) generate the optimal statistical power for such experiments (\cite{peruginiPracticalPrimerPower2018}).
+
+Given that the only dimension by which the offered goods varied was the magnitude of the liquid, we expected a monotonic relationship between the liquid volume and the utility of the offered goods to the monkey. As the animal’s optimal bid for any good is exactly equal to their utility for that good, we expected a monotonic relationship between the magnitude of the juice offered and the bids placed by the monkey. In Figure \ref{fig:monkey_bid_correlation}A, with more than 15,000 bids each, monkeys show this behaviour, the bid population significantly differing by the magnitude of the juice offered in a trial ('reward offer level'), tested using a Wilcoxon signed-rank test (Bonferroni-corrected p-values < 0.0001).
+
+The summary of pairwise Wilcoxon tests between each reward level on both an individual bid-by-bid basis ('Indiv. Trials', Figure \ref{fig:monkey_bid_correlation}A), and between session means (Figure \ref{fig:monkey_bid_correlation}B), are shown in Figure \ref{tab:monkey_reward_level}. Both sets are highly significant for each monkey and each comparison of reward level. The Mann-Whitney U statistic for each test is low compared to the total space of $n1 * n2$ per test, markedly so for Monkey V when comparing mean bids for the high vs. low fractal offer where only two sets of bids for the low fractal offer overlap with the lowest session mean bids for the high fractal offer.
+
+On a session-by-session basis, the mean and median bid per reward level were rank-ordered in all but 2 of 305 sessions (161/163 for Monkey U and 142/142 for Monkey V). The results of Kruskal-Wallis, Jonckheere-Terpstra, and Spearman rank order tests per session are summarised in Table \ref{tab:monkey_significance}.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{lccccccc}
+    \hline
+    \textbf{Monkey} & \textbf{Sessions} & \multicolumn{2}{c}{\textbf{Kruskal-Wallis}} & \multicolumn{2}{c}{\textbf{Jonckheere-Terpstra}} & \multicolumn{2}{c}{\textbf{Spearman}} \\
+    \cline{3-8}
+    & & \textbf{\# Sig} & \textbf{\%} & \textbf{\# Sig} & \textbf{\%} & \textbf{\# Sig} & \textbf{\%} \\
+    \hline
+    Monkey U & 163 & 162 & 99.4\% & 161 & 98.8\% & 161 & 98.8\% \\
+    Monkey V & 142 & 142 & 100.0\% & 142 & 100.0\% & 142 & 100.0\% \\
+    \hline
+  \end{tabular}
+\caption[Almost all sessions show rank ordered bidding by monkeys.]{\textbf{Almost all sessions show rank ordered bidding by monkeys.} Tests for differences in distribution of bids (Kruskal-Wallis) and ordering of reward level medians (Jonckheere-Terpstra) and bids (Spearman) show significance across almost all sessions. \# Sig shows the absolute number of significant sessions and \% shows the percentage of total sessions reaching significance per test. Only two sessions for Monkey U do not reach significance across all tests out of a total of 305 sessions.} 
+  \label{tab:monkey_significance}
+\end{table}
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=0.9\textwidth,inkscapelatex=false]{Chapter3/redone_figs/monkey_bid_ordering_fig.svg}
+\caption[Monkeys show rank ordered bidding on the BDM auction task.]{\textbf{Monkeys show rank ordered bidding on the BDM auction task.} A) Boxplots of each normalised individual bid from either monkey during the recording phase, post exclusion (n = 18893 for Monkey U, left, blue; 16240 for Monkey V, right, orange). The reward level is split into ‘high’, ‘medium’, and ‘low’ categories whose magnitude varied by monkey but were consistent across recording (0.2, 0.45, 0.7ml Monkey U; 0.3, 1.0, 1.7ml Monkey V). B) Boxplots of the mean bid per reward level per session (n = 163 for Monkey U; 142 for Monkey V) for each monkey. Individual session mean bids are overlaid. In A) and B) all corrected pairwise Wilcoxon comparisons are significant (p < 0.0001). C) the proportion of individual sessions for which a one-sided Wilcoxon test (uncorrected) between all monkey bids showed significant differences (p < 0.05). D) Estimate of the Spearman’s $\rho$ between reward offer level and the monkey’s bids per session. Mean Spearman’s $\rho$ shown by dashed lines (0.632 for Monkey U; 0.672 for Monkey V).}
+\label{fig:monkey_bid_correlation}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lllrrrrl}
+\hline
+\textbf{Test Type} & \textbf{Monkey} & \textbf{Comparison} & \textbf{n1} & \textbf{n2} & \textbf{Statistic} & \textbf{p-value} \\
+\hline
+Indiv. Trials & Monkey U & low vs med & 6,992 & 6,916 & 11.79M & <0.001 \\
+Indiv. Trials & Monkey U & low vs high & 6,992 & 4,985 & 3.62M & <0.001 \\
+Indiv. Trials & Monkey U & med vs high & 6,916 & 4,985 & 10.24M & <0.001 \\
+\hline
+Indiv. Trials & Monkey V & low vs med & 5,547 & 5,559 & 5.49M & <0.001 \\
+Indiv. Trials & Monkey V & low vs high & 5,547 & 5,134 & 2.03M & <0.001 \\
+Indiv. Trials & Monkey V & med vs high & 5,559 & 5,134 & 8.42M & <0.001 \\
+\hline
+Session Means & Monkey U & low vs med & 163 & 163 & 1,714 & <0.001 \\
+Session Means & Monkey U & low vs high & 163 & 163 & 160 & <0.001 \\
+Session Means & Monkey U & med vs high & 163 & 163 & 3,885 & <0.001 \\
+\hline
+Session Means & Monkey V & low vs med & 142 & 142 & 179 & <0.001 \\
+Session Means & Monkey V & low vs high & 142 & 142 & 2 & <0.001 \\
+Session Means & Monkey V & med vs high & 142 & 142 & 1,465 & <0.001 \\
+\hline
+\end{tabular}
+\caption[Pairwise Wilcoxon test results for monkey bidding behaviour across reward levels.]{\textbf{Pairwise Wilcoxon test results for monkey bidding behaviour across reward levels.} Statistical tests were conducted by pooling all trials across recording session ('Indiv. Trials') and by taking the mean of all bids per session by monkey and reward level ('Session Means'). All comparisons were highly significant and show good separation of bids per reward level, especially when grouped by session ('Statistic' from a Mann-Whitney U test).}
+\label{tab:monkey_reward_level}
+\end{table}
+
+We also tested whether intra-session bids were significantly different between paired reward levels using a Wilcoxon signed-rank test. The uncorrected p values showed statistical significance at p < 0.05 between the highest magnitude reward level and the lowest in almost all sessions completed by each monkey (0.988 for Monkey U; 1.0 for Monkey V; Figure \ref{fig:monkey_bid_correlation}C) and also between the middle reward level and the lowest (0.957 for Monkey U; 0.986 for Monkey V). Fewer sessions showed such significant differences in the monkey bid distribution between the highest and medium reward magnitudes for both monkeys (0.81 for Monkey U; 0.852 for Monkey V), an effect that can also be clearly seen in the bid distribution in Figures \ref{fig:monkey_bid_correlation}A) and \ref{fig:monkey_bid_correlation}B).
+
+There are two explanations of this partial overlap of middle and highest magnitude offer bidding we find convincing. Firstly, the monkey’s bids are artificially limited: they cannot bid above the entirety of the water budget. This limited bidding range naturally compresses the bidding space. It is possible, though unlikely, that comparing the 'true' (i.e., where the budget is unlimited) distribution of bids, this effect would disappear.
+
+Secondly, this may be an effect of the marginal utility of juice. In Chapter 1 we introduce the concept of the St Petersburg paradox and its solution that an increase of monetary value (amount of juice) has a greater utility to a poor man than a rich one. For each linear increase in juice volume we offer the monkey, we might expect there to be less and less utility added to the offer\footnote{For a graphical example of distributions of utility (i.e. assumed bids for the BDM), see the Appendix A.2 on Random Utility Theory (Figure \ref{fig:rum}).} and thus a reduction in the separation of bid made.
+
+Given this nonlinearity in the rise of marginal utility, we also investigated the rank-ordering of bids within single sessions using a Spearman rank correlation test. The Spearman rank allows us to investigate the degree to which there is a monotonic relationship between the reward offer and the bid without assuming linearity in this relationship. In Figure \ref{fig:monkey_bid_correlation}D) we show that monkeys maintain a reasonably steady $\rho$ between 0.5 and 0.75 with averages indicated by dashed lines at 0.632 (Monkey U) and 0.672 (Monkey V). This is slightly lower than previously reported figures (\cite{almohammadRewardValueRevealed2022}), again likely due to the behavioural effects of head-fixed recording and the reduced number of trials per session.
+
+\subsection{Monkeys Show Two Distinct Patterns of Bidding Behaviour}
+
+Monkeys interact with the task via the vertical movement of a bidding indicator, which is controlled by moving a joystick towards or away from them. This movement takes place entirely within the ‘bidding’ epoch of the task (Figure \ref{fig:task_epochs}) and can be divided into 3 separate stages:
+
+\begin{enumerate}
+    \item At the start of the bidding epoch, the budget bar appears, crossed by the bidding indicator bar that appears at a point on the budget that is randomly drawn from a uniform distribution. The monkey must first react to the start of the epoch and the position of the bidding bar before moving the joystick. This reaction time will be variable across monkeys; in the BDM, our monkeys seem to have a reaction time of around 500ms (Figure \ref{fig:monkey_joystick1}B).
+    \item The monkeys then move the joystick towards or away from them to adjust their bid to the desired level (the total movement as a percentage of the bidding space is shown in Figure \ref{fig:monkey_joystick1}A). Monkeys  required less than 2 seconds from reacting to the start of the epoch to finish placing their bid (Figure \ref{fig:monkey_joystick1}C); Monkey U mean 662ms; Monkey V mean 874ms). The total time from the onset of the bidding epoch to finalising their bid took an average of 1181ms for Monkey U and 1421ms for Monkey V. In total, monkeys had 4s to make and hold their bids and so had ample time to precisely make their desired bid.
+    \item Once satisfied with their bid, monkeys must then hold the bidding bar at a constant level for either 1 second (Monkey U) or 700ms (Monkey V) before the end of the bidding epoch.
+\end{enumerate} 
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{llrr}
+    \toprule
+    \textbf{Monkey} & \textbf{Stat} & \textbf{Mean} & \textbf{Standard Deviation} \\
+    \midrule
+    Monkey U & Bidding time (ms) & 661.52 & 369.80 \\
+    Monkey U & Reaction time (ms) & 519.12 & 135.11 \\
+    Monkey U & Total bidding time (ms) & 1180.64 & 390.14 \\
+    Monkey U & Total bidspace movement \% & 10.0 & 4.2 \\
+    \hline
+    Monkey V & Bidding time (ms) & 873.85 & 444.27 \\
+    Monkey V & Reaction time (ms) & 546.92 & 128.11 \\
+    Monkey V & Total bidding time (ms) & 1420.77 & 449.26 \\
+    Monkey V & Total bidspace movement \% & 16.0 & 4.0 \\
+    \bottomrule
+  \end{tabular}
+\caption[Monkeys were able to reliably place bids within 2 seconds.]{\textbf{Monkeys were able to reliably place bids within 2 seconds.} Metrics for joystick movement for both monkeys shown as mean and standard deviation. Monkeys reacted to the start of the bidding epoch within roughly half a second. Monkey U took a mean of 662ms to move their bidding bar to the desired bid, whereas Monkey V took a little longer (874ms). Both monkeys showed a slight positive bias in their bids from start position (Monkey U 10\% total bidspace; Monkey V 16\%) though on average bids were in the upper half of the budget (see Figure \ref{fig:monkey_bid_correlation}) which may explain most or all of this bias.}
+\label{tab:monkey_movement}
+\end{table}
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/redone_figs/monkey_joystick_movement_fig.svg}
+\caption[Histograms of monkeys manipulation of the joystick in the bidding epoch of the BDM task.]{\textbf{Histograms of monkeys manipulation of the joystick in the bidding epoch of the BDM task.} A) Monkeys (Monkey U, left, blue; Monkey V, right, orange) showed a slight positive bias in movement of the joystick. This may be partly explained by their total average bids (Monkey U 0.59; Monkey V 0.66) though it may also be easier for a monkey to control the extension of their arm (c.f. withdrawal) when moving the joystick. B) Both monkeys showed similar reaction times to the start of the bidding epoch (Monkey U 519ms; Monkey V 547ms). C) Monkey U took less time from reacting to finalising their bid (662ms) compared to Monkey V (874ms). Both monkey were able to place their bids well within the time permitted (reaction time + total bidding time; Monkey U 1181ms; Monkey V 1421ms).}
+\label{fig:monkey_joystick1}
+\end{figure}
+
+Given the random position of the bid starts, we expected that the time spent moving the bidding bar by each monkey would correlate strongly with the difference between the starting bid level and the final bid made. However, Figure \ref{fig:monkey_joystick1}C-D) hint that this isn’t the whole story: the distribution of time spent bidding has two peaks.
+
+We investigated the bidding activity of the monkeys in Figures \ref{fig:monkey_joystick2} and \ref{fig:monkey_joystick3} showing the time quantities plotted in Figure \ref{fig:monkey_joystick1} against two movement quantities. The term 'total bidding movement' refers to the gross bidding movement of the monkey throughout the bidding process, while the term 'net bidding movement' refers to only the difference between the final and the initial bids. To save space, both have been plotted as their modular values. For example, if the monkey moved their bid down 10\% of the total bidding range before moving their bid up 5\% toward its initial starting position, the net bidding movement would be 5\% while the total bidding movement would be 15\%. Figure \ref{fig:monkey_joystick2} shows the relationship between the time spent bidding and the bidding movements coloured by the reward level, and Figure \ref{fig:monkey_joystick3} shows the same relationships coloured by the final bid of the monkey.
+
+\begin{figure}[p] 
+\centering    
+\includegraphics[width=1.0\textwidth]{Chapter3/redone_figs/joystick_reward_level.png}
+\caption[The relationship between time spent bidding and bidding movement per trial coloured by reward offer.]{\textbf{The relationship between time spent bidding and bidding movement per trial coloured by reward offer.} Distinct clusters of bidding activity emerge when studying the relationship between the time spent moving the joystick and the net bidding movement per trial. For each monkey, the time to place the bid, and time spent moving the joystick (see Figure \ref{fig:monkey_joystick1}) are plotted against the gross (total) bidding movement or the net bidding movement. Both x-axes are plotted as modular values. Points are coloured by the reward level offered in the trial. Both monkeys show similar patterns of strong correlation between time to place bids and total bidding movement, and clusters of patterns between time spent moving the joystick and net bidding movement.}
+\label{fig:monkey_joystick2}
+\end{figure}
+
+\begin{figure}[p] 
+\centering    
+\includegraphics[width=1.0\textwidth]{Chapter3/redone_figs/joystick_monkey_bid.png}
+\caption[The relationship between time spent bidding and bidding movement per trial coloured by final bid.]{\textbf{The relationship between time spent bidding and bidding movement per trial coloured by final bid.} Distinct clusters of bidding activity emerge when studying the relationship between the time spent moving the joystick and the net bidding movement per trial. Points are plotted for monkey joystick movement per trial as in Figure \ref{fig:monkey_joystick2} but are coloured by the monkey’s final bid from low (yellow) to high (purple).}
+\label{fig:monkey_joystick3}
+\end{figure}
+
+For both monkeys, the time to place the bid and the total bidding movement were strongly correlated as expected (linear model $R^2$ of 0.60 and 0.72 for Monkeys U and V respectively, p < 0.0001). The speed of the bid indicator bar is proportional to the displacement of the joystick but is capped so to move further takes more time. However, it is also clear from the net bidding plots that there are distinct clusters of bidding activity: a ‘slower’ cluster comprised of different reward levels and final bids with little correlation between net movement and movement time, and at least one other cluster that where a relationship exists between net movement and movement time (see bottom left panels).
+
+The coordinates from the bottom left panels are used to train a k-means clustering algorithm. Cluster number is informed using the ‘elbow-method’ using the within cluster sum of squares per number of clusters to find an inflection point where additional clusters provide little extra variance explained (Figure \ref{fig:joystick_clusters}A). Using this and visual analysis of the distributions of bids, we settled on three clusters, which are identified per monkey using a k-means algorithm (Figure \ref{fig:joystick_clusters}B). Cluster numbers have been modified to be consistent between monkeys and net bidding movement has been plotted as its true value (c.f. Figures \ref{fig:monkey_joystick2} and \ref{fig:monkey_joystick3} where the modular value is used).
+
+\begin{figure}[p] 
+\centering    
+\includegraphics[width=1.0\textwidth]{Chapter3/redone_figs/joystick_clusters.png}
+\caption[Clustering of monkey bidding behaviour.]{\textbf{Clustering of monkey bidding behaviour.} A) Bidding behaviour using the time
+spent moving the joystick and net bidding movement (see Figures \ref{fig:monkey_joystick2} and \ref{fig:monkey_joystick3}) as coordinates is used to train a k-means clustering algorithm. Within cluster sum-of-squares is used to identify an elbow in the variance explained by the addition of clusters which confirms the priors of 3 clusters in the data. B) Individual bids are shown as in Figures \ref{fig:monkey_joystick2} and \ref{fig:monkey_joystick3}, coloured by their cluster as determined using k-means clustering. Clusters numbers have been rearranged for consistency between monkeys.}
+\label{fig:joystick_clusters}
+\end{figure}
+
+Three clear clusters can be seen per monkey. In two clusters, the monkey moves their bid quickly towards a desired value. In cluster 1 (purple) where the monkey moves the bar efficiently down the budget towards a final bid and cluster 3 (green) where the monkey does the opposite, moving a bidding bar up towards its final value. In cluster 2, the monkey does neither. The net bidding movement tends to be smaller but take longer than in the other two clusters.
+
+The question of what these different clusters represent is resolved in Figure \ref{fig:joystick_movement_clusters} where the individual trials movements are shown in multiple plots arranged by reward level and starting bid decile. Movements of the bidding bar are coloured by cluster as in Figure \ref{fig:joystick_clusters}. Both monkeys show similar bidding behaviour, quickly moving the joystick down or up to final bids that are further from the initial starting bid (purple cluster 1, top left and green cluster 3, bottom right of each panel). When the starting bid of a trial is closer to the monkey’s preferred final bid, however, they tend to make large movements either up (Monkey U) or down (Monkey V) towards the extreme of the budget bar before returning the bid to its final position near where it started. This may be because to make a bid the monkey is required to move the bidding indicator bar from its initial position. It may also be the case that, although both monkeys are able to precisely target bids when forced to on the training target task, it is easier to make larger movements than finer ones. Instead of a fiddly small adjustment of the joystick, monkeys may save frustration by making larger movements of the joystick. If so, it may be interesting for future studies to see if and how this affects the accuracy of the monkey’s bids. As previously mentioned, it may be beneficial for any further work on animals performing the BDM to gather more accurate data from fewer trials with a greater cost of misbehaviour, which should punish any inaccurate behaviour.
+
+\begin{figure}[p] 
+\centering    
+\includegraphics[width=1.0\textwidth]{Chapter3/redone_figs/joystick_facets2.png}
+\caption[Individual bids made by monkeys coloured by cluster.]{\textbf{Individual bids made by monkeys coloured by cluster.} Clusters from Figure \ref{fig:joystick_clusters} are imposed on traces of the bidding indicator bar's movement over time. Trials per monkey are split by reward level offered and by the starting bid decile, where 1 is the lowest (bid starting in 0-10\% of the budget bar). The y-axis scale (proportion of bidding space, 0--1) is shown on the top-left panel only for clarity. Dotted lines indicate the mean monkey bid per reward level, compared to dashed lines which indicate mean monkey bid per reward level and starting bid decile.}
+\label{fig:joystick_movement_clusters}
+\end{figure}
+
+Figure \ref{fig:joystick_movement_clusters} also shows the mean monkey bid per reward level (dotted line) and per reward level and starting bid tenth (dashed line). The effect of the starting bid on the monkey’s bid for an offered reward can be seen in the deviation of these two lines across different deciles of starting bid. This relationship is further explored in Figure \ref{fig:monkey_starting_bid} where a clear effect of the bid starting at the monkey’s mean bid (dashed line) for a reward level can be seen. There is a discontinuity of monkey’s final bids at the point where the starting bid is roughly equal to the population mean of a monkey’s final bid for a given juice reward. In Figure \ref{fig:monkey_starting_bid}B) it's possible to see how monkeys go from slightly bidding above their mean bid for an offered reward at the starting bid decile below this mean bid, to slightly underbidding as the starting bid is raised into the next decile. 
+
+\begin{figure}[p] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/redone_figs/joystick_differences.svg}
+\caption[The effect of the randomly drawn starting bid on the monkey’s final bid.]{\textbf{The effect of the randomly drawn starting bid on the monkey’s final bid.} A) The difference of a monkey’s final bid to the mean final bid per reward level is shown against the randomly drawn starting bid of the trial. The mean bid per reward level is also indicated via a vertical dashed line. B) The difference between the mean bid per reward level and starting bid decile is compared to the mean bid per reward level. I.e. the mean effect of the starting decile on the monkey’s final bid. Negative values indicate that the starting bid decile leads the monkey to bid lower than would be expected, and vice versa. Error bars are the standard error of the mean.}
+\label{fig:monkey_starting_bid}
+\end{figure}
+
+We might have expected the inverse relationship to this (that monkeys bid higher when the starting bid is high and vice versa) given the potential effort costs of moving the joystick to change the cursor position (\cite{burrellWorthWorkMonkeys2023}). It seems in this project that the speed of movement possible and the lack of resistance on the joystick seems to have negated this; the bidding itself requires little effort from the monkeys.
+
+\subsection{Modelling of Monkey Bids on the BDM}
+
+Given that both the reward level offered, and the initial location of the bidding bar affect the monkey’s final bid, we wanted to quantify the relative effect sizes of these and of other variables of importance. In total, we selected 5 variables that were assumed to have relevance for a monkeys' bids, the reward level ('juice') and the starting bid, along with the total liquid (water and juice) in ml that each monkey had received up until that trial on that day, the randomly drawn computer bid on the previous trial, and whether or not the monkey won the previous trial. The distributions of each of these variables, (coloured by reward level) is shown in Figure \ref{fig:monkey_regression_dists} where no variables show a strong co-varying relationship other than the computer bid and result of the previous trial.
+
+\begin{figure}[htbp!] 
+\centering    
+\includegraphics[width=1.0\textwidth]{Chapter3/redone_figs/variable_distribution_plot_redone.png}
+\caption[The distribution of independent and dependent variables selected for the BDM task.]{\textbf{The distribution of independent and dependent variables selected for the BDM task.} In A) (Monkey U) and B) (Monkey V) the distributions (diagonal) of each selected independent variable are shown coloured by reward level (red = lowest, green = middle, blue = highest). Axis tick values are omitted as panels illustrate correlation structure rather than absolute magnitudes. `juice' (ml) is the volume of juice offered per reward level; `total liquid' (ml) is the cumulative liquid received that day; `start bid' is the randomly drawn starting position; `last opp bid' is the computer's bid on the previous trial; `last win' is binary (1 = won, 0 = lost). No variables show strong co-correlation except the last computer bid and trial outcome, as expected. C) shows the distribution of monkey bids (bounded 0--1) coloured by reward level; dashed purple lines show fitted beta distributions.}
+\label{fig:monkey_regression_dists}
+\end{figure}
+
+To regress these variables against the monkey’s bid on any trial, a beta distribution regression was carried out with the form:
+
+\begin{align}
+\text{monkey's bid} | \text{monkey} \sim \beta_1(\text{reward level}) + \beta_2(\text{starting bid}) + \beta_3(\text{total liquid}) + \nonumber \\ 
+\beta_4(\text{last trial computer bid}) + \beta_5(\text{last trial monkey win}) + \varepsilon
+\label{eq:beta_regression}
+\end{align}
+
+A beta regression model was chosen as the monkey’s bids fall in the range (0,1). To confirm the choice of model, we also fitted a range of distributions to the monkey’s bids, which showed a beta distribution fit to have the lowest Akaike information criteria (AIC) and largest log likelihood. Fitted beta distribution are shown in Table \ref{tab:beta_params}. In Figure \ref{fig:monkey_quantiles} the empirically observed monkey bids and compared to these fitted beta distributions for each monkey. Quantile-quantile (Q-Q), CDF distribution, and theoretical vs actual proportion (P-P) plots are shown for both of these models. In each model, but especially for Monkey V, observed points show a clear relationship with the theoretical predicted points, strongly suggesting that these beta distributions capture some of the pattern of bidding, and that a beta regression is a rational statistical choice.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lcccc}
+        \hline
+        \textbf{Monkey} & \textbf{Shape 1 ($\alpha$)} & \textbf{$\alpha$ SD} & \textbf{Shape 2 ($\beta$)} & \textbf{$\beta$ SD} \\
+        \hline
+        Monkey U & 1.5957 & 0.0187 & 1.6096 & 0.0189 \\
+        Monkey V & 1.8312 & 0.0208 & 1.1595 & 0.0122 \\
+        \hline
+    \end{tabular}
+\caption[Fitted beta distribution parameters by monkey.]{\textbf{Fitted beta distribution parameters by monkey.} A beta distribution was fitted to all monkey bids from the recording phase of the project to yield two shape parameters ($\alpha$ and $\beta$) per monkey. Standard deviations (SD\nomenclature{SD}{Standard Deviation}) for each parameter are also provided.}
+    \label{tab:beta_params}
+\end{table}
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/monkey_quantiles_fig.svg}
+\caption[Agreement between the distribution of monkey bids and the fitted beta distributions.]{\textbf{Agreement between the distribution of monkey bids and the fitted beta distributions.} Data for Monkey U left, blue; data for Monkey V right, orange. A) Quantile-quantile plots of monkey’s bids against the fitted beta distributions of Figure \ref{fig:monkey_regression_dists}B) (parameters in \ref{tab:beta_params}). Perfect fit is shown as a black line along $x=y$. B) The cumulative distribution function (CDF) of observed (colour) and theoretical (black) points are plotted next to each other. C) Probability-probability plots of the CDF of observed and theoretically beta distributed monkey’s bids plotted against each other. For all plots, colour refers to the monkey whose bids are plotted. All plots show good agreement between empirically observed bids and those expected given the fitted beta distributions (i.e. where the coloured lines fall reasonably along black lines).}
+\label{fig:monkey_quantiles}
+\end{figure}
+
+Before performing regressions, all variables except monkey bid (which is naturally constrained to the range (0,1)) were rescaled using the formula:
+
+\begin{align}
+A = (a - a_{min}) / (a_{max} - a_{min})
+\label{eq:rescaling_params}
+\end{align}
+
+All beta regressions carried out used a log-link function. The absolute effects of a change by 1 unit of any unscaled feature $a$ can be calculated thus:
+
+\begin{align}
+\Delta\hat{y} = \frac{e^{(\beta_0 + \beta_a)}}{1 + e^{(\beta_0 + \beta_a)}} - \frac{e^{\beta_0}}{1 + e^{\beta_0}}
+\label{eq:unscale_params}
+\end{align}
+
+The two beta regressions produced by Equation \ref{eq:beta_regression} are plotted in Figure \ref{fig:regression_estimates} (Monkey U McFadden pseudo-$R^2$ = 0.316; Monkey V McFadden pseudo-$R^2$ = 0.374) showing the dominant effect of the reward level offered on the monkey’s bid (Monkey U: $\beta_1$ = 1.49±0.019, Z-score = 77.5, p < 0.0001; Monkey V: $\beta_1$ = 1.72±0.018, Z-score = 97.7, p < 0.0001). This is to be expected given the results already presented in Figure \ref{fig:monkey_bid_correlation}. For both monkeys, the higher the reward level (i.e. the magnitude of juice offered), the greater the expected bid\footnote{Note: we do not include the intercepts of both regressions in Figure \ref{fig:regression_estimates}. For Monkey U the intercept of the beta regression on all bids is -0.960±0.033 and for Monkey V the intercept is -0.500±0.031. By task design, the monkey’s bids are censored to 0 and the maximum of the bidding range (1). Though in theory a monkey could be motivated to bid at either extreme, such bidding tended to signal probable poor performance. For regressions including such data, typically a Tobit regression is preferred (\cite{tobinEstimationRelationshipsLimited1958}). The negative intercepts from these regressions do not refer to the prediction of the monkey bids by the models when all selected variables are equal to 0. See Equation \ref{eq:unscale_params}. For the fitted regressions, such predictions are 0.183 for Monkey U and 0.295 for Monkey V.}.
+
+Both monkeys also show a negative coefficient for the starting bid position (Monkey U: $\beta_2$ = -0.074±0.025, Z-score = -3.0, p = 0.0029; Monkey V: $\beta_2$ = -0.326±0.024, Z-score = -13.9, p < 0.0001) indicating that when the starting bid was higher, the monkey’s final bid tended to be lower. We discussed the reasons for counterintuitive finding in the previous section (see Figure \ref{fig:monkey_starting_bid}).
+
+The results of the last trial had a subtle but statistically significant effect for both monkeys with the randomly drawn computer bid on the last trial (Monkey U: $\beta_4$ = 0.235±0.031, Z-score = 7.7, p < 0.0001; Monkey V: $\beta_4$ = 0.144±0.031, Z-score = 4.7, p < 0.0001) and if the monkey won the last trial (Monkey U: $\beta_5$= 0.189±0.017, Z-score = 10.9, p < 0.0001 ; Monkey V: $\beta_5$ = 0.094±0.018, Z-score = 5.3, p < 0.0001) tending to cause an increase in subsequent bid. The intuition behind the former effect is simple: a high randomly drawn bid might signal to the monkey that the distribution of bids it is facing has changed, especially if there have been multiple above average opposing bids in the recent past. Outside of the laboratory setting, opponent’s bids within an auction signal information about the true worth of an auctioned good (\cite{milgromPuttingAuctionTheory2004}); we review the literature on how a rational participant should incorporate other bidder’s values in Appendix A.1. A full table of regression results are printed in Table \ref{tab:beta_regression}.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{llccc}
+        \hline
+        \textbf{Monkey} & \textbf{Parameter} & \textbf{Coefficient $\pm$ SE} & \textbf{Z-score} & \textbf{p-value} \\
+        \hline
+        \multirow{5}{*}{Monkey U} & Reward level ($\beta_1$) & 1.49 $\pm$ 0.019 & 77.5 & <0.0001 \\
+        & Starting bid position ($\beta_2$) & -0.074 $\pm$ 0.025 & -3.0 & 0.0029 \\
+        & Total liquid received ($\beta_3$) & 0.248 $\pm$ 0.033 & 7.52 & <0.0001 \\
+        & Last trial computer bid ($\beta_4$) & 0.235 $\pm$ 0.031 & 7.7 & <0.0001 \\
+        & Last trial monkey win ($\beta_5$) & 0.189 $\pm$ 0.017 & 10.9 & <0.0001 \\
+        \hline
+        \multirow{5}{*}{Monkey V} & Reward level ($\beta_1$) & 1.72 $\pm$ 0.018 & 97.7 & <0.0001 \\
+        & Starting bid position ($\beta_2$) & -0.326 $\pm$ 0.024 & -13.9 & <0.0001 \\
+        & Total liquid received ($\beta_3$) & 0.66 $\pm$ 0.032 & 20.63 & <0.0001 \\
+        & Last trial computer bid ($\beta_4$) & 0.144 $\pm$ 0.031 & 4.7 & <0.0001 \\
+        & Last trial monkey win ($\beta_5$) & 0.094 $\pm$ 0.018 & 5.3 & <0.0001 \\
+        \hline
+    \end{tabular}
+\caption[Beta regression results for monkey bidding behaviour on the BDM task.]{\textbf{Beta regression results for monkey bidding behaviour on the BDM task.} Fitted values from a beta regression as defined in Equation \ref{eq:beta_regression}. McFadden pseudo-$R^2$ values: Monkey U = 0.316, Monkey V = 0.374.}
+    \label{tab:beta_regression}
+\end{table}
+
+That the monkeys tending to bid higher than otherwise expected if they won the last trial is more difficult to rationalise. We might have expected the reverse phenomena to occur, that monkeys who win an auction trial would decrease their subsequent bid in line with findings about ‘hot hand’ effects in psychology (\cite{gilovichHotHandBasketball1985}). This effect observes that people who succeed at a task with certain, relatively fixed, probability believe that they will then have a greater chance of succeeding in the subsequent attempt (e.g. sportsmen who make a difficult shot will believe they will also make the next, similarly difficult, shot they make), even when attempts are independent. Participants in first-price auctions might believe that they have a higher chance of winning subsequent auctions, and thus shade their bid to lower costs incurred in the event of a win. In theory the BDM has no such advantage as the dominant strategy is always to bid one’s true value (see Chapter 2).
+
+Finally, it is not unexpected that monkeys show an effect of total liquid increasing their bids over time. As monkeys reach satiety on liquid and have their thirst quenched they may switch to prioritising the rewarding taste of juice rather than liquid volume which can be maximised by trying to bid low. See our discussions of marginal utility in Chapter 1.
+
+When regressions are performed grouped by monkey and date (Figure \ref{fig:regression_estimates}B) and Figure \ref{fig:regression_estimates}C), the dominance of the reward level on bid is clear is to see. Data is smoothed to the mean coefficient estimate of the last 5 sessions in Figure \ref{fig:regression_estimates}C) where reward juice offer is clearly separable from other variables of interest. This parameter had the greatest positive coefficient in 137/163 sessions for Monkey U and 111/142 sessions for Monkey V and was significant (p < 0.05) for all 163 and 142 sessions respectively.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/beta_regression_estimates_fig.svg}
+\caption[Results of beta distribution regressions on relevant BDM task variables.]{\textbf{Results of beta distribution regressions on relevant BDM task variables.} A) Coefficient estimates for a beta regression in Equation \ref{eq:beta_regression} of relevant task variables against monkey bids for all trials separated by monkey. Error bars represent +/- standard error. For both monkeys, the reward level offered was the dominant variable in guiding the monkey’s bids as expected. Both monkeys also showed an inverse relationship with the starting bid (though much more so for monkey V). Monkey V also showed a much greater effect of aggregate bid increasing as the monkey received more liquid over successive trials (i.e. was sated). B) Coefficient estimates for identical regressions grouped by both monkey and session date. Boxplots show similar findings as the single regression carried out in A). In every session, reward level was a significant variable in determining monkey’s bid. The total liquid received shows the greatest variability in effect over multiple sessions. In C) regression coefficients from B) are plotted by date, showing the relationship over time. Lines are smoothed by taking the mean coefficient estimate over the last 5 sessions.}
+\label{fig:regression_estimates}
+\end{figure}
+
+The total amount of liquid a monkey has received has a much more variable, though generally prominent, and positive, aggregate effect on bids (Monkey U mean $\beta_3$ = 0.63; Monkey V mean $beta_3$ = 1.32). The high variance in these parameters estimated coefficient might be because, although the amount of liquid the monkey receives in the task is carefully recorded, this is not exactly equal to their level of liquid deprivation. For example, liquids given to the monkey to incentivise their leaving the cage or whilst their craniotomy chamber is cleaned prior to recording is imprecise and at the whim of the experimenter (though of course we tried to keep this consistent across days and sessions where possible), and monkeys may be more or less liquid deprived due to factors entirely outside of the experiments control, for instance the intensity of sunlight into their housing area, or energy expended since the last session.
+
+The results of the last trial were mostly insignificant on a single session level, with only a fraction of total sessions showing significance at (uncorrected for multiple comparisons) p < 0.05. For Monkey U only 11/163 sessions showed a statistically significant regressor for the computer bid on the last trial but with a low average coefficient (mean $\beta_4$ of significant sessions = 0.154), and a further 11/163 sessions had a significant relationship between monkey bid and whether or not the monkey won the last trial (again with a low average relationship, $\beta_5$ = -0.018). Monkey V showed similar results with 11/142 sessions showing a significant relationship between the monkey’s bid and the previous computer bid and 13/142 showing a significant relationship between the monkey’s bid and the result of the last trial (for significant sessions, mean $\beta_4$ = 0.076, mean $\beta_5$ = -0.025).
+
+Finally, there was evidence for systematic starting bid effect on the monkey’s final bid for Monkey V across multiple sessions, with all but one session revealing a negative estimate for the relationship between starting bid and final bid. For Monkey U, the effect of the starting bid on their eventual bid for an offer was more variable across the year spent recording data (Figure \ref{fig:regression_estimates}C).
+
+\subsection{Single Fractal Sessions}
+
+To control for the dominant effect of reward level and to remove any framing effects, we also recorded from the two monkeys facing only one reward level per session. Monkeys were repeatedly shown the medium level reward with the same representative fractal and juice amount offered as when that fractal was present with the two other (higher and lower) reward levels (i.e. 0.45ml for Monkey U and 1.0ml for Monkey V). Otherwise, the task remained unchanged and as in Figure \ref{fig:task_epochs}.
+
+Every bid made by the primates is plotted as a boxplot in Figure \ref{fig:single_fractal_bids}A). Though a Wilcoxon test for mean ranks showed significant differences (p < 0.0001 for Monkey V, p = 0.004 for Monkey U), visual inspection of the distributions led us to believe that this significance arises from overpowering of the tests. Testing using Cohen’s d-statistic confirmed this, returning a ‘medium’ difference (0.467) for Monkey V and a ‘negligible’ difference (0.077) for Monkey U\footnote{See \cite{cohenStatisticalPowerAnalysis1992} for definition of effect size terminology. Cohen treats the threshold to ‘medium’ as 0.5. We treat 0.467 as rounding up to be conservative here.}. Plotting the mean session bids for the medium reward level showed visually similar results (Figure \ref{fig:single_fractal_bids}B). Due to the aggregation of data, the difference in medians was only significant for Monkey V (p < 0.0001, Cohen’s d 1.0449). These differences are naturally interpreted as a relative valuation effect: in single-fractal sessions, the monkey never encounters the higher- or lower-value fractals within that session, and the range of rewards actually on offer is correspondingly compressed to a single point. A substantial body of work in both primate neuroeconomics and behavioural economics suggests that subjective valuation is not computed in absolute terms, but is instead adapted to, or evaluated relative to, the distribution of values recently or currently available: offer-value neurons in orbitofrontal cortex adjust their tuning to the range of values on offer within a session (\cite{padoa-schioppaRangeAdaptingRepresentationEconomic2009}), and choice behaviour more broadly has been characterised as a comparison of an option's value against a sampled distribution of recently-encountered alternatives, rather than retrieval of a fixed underlying value (\cite{stewartDecisionSampling2006}). On this account, removing the higher- and lower-value fractals from the session does not simply remove a framing cue; it changes the distribution against which the medium fractal's value is judged, and could genuinely shift the bid the monkey considers appropriate for it.
+
+This differs from a purely temporal explanation, which the data argue against.
+Monkey U's bids for the medium fractal show no significant discontinuity between the last month of three-fractal sessions and the subsequent single-fractal sessions
+(Wilcoxon test, p = 0.716, Cohen's d = 0.024; Figure \ref{fig:single_fractal_bids}C),
+continuing smoothly from where three-fractal sessions left off rather than drifting gradually over time.
+That this stability holds for the monkey who shows no reward-context effect (Monkey U),
+while the effect itself is substantial for the monkey who does (Monkey V, d = 0.467),
+is more consistent with a session-level, context-triggered shift in valuation than with slow temporal drift.
+
+For Monkey U, this effect is absent, but range adaptation in primate value coding is typically partial rather than complete, even in its canonical demonstrations.
+Dopamine neurons themselves have separately been shown to adapt their coding to the range of available reward values (\cite{toblerAdaptiveCodingReward2005});
+the corresponding dopamine response to the medium fractal across single- and multi-fractal sessions is examined directly in Section~\ref{subsec:dopamine_single_fractal},
+where no context-dependent modulation was found for either monkey --- an asymmetry between a genuine behavioural effect in one monkey and its absence in the neural signal for either, discussed further there.
+If, as our results indicate, only Monkey V shows this effect, that is not necessarily surprising.
+Individual differences between the two animals appear elsewhere in their task responses, discussed further below.
+
+In Figure \ref{fig:single_fractal_bids}C) the mean monkey bid for the middle reward level is plotted over time. Sessions where only one reward level was offered are again plotted in block colour, in comparison to semi-transparent plotting of sessions where all 3 fractals were offered to the monkey (plotted for the last month before switching of tasks). Though the population mean bids for each context are not negligibly different (dotted and dashed lines), the mean bids for each monkey continue roughly where they ended for the sessions in which 3 fractals were shown, consistent with the absence of a temporal discontinuity noted above.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/single_fractal_bids_fig.svg}
+\caption[The distribution of monkey’s bids when only the medium reward level fractal is shown.]{\textbf{The distribution of monkey’s bids when only the medium reward level fractal is shown.} A) the distribution of monkey bids from n = 2228 (Monkey U) and 2724 (Monkey V) trials on sessions where only the medium fractal was shown (opaque boxplot). These are compared to the distribution of all bids made for only the medium fractal in sessions where all 3 reward levels were presented to the monkey (n = 4665 for Monkey U, n = 4628 for Monkey V) in the semi-transparent boxplot. B) the mean session bid for the medium reward level fractal is shown for sessions where only the medium reward level fractal is offered to the monkey (n = 22 for both monkeys) is compared to the mean session bid for the medium reward level fractal in sessions where all 3 are shown to the monkey (n = 163 for Monkey U and 142 for Monkey V). The mean bid for each of these 22 sessions per monkey is shown over time in C) (opaque line). The mean bid for the medium reward level fractal on sessions with 3 presented fractals for the month prior to changing the task is shown in the semi-transparent line. Note: the reward juice volumes associated with the middle fractal are different between monkeys (0.45ml for Monkey U, 1.0ml for Monkey V) but the same between conditions.}
+\label{fig:single_fractal_bids}
+\end{figure}
+
+As before, the distribution of bids were fitted to a beta distribution, showing a good agreement between theoretical and empirical observations (Figure \ref{fig:single_fractal_beta_fit}). Fitted parameters for the beta distributions are shown in \ref{tab:beta_params2}. A beta regression of the same form as Equation \ref{eq:beta_regression} was used to investigate the various coefficients of features in our data, except for the removal of the first independent term, the reward juice offer, which was equal across the dataset.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lcccc}
+        \hline
+        \textbf{Monkey} & \textbf{Shape 1 ($\alpha$)} & \textbf{$\alpha$ SD} & \textbf{Shape 2 ($\beta$)} & \textbf{$\beta$ SD} \\
+        \hline
+        Monkey U & 2.9001 & 0.0751 & 2.5049 & 0.0640 \\
+        Monkey V & 6.4938 & 0.1775 & 2.2517 & 0.0573 \\
+        \hline
+    \end{tabular}
+\caption[Fitted Beta distribution parameters by monkey for sessions where only the medium level reward fractal was shown.]{\textbf{Fitted Beta distribution parameters by monkey for sessions where only the medium level reward fractal was shown.} A beta distribution was fitted to all monkey bids from the recording phase of the project where only the fractal representing the medium magnitude reward was shown. Fitted parameters ($\alpha$ and $\beta$)  printed per monkey. Standard deviations (SD) for each parameter are also provided. See \ref{tab:beta_params} for fitted parameters in sessions where all 3 reward fractals were shown.}
+    \label{tab:beta_params2}
+\end{table}
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/single_fractal_beta_regression_fig.svg}
+\caption[The fitted distribution of monkey bids for sessions where only the medium reward level fractal was presented.]{\textbf{The fitted distribution of monkey bids for sessions where only the medium reward level fractal was presented.} Data for Monkey U left; data for Monkey V right. A) binned bids are shown in a figure equivalent to Figure \ref{fig:monkey_regression_dists}B) for the two monkeys over the 22 sessions where only the middle fractal was shown. A beta distribution (purple) was fitted to each monkey’s bids. For Monkey U this fitted distribution took the form $\alpha$ = 2.90, $\beta$ = 2.50. For Monkey V the fitted distribution took the form $\alpha$ = 6.49, $\beta$ = 2.25. B-D) empirical vs theoretical observations from the distribution of monkey’s bids and the fitted beta distributions are plotted as in Figure \ref{fig:monkey_regression_dists}. Again, both theoretical distributions captured much of the observed distribution of bids.}
+\label{fig:single_fractal_beta_fit}
+\end{figure}
+
+\begin{align}
+\text{monkey's bid} | \text{monkey} | \text{med. rew. only} &\sim \beta_1(\text{starting bid}) + \nonumber \\
+&\quad \beta_2(\text{total liquid}) + \beta_3(\text{last trial computer bid}) + \nonumber \\
+&\quad \beta_4(\text{last trial monkey win}) + \varepsilon
+\label{eq:beta_regression2}
+\end{align}
+
+Estimates for the four selected coefficients for a beta regression of all bids split by monkey are shown in \ref{fig:single_fractal_beta_estimates}A). As with the regression for all three reward levels, only the starting bid and the total liquid received seem to have a prominent effect. For Monkey U, the results of the last trial were significant at p < 0.05 (last trial win = 0.0003, last trial computer bid = 0.0364), although with reasonably low coefficient estimates ($\beta_4$ = 0.172±0.048 and $\beta_3$ = 0.175±0.084 respectively). There was no noticeable effect of the total liquid acquired by the monkey within the session on his offers (p = 0.486, $\beta_2$ =  -0.054±0.077). Only the starting bid appeared to significantly influence the Monkey U bids in this context (p < 0.0001, $\beta_1$ = -0.649±0.055).
+
+\begin{figure}[htbp!] 
+\centering    
+\includegraphics[width=1.0\textwidth]{Chapter3/redone_figs/single_fractal_beta_fitted.png}
+\caption[Results of beta distribution regressions on relevant BDM task variables for sessions where only the medium reward level fractal is presented to each monkey.]{\textbf{Results of beta distribution regressions on relevant BDM task variables for sessions where only the medium reward level fractal is presented to each monkey.} Results of the fitted regression defined in Equation \ref{eq:beta_regression2}. Regressions are identical to those performed for Figure \ref{fig:regression_estimates} except for the exclusion of the now invariant reward juice offered feature. In C) estimated coefficients are plotted per session date but not smoothed as in Figure \ref{fig:regression_estimates}C).}
+\label{fig:single_fractal_beta_estimates}
+\end{figure}
+
+For Monkey V, the total liquid received was by far the dominant feature, with an estimate of $\beta_2$ = 1.47±0.066 (p < 0.0001). Though the estimates of other parameters showed significance (last trial win: p < 0.0001, $\beta_4$ = 0.165±0.040; last trial computer bid: p = 0.0368, $\beta_3$ = 0.126±0.060; starting bid: p = 0.0004, $\beta_1$ = 0.162±0.043), the estimated betas were comparatively low.
+
+Similar results were observed when regressions were performed grouped by monkey and date (Figure \ref{fig:single_fractal_beta_estimates}B). For Monkey U only the starting bid (14/22) and total liquid (9/22) were significant regressors at a single session level. For Monkey V, the total liquid that the monkey had received in the task was significant for 21 of the total 22 sessions, whereas the starting bid (3/22), the last computer bid in the trial (2/22) and the last win in the trial (1/22) generally did not significantly influence the bids. Interestingly, as in Figure \ref{fig:single_fractal_beta_estimates}B), the total liquid was by far the most variable characteristic between sessions, perhaps for the same reasons as hypothesized above. Estimates of the coefficients of this regression are plotted over time in Figure \ref{fig:single_fractal_beta_estimates}C). In comparison to Figure \ref{fig:regression_estimates}C), these estimates are not smoothed over multiple sessions.
+
+These results reveal a clear dissociation between the two monkeys in the relative importance of the two dominant regressors; for Monkey V, total liquid received was the dominant driver of bids across the session whereas for Monkey U it had no significant effect. The results for Monkey V are consistent with the marginal utility argument outlined in Chapter 1: as the monkey approaches satiety, the subjective value of additional juice increases relative to water, and bids rise accordingly. For Monkey U, the starting bid position was the primary determinant of bids. Notably, the sign of the starting bid coefficient also reverses between monkeys (Monkey U: $\beta_1$ = $-$0.649; Monkey V: $\beta_1$ = +0.162), suggesting the two monkeys adopt different anchoring strategies in the absence of the dominant reward-level signal present in three-reward-level sessions. These individual differences most likely reflect variation in motivation profile and bidding strategy between subjects.
+
+It is important to reiterate that in the full three-reward-level regression, reward level remains the dominant regressor for both monkeys (Table \ref{tab:beta_regression}), and these secondary effects do not undermine the primary conclusion that monkeys' bids track the subjective value of offered rewards. There is a broader point worth making explicit: replication across two animals in primate neurophysiology does not imply that subjects are interchangeable. Each animal has its own subjective value function, temperament, and cumulative task experience, and divergences of this kind between individuals should be expected and characterised rather than treated as anomalies requiring resolution.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{llccc}
+        \hline
+        \textbf{Monkey} & \textbf{Parameter} & \textbf{Coefficient $\pm$ SE} & \textbf{Z-score} & \textbf{p-value} \\
+        \hline
+        \multirow{5}{*}{Monkey U} & 
+        Starting bid position ($\beta_1$) & -0.649 $\pm$ 0.055 & -11.8 & <0.0001 \\
+        & Total liquid received ($\beta_2$) & -0.054 $\pm$ 0.077 & -0.70 & 0.486 \\
+        & Last trial computer bid ($\beta_3$) & 0.175 $\pm$ 0.084 & 2.08 & <0.05 \\
+        & Last trial monkey win ($\beta_4$) & 0.172 $\pm$ 0.048 & 3.58 & <0.0005 \\
+        \hline
+        \multirow{5}{*}{Monkey V} & 
+        Starting bid position ($\beta_1$) & 0.162 $\pm$ 0.043 & 3.77 & <0.0005 \\
+        & Total liquid received ($\beta_2$) & 1.47 $\pm$ 0.066 & 22.27 & <0.0001 \\
+        & Last trial computer bid ($\beta_3$) & 0.126 $\pm$ 0.060 & 2.10 & <0.05 \\
+        & Last trial monkey win ($\beta_4$) & 0.165 $\pm$ 0.0840& 1.96 & <0.0001 \\
+        \hline
+    \end{tabular}
+\caption[Beta regression results for monkey bidding behaviour on the BDM task where only one reward level was shown.]{\textbf{Beta regression results for monkey bidding behaviour on the BDM task where only one reward level was shown.} Fitted values from a beta regression as defined in Equation \ref{eq:beta_regression2}. McFadden pseudo-$R^2$ values: Monkey U = 0.053, Monkey V = 0.148. C.f. Table \ref{tab:beta_regression}.}
+    \label{tab:beta_regression2}
+\end{table}
+
+\clearpage
+\section{Comparison of Behaviour between Auction and Binary Choice Paradigms}
+
+Given that both monkeys appeared capable of understanding and performing the BDM task, we were naturally interested in how the results of the BDM compared to those elicited from more traditional binary choice tasks. Monkeys were also trained on a similar task in which they could decide between a 'bundle' consisting of a juice reward offer and some amount of water, or 1.2ml of water (corresponding to the full budget of the BDM task; Figure \ref{fig:task_epochs_bcb}C). The amounts of juice in the reward bundle were indicated by the same fractals as used in the BDM task and corresponded to the same volume and concentration of a juice (Figure \ref{fig:task_epochs_bcb}B). The water in the bundle varied between 0.12 and 1.2ml of water, in increments of 0.12ml (that is, 10\% of the bidding range of the BDM). The primates made choices on this task using the left/right axis of the same joystick, that is, orthogonal to the movements made to select their bid in the BDM.
+
+\begin{figure}[htbp!] 
+\centering    
+\includegraphics[width=1\textwidth]{Chapter3/Figs/bundle_task_epochs_fig.png}
+\caption[The bundle choice task is equivalent to a second-price auction where the monkey bids second.]{\textbf{The bundle choice task is equivalent to a second-price auction where the monkey bids second.} A) monkeys in the same experimental set up as the BDM make choices using the left/right axis of the same joystick. B) task components are the same as presented in the BDM task. Fractals used to signify a juice reward offer are the same and correspond to the same volumes of juice as in the BDM. Amounts of water are indicated by a grating pattern as in the BDM. For every trial, a choice is presented between a juice reward and some amount of water, or
+a full 1.2ml of water. Bundles can be comprised of between 0.12ml and 1.2ml or water in 0.12ml
+increments. C) The full task progression is presented (c.f. Figure \ref{fig:task_epochs}). Times between epochs are the same as in the BDM, and liquids are delivered to the monkey at the same points in either task.}
+\label{fig:task_epochs_bcb}
+\end{figure}
+
+This task can be thought of as mathematically (but perhaps not mechanically) identical to a BDM auction where the participant bids second. Instead of indicating the level of a bid, the subject simply has to say whether they want to bid above (choose the bundle of juice and some water) or below (choose simply retaining the full ‘budget’ of water) a hypothetical computer bid. As the winner of any BDM auction pays the second price, bidding anywhere above an imagined bid results in the same outcome: the bidder wins the offered good (juice) and pays the randomly drawn bid. Therefore, the water that is subtracted from a possible maximum of 1.2ml of water in a bundle can be thought of as such a pseudo-bid. To encourage this consistency in tasks, the stimuli representing the amounts of water offered were presented as similarly between this ‘bundle choice’ task and the BDM (\ref{fig:task_epochs_bcb}B), where a reversal of a hatching pattern indicated the water withheld from the monkey from the full 1.2ml budget. In addition, the epoch times and the hardware used were also kept identical between tasks.
+
+The only additional requirement for monkeys during this task was that the bid had to be placed (using the same criteria as for the BDM) at least 5\% of the width of the screen away from the centre of the screen to signify the half of the screen containing the offer the monkey wished to select.
+
+Data from this bundle choice task was prepared using the same methods as data from the BDM task. In addition, the first sessions monkeys performed on this task were removed as these were the first times monkeys had performed such a binary choice task in many months. Two such sessions were removed for Monkey U (the first bundle choice sessions in October 2019 and in September 2020), and one was removed for Monkey V (the first bundle choice session in October 2020). 
+
+The monkeys were able to make bids using the joystick in the required time (Figure \ref{fig:bundle_bidding}A), without a consistent ending location preferred for the marker. In Figure \ref{fig:bundle_bidding}A), it is also clear that we were able to gather many more trials (n = 2267 from 23 sessions) from Monkey U than from Monkey V (n = 714 trials from 6 separate sessions). Shortly after starting this phase of the project, the cranial implant (see Chapter 4) in Monkey V unexpectedly failed, and the animal had to be sacrificed according to the Home Office Project Licence guidelines. We analyse and discuss the results of Monkey V alongside those of Monkey U, with the caveat that the data from this monkey are much less complete.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/monkey_bundle_bidding_fig.svg}
+\caption[Monkeys were able to quickly and reliably make choices in the bundle choice task.]{\textbf{Monkeys were able to quickly and reliably make choices in the bundle choice task.} A) traces of the relative marker position during all bundle-choice trials for both monkeys. The marker starts each trial in the centre of the screen (0.5) and monkeys can either move it to the right (towards 1.0) or the left (towards 0 on the plot). Both monkeys were able to quickly move the marker to well within the required area of bidding (>5\% of the screen’s width distance from the initial, centred, position). Monkey U performed 2267 trials over 23 sessions. Monkey V performed 714 trials over 6 sessions. B) Median reaction times (‘react time’) and time to place choices (‘choice time’) did not vary by either the level of juice (colours) or the amount of water offered (x-axis) of the bundle for Monkey U. For Monkey V, the time spent bidding was
+significantly correlated with the amount of water offered in the bundle, though with a small effect size.}
+\label{fig:bundle_bidding}
+\end{figure}
+
+The bid placement and reaction times of the monkeys did not vary significantly with the juice offered in a bundle on a two-way ANOVA test (Bonferroni-corrected p < 0.00625; bid placement time: Monkey U: F = 0.478, p = 0.489, Monkey V: F = 1.84, p = 0.175, reaction time: Monkey U: F = 0.495, p = 0.482, Monkey V: F = 5.52, p = 0.019). The bidding time for Monkey V was significantly correlated with the water offered in a bundle (F = 25.2, p < 0.0001), though no other timing event was (bid placement time: Monkey U: F = 0.578, p = 0.447, reaction time: Monkey U: F = 3.84, p = 0.0502, Monkey V: F = 0.266, p = 0.606). A linear model estimates that the size of this bidding time effect in Monkey V is a change of approximately 170ms difference in bidding time throughout the range of bundle offers (coefficient estimate = 169.58±33.81, p < 0.0001), and so we are led to believe this is an effect of overpowered tests. For a visual inspection of the distribution of the reaction and bid times by the volumes of juice and water offered in bundles, see Figure \ref{fig:bundle_bidding}.
+
+To compare the utility of identical fractal stimuli that indicate an equivalent volume of juice on the BDM auction task and the bundle choice tasks, a psychometric curve of the probability of a monkey choosing any given bundle over the full volume of water in the budget was produced (Figure \ref{fig:bundle_indifference}). For either monkey, the total fraction for which any bundle option was chosen is plotted against the amount of water the monkey had to sacrifice to choose that bundle. For example, if a monkey chose a package of an amount of juice and 0.78ml of water, they had to sacrifice 0.42ml (1.2ml – 0.78ml) of extra water they would have received if they choose the ‘budget’ option.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/monkey_indifference_curves_fig.svg}
+\caption[Monkeys showed rank-ordered indifference points on the bundle choice task.]{\textbf{Monkeys showed rank-ordered indifference points on the bundle choice task.} The fraction (±standard error of mean) of times the monkey chooses the bundle when offered an amount of juice and water is calculated, where 1 indicates that the monkey always chooses that bundle over the budget offer of 1.2ml of water. A logistic function is then fitted to the monkey’s choices (lines) indicating the estimated number of times a monkey would pick a hypothetical bundle of reward level plus some fraction of 1.2ml of water. Shaded area indicates the standard error of the mean of this function. The monkey’s willingness-to-pay for a particular bundle in terms of water is then assumed to be the point on the x-axis that this psychometric function crosses the 0.5 mark. See Chapter 1 and Figure \ref{fig:indifference} for more on this ‘indifference point’. Dashed lines coloured by the reward level indicate the indifference points from bundles offered to monkeys.}
+\label{fig:bundle_indifference}
+\end{figure}
+
+Both monkeys show clear rank ordering in the average amount of water they are willing to forgo to select an amount of juice. The low reward level requires greater amounts of water to be present in a bundle for that bundle to be of equal average utility to the monkey as the 1.2ml of water present in the budget. The aggregate choice data was then fitted with a logistic function (solid lines). The amount of water a monkey would be willing to sacrifice for a given volume of juice with a probability of 0.5 could be interpolated from this function, giving the equivalent of the BDM's willingness to pay. As discussed in Chapter 1 of this thesis, this 50\% choice offer level is also referred to as the ‘indifference point’ of the bundle task.
+
+For Monkey U, the indifference points were roughly evenly spaced throughout the bidding range, with a low and approximately even standard error of the fit (low volume juice offer = 0.219±0.011ml, medium volume juice offer = 0.417±0.013ml, high volume juice offer = 0.680±0.020ml).
+
+For Monkey V, choice fractions were much more variable, with large and overlapping standard errors for bundles of equivalent water volumes. This was likely due to the lower number of trials carried out by Monkey V before premature termination of the experiment, with the limited data collected representing the first bundle choice sessions the monkey had performed for over a year and since implantation of the craniotomy chamber. Nevertheless, we were able to calculate the following indifference points using the same method as for Monkey U: low volume juice offer = 0.288±0.022ml, medium volume juice offer = 0.577±0.032ml, high volume juice offer = 1.264±0.208ml. Note the comparatively larger standard errors of these estimates than those for Monkey U, and especially for the higher volume reward option, for which the indifference point minus the standard error of the mean is outside the tested range (>1). Figure \ref{fig:wtp_comparison_extended} shows the BDM--choice comparison with the y-axis extended to include this value.
+
+The data on a session by session level is plotted in Figure \ref{fig:bundle_sessions}. The large amount of liquid per bundle choice trial (limiting total trial counts) which mirrors the payout of an equivalent BDM trial, and the small number of sessions for which we were able to gather data gives rise to a noisy picture of individual session choices. For more data on a similar task gathered from the same monkeys, see \cite{almohammadRewardValueRevealed2022}.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=0.97\textwidth,inkscapelatex=false]{Chapter3/redone_figs/bcb_by_day.svg}
+\caption[Monkey's binary choices from individual sessions presents a noisier picture.]{\textbf{Monkey's binary choices from individual sessions presents a noisier picture.} All binary choice sessions per monkey included in analysis are plotted as in \ref{fig:bundle_indifference} (indifference lines and standard error of mean on the logistic fit have been removed in the interest of clarity). The stochasticity of fits is clear and due to the limited number of trials completed by monkeys (Monkey U: mean trials per session = 98.6, standard deviation of trials per session = 33.9, Monkey V: mean trials = 119, standard deviation = 18.9). There are 30 categories of juice and bundle water that can be offered to the monkeys, so over roughly 100 trials, an animal might only see a bundle offer a limited number of times.}
+\label{fig:bundle_sessions}
+\end{figure}
+
+We also used a logistic function to measure the effect of selected variables on monkey’s choices. Unlike for the BDM, we use the regression to predict the chance of a monkey picking the option presented on a certain side of the screen (the right sided option). The regression then gives us the estimates of the coefficients for the defined variables, plus an error term which roughly corresponds to the monkey’s bias in choosing options presented on one side of the screen over those presented on the other. The side that bundles appear on is semi-random but is balanced over multiple sessions so monkeys will have faced the same bundle choices on either side of the screen in roughly equal proportions. Both monkeys made choices using their right arms which have asymmetric biomechanical efforts, which are known to influence choices in humans (\cite{cosInfluencePredictedArm2011}). Our logistic regression on all trials completed by the monkeys took the following form:
+
+\begin{align}
+p(\text{choose right}) | \text{monkey} \sim \beta_0 + \beta_1(\text{reward level}) + \beta_2(\text{bundle water offered}) + \nonumber \\ 
+ \beta_3(\text{last trial choose right}) +  \beta_4(\text{last trial choose bundle}) + \varepsilon
+\label{eq:logistic_regression}
+\end{align}
+
+Where the juice and water offers refer to the difference between the liquids offered on the right side of the screen compared to the left.
+
+The variables for the last trial are both binary variables, indicating if the monkey chose the right side of the screen or the bundle on the last trial. $\beta_0$ refers to the intercept of the regression, which corresponds to the monkey’s side bias as discussed. The results of this regression over all trials is shown in Figure \ref{fig:bundle_regression}.
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/bcb_logistic_regression_fig.svg}
+\caption[Coefficient estimates from a logistic regression on monkey’s choices on the bundle choice task.]{\textbf{Coefficient estimates from a logistic regression on monkey’s choices on the bundle choice task.} Regression coefficients of relevant task variables against monkey choices for all trials separated by monkey. Error bars represent +/- standard error. Both monkeys show similar dominance of the difference in juice and water offers when deciding between the bundle or a full ‘budget’ of water. Though significant, coefficient estimates for the results on the last trial were negligibly small. As the regression is on the probability of choosing the right-sided option, the intercept corresponds to the side bias of the monkeys. Monkey U showed a small but consistent right-sided bias, whereas Monkey V showed a larger left-sided bias. B) Coefficient estimates for identical regressions grouped by both monkey and session date shows similar results as the single regression carried out in A). In every session, the features that best predicted the monkey’s choice on a trial were the offers of water and juice in the bundle. In C) regression coefficients from B) are plotted ordered by date, showing the relationship over time. Session number rather than date is used as for there were large periods between the bundle choice sessions to focus on gathering data from BDM auctions. The split in session date is shown using a dotted line for Monkey U; sessions before split take place in October-November 2019, and sessions after take place in September-October 2020. For Monkey V, all sessions take place in September-October 2020.}
+\label{fig:bundle_regression}
+\end{figure}
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{llccc}
+        \hline
+        \textbf{Monkey} & \textbf{Parameter} & \textbf{Coefficient $\pm$ SE} & \textbf{Z-score} & \textbf{p-value} \\
+        \hline
+        \multirow{5}{*}{Monkey U} & 
+        Intercept (right side bias) ($\beta_0$) & 0.192 $\pm$ 0.110 & 1.75 & 0.080 \\
+        & Reward level ($\beta_1$) & 7.09 $\pm$ 0.313 & 22.7 & <0.0001 \\
+        & Bundle water ($\beta_2$) & 6.24 $\pm$ 0.259 & 24.1 & <0.0001 \\
+        & Last trial chose right ($\beta_3$) & 0.00 $\pm$ 0.124 & -0.001 & 0.994 \\
+        & Last trial chose bundle ($\beta_4$) & -0.094 $\pm$ 0.123 & -0.763 & 0.445 \\
+        \hline
+        \multirow{5}{*}{Monkey V} & 
+        Intercept (right side bias) ($\beta_0$) & -1.21 $\pm$ 0.260 & 3.77 & <0.0001 \\
+        & Reward level ($\beta_1$) & 4.95 $\pm$ 0.388 & 12.8 & <0.0001 \\
+        & Bundle water ($\beta_2$) & 6.54 $\pm$ 0.540 & 12.1 & <0.0001 \\
+        & Last trial chose right ($\beta_3$) & 0.221 $\pm$ 0.269 & 0.823 & 0.410 \\
+        & Last trial chose bundle ($\beta_4$) & -0.417 $\pm$ 0.274 & -1.52 & 0.129 \\
+        \hline
+    \end{tabular}
+\caption[Logistic regression results for the probability of a monkey choosing the right-sided offer in the bundle choice task.]{\textbf{Logistic regression results for the probability of a monkey choosing the right-sided offer in the bundle choice task.} Fitted values from a logistic regression as defined in Equation \ref{eq:logistic_regression}. McFadden pseudo-$R^2$ values: Monkey U = 0.448, Monkey V = 0.610.}
+    \label{tab:logistic_regression}
+\end{table}
+
+By far the dominant features for monkey’s choices were the amounts of liquid offered (p < 0.0001, Monkey U: $\beta_1$ = 7.09±0.313, $\beta_2$ = 6.24±0.259; Monkey V: $\beta_1$ = 4.95±0.388, $beta_2$ = 6.54±0.540). By contrast, the choices made on the last trial had a negligible relationship with the monkey’s subsequent choices (chose right last trial: Monkey U: p = 0.994, $\beta_3$ = 0.00±0.124; Monkey V: p = 0.410, $\beta_3$ = 0.221±0.269; chose bundle last trial: Monkey U: p = 0.445, $\beta_4$ = -0.094±0.123; Monkey V: p = 0.129, $\beta_4$ = -0.417±0.274).
+
+Monkey U was negligibly right-biased (p = 0.080, $\beta_0$ = 0.192±0.110), whereas Monkey V showed a significant, though small left bias (p < 0.0001, $\beta_0$ = -1.21±0.260). Performing a regression of the same form as Equation \ref{eq:logistic_regression}, but grouping by monkey and session date paints a more modest picture of this side bias. Only 3 of the 23 sessions performed by Monkey U had a significant within-session side bias, and only 3 of the 6 bundle-choice sessions for Monkey V showed a left-sided bias. These minor biases seemed to diminish over time (\ref{fig:bundle_regression}C) which may reflect the monkey’s adjustment to the new task context after over a year of training solely on the BDM task.
+
+As recording dopaminergic neuron activity during the BDM task was the main focus of this project, training on the bundle-choice task was sparse. In \ref{fig:bundle_regression}C) we plot the regression coefficient estimates by session number rather than date as for Monkey U sessions took place in October-November 2019 and September-October 2020. These two blocks of sessions are delineated with a dotted line. Thought the juice and water offers are by far the dominant feature in both blocks of sessions, it is perhaps interesting that $\beta_2$ is generally larger than $\beta_1$ in sessions completed in 2019, but the reverse is true for the sessions completed a year later. This may reflect small changes in monkeys juice preference over long periods of experimentation.
+
+Comparing the indifference points elicited by the bundle choice task to the mean willingness-to-pay (WTP) per session for each reward level shows a potentially interesting effect of task on reward evaluation behaviour (Figure \ref{fig:wtp_comparison}). In Figure \ref{fig:wtp_comparison}A, the central dot of each bundle choice marker marks the 50\% crossing of the logistic fit — the water volume at which the monkey is equally likely to choose the bundle or the water-only alternative — and thus represents the monkey's willingness-to-pay for each juice reward expressed in units of water. This can be directly compared to the adjacent BDM session bids as an independent behavioural measure of the same subjective value. For both monkeys, behavioural reports of utility for a given volume of juice was significantly lower in the bundle choice task per reward level \ref{tab:wtp_ttest}. Monkey U shows a significant decrease in WTP on the bundle choice along all three reward levels on a one-sample t-test (low p < 0.0001; medium p < 0.0001; high p < 0.05). Monkey V shows significant decreases for the lower two reward levels (low p < 0.0001; medium p < 0.0001) though a significant increase for the highest reward value where the indifference point (see Figure \ref{fig:indifference}) must be inferred (p < 0.0001). Previous research into monkey’s behaviour on the BDM task found no significant differences in these WTP estimates (\cite{almohammadRewardValueRevealed2022}), however, such divergence might not be unexpected. Behavioural economic research into human performance of equivalent tasks finds divergence in the WTP derived from non-hypothetical auction and choice experiments, though these experiments consistently report a higher WTP elicited from choice experiments than from auctions (\cite{banerjiUsingElicitationMechanisms2015}; \cite{hamukwalaDesignFactorsInfluencing2019}; \cite{luskAuctionBidsShopping2006}). Due to the nature of non-hypothetical choices made by human participants, these studies compare the mean WTP of multiple subjects for a given auction and choice set in comparison to ours, in which single monkeys make many economic decisions. One further, task-specific possibility is differential familiarity: by the time of recording, monkeys had completed orders of magnitude more BDM trials than bundle choice trials (Figure \ref{fig:bundle_bidding}), and increased familiarity with an elicitation method has itself been shown to narrow WTA-WTP-type disparities (Chapter 2).
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lccccc}
+\hline
+\textbf{Monkey} & \textbf{Reward Level} & \textbf{BDM WTP} & \textbf{Bundle WTP} & \textbf{t-statistic} & \textbf{p-value} \\
+\hline
+Monkey U & Low & 0.335 & 0.219 & 18.94 & $< 0.0001$ \\
+Monkey U & Medium & 0.542 & 0.417 & 14.07 & $< 0.0001$ \\
+Monkey U & High & 0.699 & 0.680 & 2.54 & $< 0.05$ \\
+\hline
+Monkey V & Low & 0.409 & 0.288 & 19.44 & $< 0.0001$ \\
+Monkey V & Medium & 0.675 & 0.577 & 15.91 & $< 0.0001$ \\
+Monkey V & High & 0.806 & 1.264 & -95.80 & $< 0.0001$ \\
+\hline
+\end{tabular}
+\caption[Monkey's show significantly different WTP on different task contexts.]{\textbf{Monkey's show significantly different WTP on different task contexts.} A one-sample t-test shows significant differences in the WTP inferred from monkey's choices on the BDM and bundle choice tasks. BDM WTP is the unweighted mean of all session mean bids per reward level. Bundle WTP is the indifference point inferred from the choice task. The concept of an indifference point is illustrated using separate data in Figures \ref{fig:indifference} and \ref{fig:mosteller_fig}.}
+\label{tab:wtp_ttest}
+\end{table}
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/wtp_comparison_fig.svg}
+\caption[Monkey's bids on the BDM compared to indifference points elicited from the bundle choice task.]{\textbf{Monkey's bids on the BDM compared to indifference points elicited from the bundle choice task.} A) For each reward level, BDM session bids are shown as boxplots (coloured by reward level, as in \ref{fig:monkey_bid_correlation}B) and the corresponding bundle choice indifference point is shown immediately to the right as a point estimate with error bars indicating the standard error of the fitted logistic function, rather than trial-by-trial variability. Both are expressed as a fraction of the budget monkeys are willing to forgo in order to obtain a juice reward, where 1 indicates willingness to miss out 1.2ml of water. For Monkey V's highest reward level, the indifference point falls above the maximum possible bundle water volume and BDM bid (1.0): the monkey did not choose the bundle on the majority of trials at any tested water level, placing the fitted 50\% crossing point outside the tested range (see Figure \ref{fig:wtp_comparison_extended}). B) Taking these indifference points as the utility of the juice in terms of units of water, we calculate the total utility available to a hyper rational monkey that always bid this value (1.0). The total utility actually obtained by monkeys per session in terms of water is then calculated and shown per reward level (brown boxplots) as a fraction of this ‘optimal utility’. This is compared to hypothetical utility the monkeys would have experienced if their bids were drawn at random following a uniform distribution across the possible bidding range (purple boxplots).}
+\label{fig:wtp_comparison}
+\end{figure}
+
+\begin{figure}[htbp!]
+\centering
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/Figs/correction_bdm_bcb_compare_fig}
+\caption[Monkey's bids on the BDM compared to bundle choice indifference points, with extended y-axis.]{\textbf{Monkey's bids on the BDM compared to bundle choice indifference points, with extended y-axis.} As Figure \ref{fig:wtp_comparison}, with the y-axis extended to include values above 1.0. Note that Monkey V's indifference point for the highest reward level ($\sim$1.26) is extrapolated beyond the tested bundle water range: even at the maximum water volume offered in the bundle (equivalent to the full budget), the monkey chose the bundle on fewer than half of trials, placing the fitted 50\% crossing point outside the tested range. Since monkeys cannot bid above 1.0 in the BDM task, this indifference point has no direct auction equivalent.}
+\label{fig:wtp_comparison_extended}
+\end{figure}
+
+Our data are limited by the scope of this project, and by the early termination of one of the monkeys, but we strongly feel such potential divergences of WTP estimates warrant further investigation. Ideally, monkeys trained on interleaved auction and choice trials could account for the tradeoff in human studies between the number of individual WTP estimates for an auction/choice, the hypothetical nature of many such choices, and the pooling of WTP estimates between individuals. Furthermore, if such findings provide support that preferences are constructed \textit{ad. punctum} in the experimental context which they are presented (\cite{slovicConstructionPreference1995}), what then is the implication for the neuronal processes which abstract the value of stimuli away from (e.g.) the fractal presented? If the dopaminergic neurons of the midbrain are a ‘reward retina’ (\cite{schultz2009midbrain}), is the utility of a good reflected in the activity of these neurons also task dependent, and if not, where do such effects arise?
+
+Nevertheless, the differences in WTP elicited between tasks in this study are relatively minor. The differences in WTP may arise simply due to task dependent effects, e.g. the relative complexity of the BDM. In such auction tasks, the monkey can only find an optimal strategy by exploring the bidspace and comparing their predicted and experienced utility on a trial-by-trial basis. This is in stark contrast to the bundle choice task where the monkeys received exactly what they chose.
+
+To compare these experienced utilities, we take the WTP as estimated from the bundle choice task as a ‘ground truth’ of the value of each reward volume in terms of water. We define the potential ‘optimal’ utility a monkey could experience as the utility they receive (in common currency units of water) if they bid this amount on every single trial across the roughly one-year span we report auction task data from (Figure \ref{fig:wtp_comparison}B)\footnote{  Even if we expected the BDM and bundle choice tasks to give exactly equivalent WTP estimates, we would not expect the monkey to bid exactly the same value on every trial of the BDM. Utility is stochastic and, indeed, one of the guiding ideas behind the experiments in this thesis is the limitation of aggregating choices over a whole session of discrete choice tasks versus trial-by-trial reports of utility from auction tasks. We compare the bids made to a hypothetical utility ‘ground truth’ from the bundle choice simply to show the limited difference the small changes in WTP make to the actual experience of the monkeys.}. The fraction of this optimal utility a monkey actually experienced on a session by session basis is plotted in brown per reward level. Median experienced utility tends to match this potential optimal utility well (Monkey U: lowest reward level: 98.8\%, medium reward level: 98.3\%, highest reward level: 98.5\%; Monkey V: lowest reward level: 98.4\%, medium reward level: 98.9\%, highest reward level: 94.5%).
+
+Per trial, the difference in utility experienced by the monkeys from their BDM bids, compared to what they would have experienced if they always bid the estimated WTP from the bundle choice was small (Figure \ref{fig:optimal_bidding}). Had monkeys bid their fitted WTP on every single BDM trial, they would have received the equivalent utility of 1.342±0.030ml (Monkey U) and 1.616±0.031ml (Monkey V; falling to 1.344±0.020ml when excluding the highest reward level) of water per trial on average. This difference in received utility per trial reflects the difference in valuation of the offered juice volumes. In comparison, monkey’s actual bids resulted in the receipt of an average of 1.317±0.038ml (Monkey U) and 1.562±0.032ml (Monkey V, 1.323±0.023 when excluding the highest reward level) water utils worth. While the difference between optimal and realised utility per trial is significant when taking the mean per session (Table \ref{tab:utility_comparison}) it amounts to only a fraction of a single millilitre of water per trial and roughly 1-2\% of total possible utility per trial (Monkey V high value fractal an outlier where Monkey misses out on roughly 8\% of total utility per session). Monkey U lost out on an average of 0.025±0.013ml utils worth of water per trial compared to his WTP as estimated by the bundle choice task, and Monkey V 0.053±0.021ml (removing the highest reward level trials gives similar results to Monkey U, 0.020±0.08ml per trial).
+
+\begin{figure}[htbp!] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{Chapter3/redone_figs/utility_attained.svg}
+\caption[Monkeys realise almost their maximum possible utility per session on the BDM task.]{\textbf{Monkeys realise almost their maximum possible utility per session on the BDM task.} Assuming the inferred WTP from the bundle choice data, monkeys act on the BDM as if they are maximising their total possible utility on a session by session level. Data shows the actual utility received over the course of the session per monkey and reward level compared to the utility that monkey would have received had they bid their exact inferred WTP on every single trial in a session. Per reward level, monkeys realise slightly under their maximum possible utility per session but generally only by a negligible amount.}
+\label{fig:optimal_bidding}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{llcccc}
+\hline
+\textbf{Monkey} & \textbf{Reward} & \textbf{Actual share} & \textbf{Optimal share} & \textbf{Difference} & \multirow{2}{*}{\textbf{p value}} \\
+ & \textbf{Level} & \textbf{poss. utility} & \textbf{poss. utility} & \textbf{utility rec'd} (\%) & \\
+\hline
+Monkey U & Low & 0.791 & 0.809 & -1.72 & $< 0.0001$ \\
+Monkey U & Medium & 0.667 & 0.688 & -2.03 & $< 0.0001$ \\
+Monkey U & High & 0.567 & 0.590 & -2.31 & $< 0.0001$ \\
+\hline
+Monkey V & Low & 0.740 & 0.759 & -1.93 & $< 0.0001$ \\
+Monkey V & Medium & 0.601 & 0.616 & -1.45 & $< 0.0001$ \\
+Monkey V & High & 0.585 & 0.666 & -8.09 & $< 0.0001$ \\
+\hline
+\end{tabular}
+\caption[Monkeys miss out on an average of 1-2\% of maximum utility per session on the BDM task.]{\textbf{Monkeys miss out on an average of 1-2\% of maximum utility per session on the BDM task.} See Figure \ref{fig:optimal_bidding}. Though monkey's show significant deviation (Wilcoxon signed rank test; p < 0.05) from optimal bidding ('Optimal share poss. utility') when comparing the mean bid per session per reward level to the optimal inferred bids from the bundle choice task, the difference is small. Per reward level, monkeys generally forgo 1-2\% of maximum possible utility. The high reward value fractal for Monkey V is an outlier; see Figure \ref{fig:bundle_indifference} and discussion.}
+\label{tab:utility_comparison}
+\end{table}
+
+This experienced utility is also compared to a hypothetical random bidder (purple bars, Figure \ref{fig:wtp_comparison}). Such a randomly bidding monkey would have experienced significantly less utility per trial (one-way ANOVA, Monkey U: F2,18892 = 951.6, p < 0.001; Monkey V: F2,11105 = 428.3, p < 0.0001), though still would only have missed out on a relatively small water-volume utilities worth per trial (Monkey U: 0.067±0.008ml, Monkey V: 0.055±0.007ml). The small incentive per trial for monkeys to bid their true utility for an offered good reflects the shallow cost of misbehaviour function, a known limitation of the BDM as presented in this project (see Chapter 2).
+The comparison of monkey’s behaviour on the BDM and bundle choice tasks suggests that both are feasible mechanisms to elicit utility reports from animals. Having validated the BDM auction task in macaques, we spend the next chapter discussing the activity of recorded single putative dopaminergic neurons from the animal’s midbrains during this task. We expect that the activity of these neurons to reflect the utility calculations the monkeys must perform in order to maximise their returns of liquids during auctions trials (\cite{staufferDopamineRewardPrediction2014}), and therefore, to be able to correlate this utility-dependent response with the monkey’s bidding choices on a single trial level.

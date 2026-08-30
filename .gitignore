@@ -1,0 +1,31 @@
+# Figures and other large binary assets
+*.pdf
+*.svg
+*.png
+*.eps
+
+# LaTeX build artifacts (junk text files)
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nlo
+*.nls
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+thesis_compile.log
+
+# OS / editor junk
+.DS_Store
+._*
+.Rhistory

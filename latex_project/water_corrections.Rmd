@@ -1,0 +1,497 @@
+---
+title: "winlose response"
+author: "Robert Hickman"
+date: "2025-03-12"
+output: html_document
+---
+
+```{r setup, warning=FALSE,message=FALSE}
+rm(list = ls())
+set.seed(3459)
+setwd("~/projects/thesis_scripts/figure_scripts/water_pay/")
+library(tidyverse)
+library(jsonlite)
+library(patchwork)
+library(svglite)
+library(viridis)
+library(colorspace)
+library(broom)
+
+source("../../src/neuron_smoothing.R")
+source("../../src/figs.R")
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+monkey_col_pal <- scale_colour_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+neuronal_data <- bind_rows(
+  readRDS("../../data/neurons/onefrac_noerror_neuronal_data.rds"),
+  readRDS("../../data/neurons/threefrac_noerror_neuronal_data.rds"),
+)
+task_data <- readRDS("../../data/neurons/task_data.rds")
+
+cell_baselines_fractals <-
+  readRDS("../../data/baseline/cell_prefc_baselines_fractals_smoothed.rds")
+cell_baselines_fractal_counts <-
+  readRDS("../../data/baseline/cell_prefc_baselines_fractals.rds")
+cell_baselines_counts <-
+  readRDS("../../data/baseline/cell_prefc_baselines.rds")
+
+sigcells_uly <-
+  read_csv("../../data/cells/uly_sig_cells.csv") %>%
+  mutate(monkey = "Monkey U") %>%
+  mutate(date = as.Date(date, "%d-%b-%y"))
+sigcells_vice <-
+  read_csv("../../data/cells/vice_sig_cells.csv") %>%
+  mutate(monkey = "Monkey V") %>%
+  mutate(date = as.Date(date, "%d-%b-%Y"))
+
+sigcells <-
+  bind_rows(sigcells_uly, sigcells_vice) %>%
+  mutate(cell = paste0("cell", gsub("^(Clust)([0-9])(_.*)$", "\\2", cluster)))
+
+monkey_windows <- read_csv("../../data/config/monkey_windows.csv") %>%
+  mutate(window_start = c(180, 160), window_end = c(340, 350))
+configs <- read_csv("../../data/config/configs.csv")
+
+group_cols <- c("date", "monkey", "cell")
+group_cols_fractal <- c(group_cols, "fractal_value")
+
+relevant_cells <- sigcells %>%
+  select(date, monkey, cell, isDA, isResponsive, numTrGood, DAFracResponsive) %>%
+  filter(isDA == 1 & isResponsive == 1 & numTrGood == 1) %>%
+  distinct(date, monkey, cell, .keep_all = TRUE)
+
+n_start <- filter(configs, var == "neurons_start") %>% pull(value)
+n_end <- filter(configs, var == "neurons_end") %>% pull(value)
+smooth_window <-
+  filter(configs, var == "smooth_window") %>% pull(value)
+```
+
+```{r monkey_bid_baselines}
+pre_start <- -400
+pre_end <- -50
+
+water_task_data <- task_data %>%
+  filter(situation %in% c(1,2,3)) %>%
+  filter(map_lgl(error_bit, ~ is.na(unlist(.x)))) %>%
+  select(date, monkey, trial, fractal_value, monkey_bid, computer_bid) %>%
+  distinct(date, monkey, trial, .keep_all = TRUE) %>%
+  filter(monkey_bid != computer_bid) %>%
+  mutate(
+    monkey_win = monkey_bid > computer_bid, 
+    budget_remaining = case_when(
+      monkey_win ~ 100 - computer_bid
+    )
+  )
+
+water_data <- neuronal_data %>%
+  filter(situation %in% c(1,2,3)) %>%
+  filter(map_lgl(bits, function(x) {
+    if (!is.null(x) && is.data.frame(x) && nrow(x) > 0) {
+      matching_rows <- x$names == "budget_epoch_end" & x$index == "upat"
+      sum(matching_rows) == 1 && !is.na(x$vals[matching_rows])
+    } else {
+      FALSE
+    }
+  }))  %>%
+  unnest(bits) %>%
+  filter(names == "budget_epoch_end" & index == "upat") %>%
+  pivot_wider(names_from = names, values_from = vals)
+
+water_spikes <- water_data %>%
+  inner_join(water_task_data, by = c("date", "monkey", "trial")) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - budget_epoch_end) %>%
+  select(date, monkey, trial, cell, spike_bit_time_ms, fractal_value, monkey_win, budget_remaining)
+
+water_baselines <- water_spikes %>%
+  filter(spike_bit_time_ms >= pre_start & spike_bit_time_ms <= pre_end) %>%
+  select(date, monkey, cell, monkey_win, spike_bit_time_ms) %>%
+  group_by(date, monkey, cell, monkey_win) %>%
+  group_split() %>%
+  map_df(get_baseline_params, w = smooth_window, t = pre_start:pre_end)
+
+water_smoothed <- water_spikes %>%
+  filter(spike_bit_time_ms >= n_start &
+           spike_bit_time_ms <= n_end) %>%
+  inner_join(relevant_cells, by = group_cols) %>%
+  select(date, monkey, cell, monkey_win, spike_bit_time_ms) %>%
+  nest(vector = spike_bit_time_ms) %>%
+  left_join(water_baselines, by = c(group_cols, "monkey_win")) %>%
+  group_by(across(all_of(c(
+    group_cols, "monkey_win"
+  )))) %>%
+  group_split() %>%
+  map_df(smooth_data, start = n_start, end = n_end, 100) %>%
+  group_by(monkey, t, monkey_win) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n(),
+    .groups = "keep"
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n)) %>%
+  mutate(
+    trial_outcome = case_when(
+      monkey_win ~ "monkey wins auction",
+      TRUE ~ "monkey loses auction"
+    )
+  )
+
+p_water <-
+  ggplot(
+    water_smoothed %>% filter(
+      t > filter(configs, var == "fig_start") %>% pull(value) &
+        t < filter(configs, var == "fig_end") %>% pull(value)
+    ),
+    aes(x = t, y = av_zscore, colour = trial_outcome)
+  ) +
+  geom_rect(
+    data = monkey_windows,
+    aes(
+      xmin = window_start,
+      xmax = window_end,
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "grey",
+    alpha = 0.5,
+    inherit.aes = FALSE
+  ) +
+  geom_line() +
+  scale_colour_manual(values = c("black", "purple"),
+                      name = "trial outcome") +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  facet_wrap(~ monkey, scales = "free") +
+  population_firing_fig_theme(
+    filter(configs, var == "fig_start") %>% pull(value),
+    filter(configs, var == "fig_end") %>% pull(value),
+    "budget payout"
+  )
+
+
+```
+
+```{r linear_model, warning=FALSE,message=FALSE}
+ntiles = 25
+
+win_water_data <- task_data %>%
+  filter(situation %in% c(1, 2, 3)) %>%
+  filter(monkey_bid > computer_bid) %>%
+  select(date, monkey, session, trial, fractal_value, monkey_bid, computer_bid) %>%
+  mutate(
+    monkey_win = monkey_bid > computer_bid,
+    budget_remaining = 100- computer_bid,
+    budget_profit = monkey_bid - computer_bid,
+    budget_remaining_ntile = cut(
+      budget_remaining,
+      breaks = seq(0, 100, by = 100/ntiles),
+      labels = FALSE,
+      include.lowest = TRUE
+    ),
+    budget_profit_ntile = cut(
+      budget_profit,
+      breaks = seq(0, 100, by = 100/ntiles),
+      labels = FALSE,
+      include.lowest = TRUE
+    ),
+  )
+
+water_budget_data <- win_water_data %>%
+  group_by(monkey, monkey_win, budget_remaining_ntile) %>%
+  filter(n() > 20)
+
+budget_relevant_cells_ntiles <- merge(
+  sigcells,
+  water_budget_data %>% select(monkey, monkey_win, budget_remaining_ntile) %>% distinct(),
+  by = "monkey",
+  all = TRUE
+)
+
+water_budget_spikes <- water_data %>%
+  inner_join(water_budget_data, by = c("date", "monkey", "session", "trial")) %>%
+  select(date, monkey, session, trial, budget_remaining_ntile, budget_epoch_end, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - budget_epoch_end) 
+
+water_budget_spikes_ntiles <- water_budget_spikes %>%
+  group_by(date, monkey, cell, session, trial, budget_remaining_ntile) %>%
+  summarise(n = sum(spike_bit_time_ms >= 0 & spike_bit_time_ms <= 500), .groups = "drop") %>%
+  right_join(budget_relevant_cells_ntiles, by = c(group_cols, "budget_remaining_ntile")) %>%
+  mutate(n = replace_na(n ,0)) 
+
+baselines <- cell_baselines_counts %>%
+  inner_join(relevant_cells, by = group_cols) %>%
+  group_by(date, monkey, cell, trial) %>%
+  summarise(n = sum(spike_bit_time_ms >= -500 & spike_bit_time_ms <= 0), .groups = "drop") %>%
+  mutate(adj_n = n) %>%
+  group_by(date, monkey, cell) %>%
+  summarise(mean_n = mean(adj_n), sd_n = sd(adj_n), .groups = "drop") %>%
+  filter(sd_n != 0)
+
+water_budget_normalised_spikes <- water_budget_spikes_ntiles %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (n - mean_n) / sd_n) %>%
+  group_by(monkey, budget_remaining_ntile) %>%
+  summarise(mean_n_s = mean(norm_n), sem = sd(norm_n) / sqrt(n()), .groups = "drop") %>%
+  mutate(budget_perc = budget_remaining_ntile / ntiles) %>%
+  filter(!is.na(sem))
+
+p_budget_remaining <- ggplot(water_budget_normalised_spikes, aes(x = budget_perc, y = mean_n_s, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_n_s - sem, ymax = mean_n_s + sem), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "budget remaining percentage",
+    y = "normalised firing rate (impulses/s)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~ monkey, scales = "free_y") +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  )
+
+```
+
+```{r}
+water_profit_data <- win_water_data %>%
+  group_by(monkey, monkey_win, budget_profit_ntile) %>%
+  filter(n() > 30)
+
+profit_relevant_cells_ntiles <- merge(
+  sigcells,
+  water_profit_data %>% select(monkey, monkey_win, budget_profit_ntile) %>% distinct(),
+  by = "monkey",
+  all = TRUE
+)
+
+water_profit_spikes <- water_data %>%
+  inner_join(water_profit_data, by = c("date", "monkey", "session", "trial")) %>%
+  select(date, monkey, session, trial, budget_profit_ntile, budget_epoch_end, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - budget_epoch_end) 
+
+water_budget_spikes_ntiles <- water_profit_spikes %>%
+  group_by(date, monkey, cell, session, trial, budget_profit_ntile) %>%
+  summarise(n = sum(spike_bit_time_ms >= 0 & spike_bit_time_ms <= 500), .groups = "drop") %>%
+  right_join(profit_relevant_cells_ntiles, by = c(group_cols, "budget_profit_ntile")) %>%
+  mutate(n = replace_na(n ,0)) 
+
+water_profit_normalised_spikes <- water_budget_spikes_ntiles %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (n - mean_n) / sd_n) %>%
+  group_by(monkey, budget_profit_ntile) %>%
+  summarise(mean_n_s = mean(norm_n), sem = sd(norm_n) / sqrt(n()), .groups = "drop") %>%
+  mutate(profit_perc = budget_profit_ntile / ntiles) %>%
+  filter(!is.na(sem))
+
+p_profit <- ggplot(water_profit_normalised_spikes, aes(x = profit_perc, y = mean_n_s, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_n_s - sem, ymax = mean_n_s + sem), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "budget profit percentage",
+    y = "normalised firing rate (impulses/s)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~ monkey, scales = "free_y") +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+```{r stats}
+monkey_u_budget <- water_budget_normalised_spikes %>% 
+  filter(monkey == "Monkey U")
+monkey_u_profit <- water_profit_normalised_spikes %>% 
+  filter(monkey == "Monkey U")
+monkey_v_budget <- water_budget_normalised_spikes %>% 
+  filter(monkey == "Monkey V")
+monkey_v_profit <- water_profit_normalised_spikes %>% 
+  filter(monkey == "Monkey V")
+
+model_u_budget <- lm(mean_n_s ~ budget_perc, data = monkey_u_budget)
+model_u_profit <- lm(mean_n_s ~ profit_perc, data = monkey_u_profit)
+model_v_budget <- lm(mean_n_s ~ budget_perc, data = monkey_v_budget)
+model_v_profit <- lm(mean_n_s ~ profit_perc, data = monkey_v_profit)
+
+coef_u_budget <- tidy(model_u_budget)
+coef_u_profit <- tidy(model_u_profit)
+coef_v_budget <- tidy(model_v_budget)
+coef_v_profit <- tidy(model_v_profit)
+
+glance_u_budget <- glance(model_u_budget)
+glance_u_profit <- glance(model_u_profit)
+glance_v_budget <- glance(model_v_budget)
+glance_v_profit <- glance(model_v_profit)
+
+# Function to format estimate ± std.error
+format_estimate <- function(estimate, std.error, digits = 4) {
+  sprintf("%.4f ± %.4f", estimate, std.error)
+}
+
+# Create comprehensive results table
+results_table <- bind_rows(
+  data.frame(
+    monkey = "Monkey U",
+    outcome = "budget",
+    intercept = format_estimate(
+      coef_u_budget$estimate[coef_u_budget$term == "(Intercept)"],
+      coef_u_budget$std.error[coef_u_budget$term == "(Intercept)"]
+    ),
+    slope = format_estimate(
+      coef_u_budget$estimate[coef_u_budget$term == "budget_perc"],
+      coef_u_budget$std.error[coef_u_budget$term == "budget_perc"]
+    ),
+    slope_p = coef_u_budget$p.value[coef_u_budget$term == "budget_perc"],
+    adj_r_squared = glance_u_budget$adj.r.squared
+  ),
+  data.frame(
+    monkey = "Monkey U",
+    outcome = "profit",
+    intercept = format_estimate(
+      coef_u_profit$estimate[coef_u_profit$term == "(Intercept)"],
+      coef_u_profit$std.error[coef_u_profit$term == "(Intercept)"]
+    ),
+    slope = format_estimate(
+      coef_u_profit$estimate[coef_u_profit$term == "profit_perc"],
+      coef_u_profit$std.error[coef_u_profit$term == "profit_perc"]
+    ),
+    slope_p = coef_u_profit$p.value[coef_u_profit$term == "profit_perc"],
+    adj_r_squared = glance_u_profit$adj.r.squared
+  ),
+  data.frame(
+    monkey = "Monkey V",
+    outcome = "budget",
+    intercept = format_estimate(
+      coef_v_budget$estimate[coef_v_budget$term == "(Intercept)"],
+      coef_v_budget$std.error[coef_v_budget$term == "(Intercept)"]
+    ),
+    slope = format_estimate(
+      coef_v_budget$estimate[coef_v_budget$term == "budget_perc"],
+      coef_v_budget$std.error[coef_v_budget$term == "budget_perc"]
+    ),
+    slope_p = coef_v_budget$p.value[coef_v_budget$term == "budget_perc"],
+    adj_r_squared = glance_v_budget$adj.r.squared
+  ),
+  data.frame(
+    monkey = "Monkey V",
+    outcome = "profit",
+    intercept = format_estimate(
+      coef_v_profit$estimate[coef_v_profit$term == "(Intercept)"],
+      coef_v_profit$std.error[coef_v_profit$term == "(Intercept)"]
+    ),
+    slope = format_estimate(
+      coef_v_profit$estimate[coef_v_profit$term == "profit_perc"],
+      coef_v_profit$std.error[coef_v_profit$term == "profit_perc"]
+    ),
+    slope_p = coef_v_profit$p.value[coef_v_profit$term == "profit_perc"],
+    adj_r_squared = glance_v_profit$adj.r.squared
+  )
+)
+
+print(results_table)
+```
+```{r}
+water_spikes_full <- water_data %>%
+  inner_join(win_water_data, by = c("date", "monkey", "session", "trial")) %>%
+  select(date, monkey, session, trial, budget_remaining, budget_profit, budget_epoch_end, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - budget_epoch_end)
+
+water_spikes_trial <- water_spikes_full %>%
+  inner_join(relevant_cells %>% select(all_of(group_cols)), by = group_cols) %>%
+  group_by(date, monkey, cell, session, trial, budget_remaining, budget_profit) %>%
+  summarise(n = sum(spike_bit_time_ms >= 0 & spike_bit_time_ms <= 500), .groups = "drop")
+
+water_trial_level <- water_spikes_trial %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(
+    norm_n = (n - mean_n) / sd_n,
+    budget_remaining_perc = budget_remaining / 100,
+    budget_profit_perc = budget_profit / 100,
+    cell_id = paste(date, monkey, cell, sep = "_")
+  )
+
+me_results_water_remaining <- water_trial_level %>%
+  group_by(monkey) %>%
+  group_modify(~ {
+    m <- lmer(norm_n ~ budget_remaining_perc + (1|cell_id), data = .x, REML = FALSE)
+    ct <- coef(summary(m))
+    tibble(
+      intercept    = ct["(Intercept)", "Estimate"],
+      intercept_se = ct["(Intercept)", "Std. Error"],
+      slope        = ct["budget_remaining_perc", "Estimate"],
+      slope_se     = ct["budget_remaining_perc", "Std. Error"],
+      t_value      = ct["budget_remaining_perc", "t value"],
+      p_value      = ct["budget_remaining_perc", "Pr(>|t|)"]
+    )
+  })
+
+me_results_water_profit <- water_trial_level %>%
+  group_by(monkey) %>%
+  group_modify(~ {
+    m <- lmer(norm_n ~ budget_profit_perc + (1|cell_id), data = .x, REML = FALSE)
+    ct <- coef(summary(m))
+    tibble(
+      intercept    = ct["(Intercept)", "Estimate"],
+      intercept_se = ct["(Intercept)", "Std. Error"],
+      slope        = ct["budget_profit_perc", "Estimate"],
+      slope_se     = ct["budget_profit_perc", "Std. Error"],
+      t_value      = ct["budget_profit_perc", "t value"],
+      p_value      = ct["budget_profit_perc", "Pr(>|t|)"]
+    )
+  })
+
+print(me_results_water_remaining)
+print(me_results_water_profit)
+
+```
+
+
+
+```{r eval = FALSE}
+sig_cells_string <- "Monkey U: 123 putative dopamine neurons; Monkey V: 145 putative dopamine neurons"
+
+p_water <- p_water +
+  plot_annotation(title = '',
+                  subtitle = sig_cells_string)
+
+p_regression <-
+  (
+    p_budget_remaining + theme(
+      legend.position = "none"
+    )
+  ) / p_profit + 
+  plot_annotation(
+    title = '',
+    subtitle = sig_cells_string,
+    tag_levels = "A")
+
+ggsave(
+  file.path("./output/redone_figs", "water_payout_fig.svg"), 
+  p_water,
+  width = 6.71,
+  height = 6,
+  units = "in"
+)
+
+ggsave(
+  file.path("./output/redone_figs", "water_regression_fig.svg"), 
+  p_regression,
+  width = 6.71,
+  height = 7.5,
+  units = "in"
+)
+
+```
+

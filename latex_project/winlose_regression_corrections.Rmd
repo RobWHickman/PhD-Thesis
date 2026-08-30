@@ -1,0 +1,269 @@
+---
+title: "winlose response"
+author: "Robert Hickman"
+date: "2025-03-12"
+output: html_document
+---
+
+```{r setup, warning=FALSE,message=FALSE}
+rm(list = ls())
+set.seed(3459)
+setwd("~/projects/thesis_scripts/figure_scripts/winlose_reveal/")
+library(tidyverse)
+library(jsonlite)
+library(patchwork)
+library(svglite)
+library(viridis)
+library(colorspace)
+
+source("../../src/neuron_smoothing.R")
+source("../../src/figs.R")
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+monkey_col_pal <- scale_colour_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+neuronal_data <- bind_rows(
+  readRDS("../../data/neurons/onefrac_noerror_neuronal_data.rds"),
+  readRDS("../../data/neurons/threefrac_noerror_neuronal_data.rds"),
+)
+task_data <- readRDS("../../data/neurons/task_data.rds")
+
+cell_baselines_fractals <-
+  readRDS("../../data/baseline/cell_prefc_baselines_fractals_smoothed.rds")
+cell_baselines_fractal_counts <-
+  readRDS("../../data/baseline/cell_prefc_baselines_fractals.rds")
+cell_baselines_counts <-
+  readRDS("../../data/baseline/cell_prefc_baselines.rds")
+
+sigcells_uly <-
+  read_csv("../../data/cells/uly_sig_cells.csv") %>%
+  mutate(monkey = "Monkey U") %>%
+  mutate(date = as.Date(date, "%d-%b-%y"))
+sigcells_vice <-
+  read_csv("../../data/cells/vice_sig_cells.csv") %>%
+  mutate(monkey = "Monkey V") %>%
+  mutate(date = as.Date(date, "%d-%b-%Y"))
+
+sigcells <-
+  bind_rows(sigcells_uly, sigcells_vice) %>%
+  mutate(cell = paste0("cell", gsub("^(Clust)([0-9])(_.*)$", "\\2", cluster)))
+
+configs <- read_csv("../../data/config/configs.csv")
+
+group_cols <- c("date", "monkey", "cell")
+group_cols_fractal <- c(group_cols, "fractal_value")
+
+relevant_cells <- sigcells %>%
+  select(date, monkey, cell, isDA, isResponsive, numTrGood, DAFracResponsive, DABidResponsive, DAWinloseResponsive) %>%
+  filter(isDA == 1 & isResponsive == 1 & numTrGood == 1) %>%
+  distinct(date, monkey, cell, .keep_all = TRUE)
+
+n_start <- filter(configs, var == "neurons_start") %>% pull(value)
+n_end <- filter(configs, var == "neurons_end") %>% pull(value)
+smooth_window <-
+  filter(configs, var == "smooth_window") %>% pull(value)
+```
+
+```{r linear_model, warning=FALSE,message=FALSE}
+ntiles = 25
+
+winlose_task_data <- task_data %>%
+  filter(situation %in% c(1, 2, 3)) %>%
+  filter(monkey_bid > computer_bid) %>%
+  select(date, monkey, session, trial, fractal_value, monkey_bid, computer_bid) %>%
+  mutate(
+    profit = monkey_bid - computer_bid,
+    profit_ntiles = cut(
+      profit,
+      breaks = seq(0, 100, by = 100/ntiles),
+      labels = FALSE,
+      include.lowest = TRUE
+    )
+  ) %>%
+  group_by(monkey, profit_ntiles) %>%
+  filter(n() > 100)
+
+relevant_cells_ntiles <- merge(
+  relevant_cells  %>% filter(DAWinloseResponsive == 1) %>% select(all_of(group_cols)),
+  winlose_task_data %>% select(monkey, profit_ntiles) %>% distinct(),
+  by = "monkey",
+  all = TRUE
+)
+
+wl_spike_data <- neuronal_data %>%
+  filter(situation %in% c(1,2,3)) %>%
+  filter(map_lgl(bits, function(x) {
+    if (!is.null(x) && is.data.frame(x) && nrow(x) > 0) {
+      matching_rows <- x$names == "win_lose" & x$index == "upat"
+      sum(matching_rows) == 1 && !is.na(x$vals[matching_rows])
+    } else {
+      FALSE
+    }
+  }))  %>%
+  unnest(bits) %>%
+  filter(names == "win_lose" & index == "upat")
+
+wl_spikes <- wl_spike_data %>%
+  inner_join(winlose_task_data, by = c("date", "monkey", "session", "trial")) %>%
+  select(date, monkey, session, trial, fractal_value, profit, profit_ntiles, wl_time = vals, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - wl_time) 
+
+wl_spikes_ntiles <- wl_spikes %>%
+  group_by(date, monkey, cell, session, trial, profit_ntiles) %>%
+  summarise(n = sum(spike_bit_time_ms >= 50 & spike_bit_time_ms <= 550), .groups = "drop") %>%
+  right_join(relevant_cells_ntiles, by = c(group_cols, "profit_ntiles")) %>%
+  mutate(n = replace_na(n ,0)) 
+
+baselines <- cell_baselines_counts %>%
+  inner_join(relevant_cells, by = group_cols) %>%
+  group_by(date, monkey, cell, trial) %>%
+  summarise(n = sum(spike_bit_time_ms >= -500 & spike_bit_time_ms <= 0), .groups = "drop") %>%
+  mutate(adj_n = n) %>%
+  group_by(date, monkey, cell) %>%
+  summarise(mean_n = mean(adj_n), sd_n = sd(adj_n), .groups = "drop") %>%
+  filter(sd_n != 0)
+
+wl_normalised_spikes <- wl_spikes_ntiles %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (n - mean_n) / sd_n) %>%
+  group_by(monkey, profit_ntiles) %>%
+  summarise(mean_n_s = mean(norm_n), sem = sd(norm_n) / sqrt(n()), .groups = "drop") %>%
+  mutate(profit_bid_perc = profit_ntiles / ntiles) %>%
+  filter(!is.na(sem))
+
+p_profit_norm_regression <- ggplot(wl_normalised_spikes, aes(x = profit_bid_perc, y = mean_n_s, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_n_s - sem, ymax = mean_n_s + sem), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "monkey profit percentage",
+    y = "normalised firing rate (impulses/s)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~ monkey, scales = "free_y") +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  ) +
+  scale_x_continuous(limits = c(0, 1))
+
+```
+
+```{r linear_model, warning=FALSE,message=FALSE}
+cb_task_data <- task_data %>%
+  filter(situation %in% c(1, 2, 3)) %>%
+  filter(computer_bid > monkey_bid) %>%
+  select(date, monkey, session, trial, computer_bid) %>%
+  mutate(
+    cb_ntiles = cut(
+      computer_bid,
+      breaks = seq(0, 100, by = 100/ntiles),
+      labels = FALSE,
+      include.lowest = TRUE
+    )
+  ) %>%
+  group_by(monkey, cb_ntiles) %>%
+  filter(n() > 100)
+
+relevant_cells_ntiles <- merge(
+  relevant_cells %>% select(all_of(group_cols)),
+  cb_task_data %>% select(monkey, cb_ntiles) %>% distinct(),
+  by = "monkey",
+  all = TRUE
+)
+
+cb_spikes <- wl_spike_data %>%
+  inner_join(cb_task_data, by = c("date", "monkey", "session", "trial")) %>%
+  select(date, monkey, session, trial, cb_ntiles, wl_time = vals, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - wl_time) %>%
+  group_by(date, monkey, cell, session, trial, cb_ntiles) %>%
+  summarise(n = sum(spike_bit_time_ms >= 50 & spike_bit_time_ms <= 550), .groups = "drop") %>%
+  right_join(relevant_cells_ntiles, by = c(group_cols, "cb_ntiles")) %>%
+  mutate(n = replace_na(n ,0)) 
+
+cb_normalised_spikes <- cb_spikes %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (n - mean_n) / sd_n) %>%
+  group_by(monkey, cb_ntiles) %>%
+  summarise(mean_n_s = mean(norm_n), sem = sd(norm_n) / sqrt(n()), .groups = "drop") %>%
+  mutate(bid_perc = cb_ntiles / ntiles) %>%
+  filter(!is.na(sem))
+
+p_cb_norm_regression <- ggplot(cb_normalised_spikes, aes(x = bid_perc, y = mean_n_s, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_n_s - sem, ymax = mean_n_s + sem), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "computer bid percentage",
+    y = "normalised firing rate (impulses/s)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~ monkey, scales = "free_y") +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  ) +
+  scale_x_continuous(limits = c(0, 1))
+
+```
+
+```{r regression1}
+regression_stats1 <- wl_normalised_spikes %>%
+  group_by(monkey) %>%
+  do(model = lm(mean_n_s ~ profit_bid_perc, data = .)) %>%
+  mutate(
+    glance = list(broom::glance(model))
+  ) %>%
+  unnest(glance)
+
+print(regression_stats1)
+
+```
+
+```{r regression2}
+regression_stats2 <- cb_normalised_spikes %>%
+  group_by(monkey) %>%
+  do(model = lm(mean_n_s ~ bid_perc, data = .)) %>%
+  mutate(
+    glance = list(broom::glance(model))
+  ) %>%
+  unnest(glance)
+
+print(regression_stats2)
+
+```
+
+
+
+```{r outputs, warning=FALSE,message=FALSE, eval=FALSE}
+sig_cells_string <- paste0(
+  "Monkey U: ",
+  as.numeric(table(relevant_cells$monkey[relevant_cells$DAWinloseResponsive == 1])["Monkey U"]),
+  " putative dopamine neurons; ",
+  "Monkey V: ",
+  as.numeric(table(relevant_cells$monkey[relevant_cells$DAWinloseResponsive == 1])["Monkey V"]),
+  " putative dopamine neurons"
+)
+
+p_winlose_regression <- (p_profit_norm_regression / p_cb_norm_regression) +
+  plot_annotation(title = '',
+                  subtitle = sig_cells_string,
+                  tag_levels = "A")
+
+
+ggsave(
+  file.path("./output/redone_figs", "winlose_regression_fig.svg"), 
+  p_winlose_regression,
+  width = 6.71,
+  height = 7.5,
+  units = "in"
+)
+```

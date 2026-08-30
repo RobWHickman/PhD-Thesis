@@ -1,0 +1,177 @@
+CATEGORY H — WANTING/LIKING (INCENTIVE SALIENCE) — DRAFT PROSE
+==================================================================
+IMPLEMENTED 2026-08-02 — all three pieces written into the actual .tex
+files: Chapter5/chapter5.tex (new paragraph, between the ANCCR paragraph
+and the closing positioning paragraph in Section 5.4.3) and
+AppendixB/appendixb.tex (two additions, both confirmed placements).
+Recompiled clean: 0 errors, 0 undefined citations/refs, 242 pages.
+==================================================================
+Companion to the RPE/causal-learning work in rpe_plan.txt / rpe.txt.
+Approach: short pointer paragraph in Ch5 (Category Z's pattern), plus a
+small update to Appendix B itself with the newer literature. Drafting
+only — nothing here has been written into the actual .tex files yet.
+
+Citation key status (all placeholder — none of these are in references.bib
+yet; bold "(Author, Year)" not \cite{}, same convention as the RPE work):
+    berridgeSeparatingDesirePrediction2023      (Berridge, 2023)
+    robinsonBerridgeIncentiveSensitization2025  (Robinson & Berridge, 2025)
+    berridgeMesolimbicComputation2012           (Berridge, 2012)
+    nguyenBerridgeWantingHurts2025              (Nguyen & Berridge, 2025)
+    mcclureComputationalSubstrateIncentive2003  (McClure et al., 2003)
+    zhangNeuralComputationalIncentive2009       (Zhang et al., 2009)
+    zachryD1D2ValenceIndependent2024            (Zachry et al., 2024)
+    rodriguesDopamineValenceLearning2024        (Rodrigues, 2024)
+    guillauminNacHedonicEating2023              (Guillaumin et al., 2023)
+  Already real, already cited in Appendix B (no change needed):
+    berridgeTasteReactivityAnalysis1989, berridgeBuildingNeurosciencePleasure2011,
+    berridge2013neuroeconomics, leytonCocaineCravingEuphoria2005,
+    brauerHighDosePimozide1997
+
+==================================================================
+PART 1 — CHAPTER 5, SECTION 5.4.3 (one paragraph)
+==================================================================
+
+WHERE IT FITS IN — between existing Paragraph 3 (ANCCR/causal learning)
+and existing Paragraph 4 (honest scope claim + brief nods + close). This
+makes wanting/liking a second named "serious alternative" alongside causal
+learning, before the closing paragraph wraps everything up — Paragraph 4's
+"our findings most directly extend the utility-coding tradition..." close
+still works fine as the final word after this is inserted.
+
+Preceding paragraph (current end of Paragraph 3), quoted exactly, in full:
+
+  "The strongest evidence for this proposal comes from a study in which
+  dopamine responses to a cue-reward pair were selectively reduced when the
+  statistical contingency between the cue and the reward was degraded, even
+  though the timing between them, and therefore the temporal-difference
+  prediction, was left completely unchanged (Garr et al., 2024). A purely
+  value-based account struggles to explain this finding, which a
+  causal-contingency framework predicts directly."
+
+[NEW PARAGRAPH GOES HERE]
+
+...then continues into the existing Paragraph 4 ("Our task was designed to
+elicit trial-by-trial variation in subjective value...") unchanged.
+
+DRAFT PARAGRAPH:
+
+A further, longstanding distinction in the dopamine literature is between
+"wanting" and "liking" -- the motivational pull toward a reward and the
+hedonic pleasure taken in consuming it -- which Berridge and colleagues have
+argued are dissociable both behaviourally and neurally, with mesolimbic
+dopamine implicated specifically in the former (\textbf{Robinson \&
+Berridge, 2025}). On this account, dopamine signals the incentive salience
+of a cue or outcome rather than a prediction error over its value as such
+(\textbf{Berridge, 2012}), and this incentive can separate from, and even
+run contrary to, an animal's own learned predictions about how good an
+outcome will be (\textbf{Berridge, 2023}). Consistent with a functional
+split of this kind, medium spiny neurons within the nucleus accumbens have
+recently been shown to carry distinct signals at the single-cell level,
+with one population responding to the salience of a stimulus regardless of
+its predicted value and another tracking prediction error more
+conventionally (\textbf{Zachry et al., 2024}). Our own bids are naturally
+read as an economic report of value rather than of momentary wanting, and
+our task was not designed to dissociate the two; we discuss the fuller
+history and evidence for this distinction, including its computational
+reconciliation with prediction-error accounts, in \textbf{Appendix B}.
+
+[~180 words]
+
+==================================================================
+PART 2 — APPENDIX B UPDATE (two small additions, not full paragraphs)
+==================================================================
+
+Section: "Do We Like Value or Do We Want It?" (AppendixB/appendixb.tex,
+\section at line 47). Both additions are small, sentence-level, per
+Robert's steer -- not rewriting the existing prose.
+
+---- ADDITION 1 — computational reconciliation ----
+
+WHERE IT FITS IN — after the taste-reactivity / human-pharmacology
+paragraph, before the fMRI/OFC paragraph. Preceding text, quoted exactly,
+in full (this is the paragraph the addition follows):
+
+  "This idea of 'wanting' and 'liking' being dissociable concepts first
+  appeared in neuroscience to explain the lack of impact of 6-OHDA
+  dopaminergic neurons on the ability of rats to taste
+  (\cite{berridgeTasteReactivityAnalysis1989})[footnote]. Although the
+  lesions led to deficits in the drinking and eating behaviour of rats,
+  they were still able to differentiate between tastes and retained their
+  palate. That is, rats still 'liked' the taste of pleasurable food
+  sources, but no longer 'wanted' them (in contrast to the gluttonous
+  author and their sweets). Similar findings have been reported in humans,
+  where catecholamine treatments (\cite{leytonCocaineCravingEuphoria2005})
+  and pimozide application (\cite{brauerHighDosePimozide1997}) reduces the
+  craving for drugs such as cocaine and ecstasy, but not the euphoric
+  feeling elicited when the drugs are taken."
+
+[ADDITION GOES HERE, new paragraph or appended sentences]
+
+DRAFT:
+
+This raises a computational question: if dopamine does not itself carry
+pleasure, what role does it play in the reward circuitry we describe
+elsewhere in this thesis? Early attempts to reconcile 'wanting' with
+prediction-error accounts treated incentive salience as a form of cached,
+Pavlovian-learned value (\textbf{McClure et al., 2003}; \textbf{Zhang et
+al., 2009}), while later work has argued more directly that dopamine's
+incentive signal is a distinct computation from a value-prediction error,
+shaped by the animal's momentary physiological state as well as by what has
+been learned (\textbf{Berridge, 2012}).
+
+[~75 words]
+
+---- ADDITION 2 — recent (last ~5 year) update ----
+
+WHERE IT FITS IN — end of the section, after the existing closing
+paragraph (Parkinson's DBS / Berridge 2011 sentence), before
+\section{Neuroethology of Value} begins. Preceding text, quoted exactly,
+in full (the existing closing paragraph):
+
+  "Although the current evidence for these distinct streams of utility
+  presents intriguing possibilities, more research is needed to establish
+  more definitive causal links between experimental manipulations and the
+  dissociation of 'liking' versus 'wanting' behaviours in laboratory
+  animals. We acknowledge the inherent challenges in such investigations
+  (how can one obtain an accurate behavioural report of an animal's
+  momentary pleasure?) and find merit in the conceptual distinction between
+  predicted and experienced utility. For instance, observations of human
+  Parkinson's patients treated with deep brain stimulation to recover
+  dopaminergic activity suggest that self-stimulation addresses a pre hoc
+  craving rather than providing a pleasurable post hoc experience
+  (\cite{berridgeBuildingNeurosciencePleasure2011}). This framework offers
+  promising avenues for future neuroeconomic research into the
+  multifaceted nature of utility and the processes in the brain that
+  produce these ideas."
+
+[ADDITION GOES HERE]
+
+DRAFT:
+
+More recent work continues to develop this picture. Berridge has argued
+that incentive salience can separate sharply from an animal's own
+predictions of outcome value, even producing desire for outcomes
+remembered to be unpleasant (\textbf{Berridge, 2023}), and a thirty-year
+retrospective on the underlying incentive-sensitization theory finds the
+core wanting/liking dissociation well supported (\textbf{Robinson \&
+Berridge, 2025}). At the level of individual cells, medium spiny neurons in
+the nucleus accumbens have recently been shown to carry dissociable
+signals, with one population tracking stimulus salience and another
+tracking prediction error more conventionally (\textbf{Zachry et al.,
+2024}), although how uniformly dopamine itself contributes to valence
+coding across the striatum remains debated (\textbf{Rodrigues, 2024};
+\textbf{Guillaumin et al., 2023}).
+
+[~100 words]
+
+==================================================================
+OPEN QUESTIONS BEFORE IMPLEMENTING
+==================================================================
+1. Ch5 paragraph placement (between Para 3 and Para 4) — confirm or adjust
+2. Appendix B Addition 1 placement (mid-section, before fMRI paragraph) —
+   confirm or adjust
+3. Appendix B Addition 2 as a new paragraph vs. appended sentences onto the
+   existing closing paragraph — currently drafted as a new short paragraph
+4. Zachry et al. 2024 is cited in both Ch5 and Appendix B Addition 2 —
+   intentional (it's the single best bridging citation), not a duplication
+   error

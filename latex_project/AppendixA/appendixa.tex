@@ -1,0 +1,176 @@
+%!TEX root = ../thesis.tex
+% ******************************* Thesis Appendix A ****************************
+\chapter{Modern Advances in Behavioural Economics and Auction Theory} 
+
+\ifpdf
+    \graphicspath{{Appendix1.1/Figs/Raster/}{Appendix1.1/Figs/PDF/}{Appendix1.1/Figs/}}
+\else
+    \graphicspath{{Appendix1.1/Figs/Vector/}{Appendix1.1/Figs/}}
+\fi
+
+
+This thesis considers the behaviour and neuronal responses of trained macaques in an auction task (BDM) hitherto only used in human studies of economic decision-making (\cite{newtonfennerEconomicValueBrain2023}). As such, we feel that any interested reader only need be introduced to three behavioural-economic concepts in the introductory chapters of the thesis:
+
+\begin{enumerate}
+    \item The idea that utility and not value is the variable by which economic decisions are made. That is, people and other organisms maximise their utility by consulting a utility function when choosing between distinct options. Compare Equations \ref{eq:expected_utility1} and \ref{eq:expected_utility2} when discussing the St Petersburg paradox in the first chapter.
+    \item That in order to make these decisions, some areas of the brain must have access to these internal representations of utility. For example, we discuss \cite{lakDopaminePredictionError2014}, which shows how dopaminergic neurons of the macaque midbrain integrate information across different dimensions. In Chapter 1 of the thesis, we focus on dopaminergic circuits, branching out to discuss the evidence for other components of ‘the reward circuit’ (\cite{haberRewardCircuitLinking2010}) in Appendix C.
+    \item Finally, we discuss the incentive-compatible nature of the BDM, a mechanism by which subjects report their cardinal utility for a good on a single trial. Chapter 2 walks through the theory of the BDM and what makes it such a potentially attractive task for the cognitive sciences.
+\end{enumerate}
+
+However, there has been much interesting progress in the fields of micro- and behavioural economics over the past half a century which goes beyond the requirements of this thesis. We use this appendix to briefly discuss three examples that we find most interesting.
+
+\section{Prospect Theory}\label{sec:prospect}
+
+We close the discussions of economic utility theory in the first chapter by mentioning violations of the four axioms of the Von Neumann and Morgenstern utility model (Equations \ref{eq:axiom_indifference}, \ref{eq:axiom_transitivity}, \ref{eq:axiom_continuity}, \ref{eq:axiom_independence}). Of particular note is the ‘Allais paradox’, first described in the literature by \cite{allaisComportementLHommeRationnel1953} and adapted in Figure 1 from \cite{kahnemanProspectTheoryAnalysis1979}. A participant is asked to make two choices, between options A and B, in gambles 1 and 2:
+
+\begin{center}
+\textbf{Gamble 1:}
+\end{center}
+
+Choose between:
+\begin{itemize}
+    \item \textbf{Option A:} 33\% chance of winning \$2,500, 66\% chance of winning \$2,400, and 1\% chance of winning \$0.
+    \item \textbf{Option B:} 100\% chance of winning \$2,400.
+\end{itemize}
+
+\begin{center}
+\textbf{Gamble 2:}
+\end{center}
+
+Choose between:
+\begin{itemize}
+    \item \textbf{Option A:} 33\% chance of winning \$2,500 and 67\% chance of winning \$0.
+    \item \textbf{Option B:} 34\% chance of winning \$2,400 and 66\% chance of winning \$0.
+\end{itemize}
+
+In their experimental reproduction of \cite{allaisComportementLHommeRationnel1953}, \cite{kahnemanProspectTheoryAnalysis1979} found that 82\% of 72 participants chose option B in gamble 1 and 83\% chose option A in gamble 2. However, this is a violation of the independence axiom (\ref{eq:axiom_independence}) since options A and B in gamble 1 and 2 are identical except for the addition of an independent extra alternative choice of \$2,400 with a constant probability (66\%). A graphical explanation of this paradox is shown in Figure \ref{fig:allais}.
+
+\begin{figure}[p] 
+\centering    
+\includegraphics[width=1\textwidth]{AppendixA/Figs/allais_fig}
+\caption[The Allais paradox highlights a violation of the independence axiom.]{\textbf{The Allais paradox highlights a violation of the independence axiom.} Participants are asked to choose between two options (A and B) in sequential gambles (1, green, and 2, blue). In A) participants are asked to choose which option from gamble 1 and gamble two they would choose. In \cite{kahnemanProspectTheoryAnalysis1979}, 82\% of 72 subjects choose gamble 1B and gamble 2A. However, in B) it can be shown that gamble 1 and gamble 2 should have the same relative desirability of options. Gamble 1 is derived from gamble with the addition of a 0.66 chance of \$2,400 added to each option (orange). Thus, the switching behaviour between options A and B originally found by \cite{allaisComportementLHommeRationnel1953}, and also \cite{kahnemanProspectTheoryAnalysis1979}, represents a violation of the independence axiom.}
+\label{fig:allais}
+\end{figure}
+
+In chapter 1 we define the utility function of a set of choices in Equation \ref{eq:expected_utility1} as
+
+\begin{align}
+EU_{i,n} &= p(x_n) \cdot v_i(x_n)
+\label{eq:expected_utility3}
+\end{align}
+
+Where the probability term ($p(x_n)$) is separate from the subjective utility term $\upsilon_i$ ($x_n$). That is, probability is treated objectively, whereas other components of value (e.g., magnitude) are treated subjectively. This separation of probability and value was further extended in a later paper by the same authors (\cite{tverskyFramingDecisionsPsychology1981}) in which subjects were asked to choose between three responses to a hypothetical deadly and novel disease\footnote{This thesis was mostly written in the autumn of 2020; the implications for taking findings from behavioural economics seriously should be obvious.}:
+
+\begin{center}
+\textbf{Imagine that the United States of America is preparing for the outbreak of an unusual Asian disease that is expected to kill 600 people. Two alternative programs to combat the disease have been proposed. Assume that the exact scientific estimate of the consequences of the programs are as follows:}
+\end{center}
+
+\vspace{0.5em}
+
+\textbf{Choice 1:}
+
+\begin{quote}
+If Program A is adopted, 200 people will be saved. If Program B is adopted, there is a 1/3 probability that 600 people will be saved, and a 2/3 probability that no people will be saved. Which of the two programs would you favour?
+\end{quote}
+
+\vspace{0.5em}
+
+\textbf{Choice 2:}
+
+\begin{quote}
+If Program C is adopted, 400 people will die. If Program D is adopted, there is 1/3 probability that nobody will die, and 2/3 probability that 600 people will die. Which of the two programs would you favour?
+\end{quote}
+
+(taken directly from \cite{tverskyFramingDecisionsPsychology1981})
+
+For any choice, the expected number of deaths is equal. Either 400 people will certainly die (A and C), or 400 people will be expected to die (B and D). Participants are choosing between a sure thing and a risky choice with equivalent values. We would assume that subjects would show consistent risk preferences between the 2 choices: either they go for the risky option in both choice or the ‘safe’ option. However, the framing of the choice as either losses or gains (‘200 people will be saved’ vs. ‘400 people will die’), has a distinct impact upon participants choices; they are risk-averse and choose option A in choice 1, but are risk-seeking and choose option D in choice 2.
+
+These violations of Von Neumann/Morgenstern utility theory were codified by Kahneman and Tversky into a descriptive model of decision-making known as ‘Prospect theory’ (\cite{kahnemanProspectTheoryAnalysis1979}). The key insight made was that probability should be treated subjectively, that is:
+
+\begin{align}
+EU_{i,n} = \omega_i(p(x_n)) \cdot v_i(x_n)
+\label{eq:utility_probability}
+\end{align}
+
+Where $\omega$ is some distortion that a subject $i$ places on the probability of outcome $x_n$. This leads to two additional appreciations of how an individual’s utility function is shaped. Firstly, that this $\omega$ parameter creates an S-shaped distortion where people overweight low probabilities and underweight high probabilities (Figure \ref{fig:prospect}).
+
+Secondly, the idea that 'losses hurt more than gains', i.e., if an organism loses something of value, to return to net zero utility for the period of time, it must gain something of greater value than what was lost. This is formally described as ‘loss aversion’ and depends on the framing (see the above experiment using a potential novel disease) of any transaction and gives rise to the ‘endowment effect’ discussed in Chapter 2. This ‘kink’ in the utility function is shown in Figure \ref{fig:prospect}B. 
+
+\begin{figure}[http!] 
+\centering    
+\includegraphics[width=1\textwidth]{AppendixA/Figs/prospect_theory}
+\caption[Prospect theory incorporates evidence that probabilities are experienced subjectively by individuals.]{\textbf{Prospect theory incorporates evidence that probabilities are experienced subjectively by individuals.} In A) the S-shaped curve of the probability distortion is shown. Low probabilities are subjectively overweighted (and seem to occur more often than they actually do) whereas objectively high probabilities are underweighted. In B) the ‘kink’ of the utility curve is shown where the convex function for losses is steeper than the concave curve for gains. I.e. “losses hurt more than gains”.}
+\label{fig:prospect}
+\end{figure}
+
+While newer models have emerged to account for some shortcomings of Prospect theory (and especially to incorporate ‘heuristics’ into descriptive models of economic decision-making; \cite{tverskyAdvancesProspectTheory1992}), the theory still represents a step forward in combining insights from psychology and ‘experimental’ economics into the previously much more theoretical economic framework. Although undoubtedly not perfect, it has proved its worth in empirical studies of humans (\cite{abdellaouiRichDomainUncertainty2011}; \cite{scholtenProspectTheoryForgotten2014}) and macaques (\cite{staufferEconomicChoicesReveal2015}). In 2002, Daniel Kahneman\footnote{Amos Tversky died in 1996} won the Nobel Prize in economics for 'having integrated insights from psychological research into economic science, especially concerning human judgment and decision-making under uncertainty'.
+
+\section{Stochastic Choice and Random Utility}\label{sec:rum}
+
+Within this thesis, we present a task that allows us to study the cardinal utility of a good to a monkey on individual trials (Chapter 2). We compare this task with discrete choice tasks that have traditionally been used in this field. In such 'binary choice'\footnote{We only consider situations in which organisms choose between 2 options here for brevity. Of course, these tasks can be extended to choices among as many alternatives as an experimenter sees fit. In fact, these might better capture the ethological choices made by organisms.} tasks, subjects choose between options A and B, with the implication that the good with the higher utility will be chosen.
+
+For a hyper-rational decision-maker, we might expect that these choices are black and white; after all, the participant should always choose the better option! However, when studying the choices made by both humans (\cite{mostellerExperimentalMeasurementUtility1951}) and monkeys (\cite{ferraritonioloNonhumanPrimatesSatisfy2021}; \cite{pastorMonkeysChooseIf2017}), many choices instead show a curve or preferences (see Figure \ref{fig:binary_choice} for a simulated example or Figure \ref{fig:mosteller_fig} for a figure redrawn from \cite{mostellerExperimentalMeasurementUtility1951}). In the introduction to this thesis, we touch upon the differences between ‘perceptual’ decisions (e.g. sensory discrimination tasks) and ‘economic’ decisions. The indifference curves in Figures \ref{fig:binary_choice} and \ref{fig:mosteller_fig} bear a striking resemblance to the psychometric curves found in the perceptual literature (\cite{kleinMeasuringEstimatingUnderstanding2001}; \cite{rieskampExtendingBoundsRationality2006}); instead of always choosing an offer with higher utility, subjects make ‘stochastic’ (or ‘discrete’) choices.
+
+There are two reconciliatory theories for these empirical observations of choice reversal. Fixed utility theories assume that the utilities present in a choice are fixed and subjects choose options in proportion to the value of the offered choices (\cite{lucePossiblePsychophysicalLaws1959}; \cite{tverskyEliminationAspectsTheory1972}):
+
+\begin{align}
+p(x_i) = \frac{v_i(x)}{\sum_{j=1}^{n} v_i(x_j)}
+\label{eq:utility_choice}
+\end{align}
+
+The probability of a subject $i$ choosing an offer $x$ is equal to the utility of that choice to the subject, divided by the sum of the utilities of all other offers.
+
+In contrast to fixed utility theories, random utility theories assume that the utility placed on a choice by a subject is sampled from a distribution at each evaluation and is inherently noisy (\cite{beckerMeasuringUtilitySingleresponse1964}; \cite{marschakBinaryChoiceConstraints1960}; \cite{mcfaddenEconometricModelsProbabilistic1982}). 1ml of orange juice might have greater mean utility to a monkey than 1ml of blackcurrant juice, and over infinite trials might be chosen more often. However, if both utility distributions have significant variance, both options might be chosen with a similar rate over a countable number of choice actions. Daniel McFadden showed that the Luce equation (Equation \ref{eq:utility_choice}) could be reinterpreted in terms of logistic regression. Namely, that the choice $p(x_i)$ can be estimated using a multinomial logit model (\cite{mcfaddenMixedMNLModels2000})\footnote{This function is also widely used in the reinforcement learning literature where it is commonly termed the `softmax' function.}:
+
+\begin{align}
+p(x_i) = \frac{e^{v_i(x)}}{\sum_{j=1}^{n} e^{v_i(x_j)}}
+\label{eq:rum_choice}
+\end{align}
+
+The slope of this model is proportional to the noise in a subject's choices; a rectangular step function shows hyper-rational choices of always the offer with the greatest utility, with the curve flattening as the subject's choices become noisier. Daniel McFadden won the 2000 Nobel Prize in economics for these contributions to discrete choice modelling, and we use this model in chapter 3 to estimate the utility of binary choices, in line with previous studies from the lab (\cite{ferraritonioloNonhumanPrimatesSatisfy2021}; \cite{pastorMonkeysChooseIf2017}).
+
+Figure \ref{fig:rum} shows the random utility model in graphical form where the choices red, blue, green, and purple sit along a concave utility function (panel 1). We model the noise in each choice as a Gaussian (here with equal variance (noise) per choice, which may or may not be the case in the real world), where the proportion of choices corresponds to the proportion of samples where each has a higher utility plus noise (panel 3). The choice between the red and blue offers (representing 2 or 3 units of an offered good) sits on a steeper section of the utility function, and so, for the same amount of noise in each choice, has a greater discrepancy in observed choices than for the green and purple (7 and 8 units) goods.
+
+\begin{figure}[http!] 
+\centering    
+\includegraphics[width=1\textwidth]{AppendixA/Figs/rumfigureclipped.png}
+\caption[Random Utility Models assume that the organism's sampling of the utility of an offered choice incorporates an error term.]{\textbf{Random Utility Models assume that the organism's sampling of the utility of an offered choice incorporates an error term.} For given choices (e.g. between 2 and 3 units, red and blue, of a good, or 7 and 8 units, green and purple, of a good) and organism samples a utility function (black curve for utility given offer in first panel). This utility function takes the form $\upsilon_i$ and is internal to the organism. We expect the organism to preferentially choose the option with the higher internal, subjective utility. Random Utility Models posit that the choice the organism makes is between this utility for the good plus an error term, $\epsilon_i$ which in this figure takes a Gaussian function in panel 2. In panel 3 the sampled utilities are compared and in each simulation the choice with the higher sampled utility $\upsilon_i + \epsilon_i$ is chosen. The fraction of choices the organism would be expected to make is then shown. For a given error term, the choices are expected to be made in proportion to their utility as derived from the utility function $\upsilon_i$. Data here is simulated and for illustrative purposes only.}
+\label{fig:rum}
+\end{figure}
+
+\section{Modern Auction Theory – From Wives to Wireless}
+
+This project uses a relatively simple auction design in which a monkey makes bids which are compared to a randomly drawn computer bid. We discuss a history and analysis of the BDM auction paradigm in Chapter 2 of this thesis (\cite{beckerMeasuringUtilitySingleresponse1964}, \cite{milgromTheoryAuctionsCompetitive1982}). Although this is not a pure economics thesis, we consider it important to situate our work somewhat within the more general field of auction theory. Neuroeconomics as a discipline is in its infancy (\cite{camererNeuroeconomicsHowNeuroscience2005}) and we would expect that some day, possibly even soon, an understanding of the economics literature will be an important asset to any neuroscientist who goes in search of value signals in the brain. Here we give a whirlwind tour starting with the history of auctions and progressing onto modern auction theory.
+
+The somewhat chequered history of auctions is generally agreed to have begun with Herodotus' description of the sale of Babylonian wives in his Histories published circa. 500AD (\cite{rawlinson1885seven}).
+
+\begin{quote}
+All the girls of marriageable age were assembled together in one place, and a crowd of men would form a circle around them while and auctioneer had the women stand up one by one and sold them, beginning with the most beautiful. When this young woman was sold for a large amount of gold, he would then put up for sale the second most beautiful... All the wealthier Babylonian men of marriage-able age would try to outbid each other for the prettiest girls. The more humble among them did not seek beauty in the women they bid for, because the homelier ones came with a monetary reward as an incentive for someone to marry them... And when the auctioneer finished selling the most beautiful of the young women, he had the most unattractive stand up, or a crippled girl, if there was any among them, and these would be offered for sale with the announcement that they would go to whoever would accept the smallest amount of gold and marry them... The gold for these arrangements came from the sale of the beautiful girls, and thus the attractive provided the dowries to help marry of the unattractive and crippled.
+\end{quote}
+
+Each potential suitor is assumed to have utility for both a beautiful wife and the possible monetary compensation offered. The rich outbid each other to maximise their utility for the 'prettiest girls' and the poorer men to maximise the monetary incentive for marrying a more 'humble' bride\footnote{A simple game of this type can be modelled with two suitors where the 'winner' of the more beautiful bride offered has to pay the second price to the loser (second prices pop up in the most unexpected places!). This auction paradigm can be shown (\cite{bayeContestsRankorderSpillovers2012}) to lead to similar results as \cite{bhattacharyyaExAnteInterim1995} that traders who know that they are following symmetric strategies might both have a positive expected value of their mixed strategy even as they understand that only one of them can actually make a profit on a trade. Because trades and bridal prices are unbounded, each player's expected utility is not integrable with respect to the joint distribution of possible mixed strategies, and no Nash equilibrium can be found.}.
+
+Perhaps a more famous early example of auctions is also its most disastrous. In 193AD, the Praetorian guard murdered the Roman emperor Pertinax and auctioned off the chance to succeed him. Pertinax's father-in-law Sulpicianus offer of 5000 drachmas was outbid by Didius Julianus who offered 6000 drachmas (\cite{gibbonHistoryDeclineFall1776}). Although auctions are an efficient mechanism to discover an individual’s utility for an offer, they are a poor apparatus to aggregate many people's preferences; the purchase (instead of earning) of the title made Julianus an unpopular emperor who was executed by the same guards less than 3 months later (\cite{dioCassiusDioRoman}).
+
+The Romans had greater success staging auctions for more common goods in order to trade and raise money, most commonly to pay off debts to creditors (\cite{garciamorcilloStagingPowerAuthority2008}).  For the last few centuries, particular industries, especially for rare items (such as diamonds), fresh items (such as fish and fresh flowers), and durable items (such as used cars), have and continue to sell their goods in auctions; however, it is only with the advent of the modern world that the use of auctions has exploded.
+
+The United States introduced auctions for Treasury bills in 1929 (\cite{garbadeWhyUSTreasury2008}), a mechanism of government financing that has since been adopted by many countries\footnote{The Bank of England only began gilt auctions in 1987} and is now worth tens of trillions of dollars worldwide. In addition, certain natural monopolies in which the opportunity to exploit a resource can only be sold to one bidder have proven amenable to auctions. For instance, when selling the rights to extract oil from a potential field, the utilities of petroleum companies will vary by their estimate of the magnitude of that oil reserve, and any regulator is incentivised to find the highest estimate among any set of bidders.
+
+With the rise of telecommunications, frequency spectra became a crucial and inherently limited natural monopoly, and by the new millennium auctions of spectra raised tens to hundreds of billions of euros per country (\cite{klempererWhatReallyMatters2002}). The Internet allowed monopolistic startups the opportunity to auction limited advertising space as well as connecting traders with a near-infinite supply of potential buyers on platforms such as eBay.
+It is therefore not surprising that auction theory has proved a fertile ground for applied economic thought over the last half a century, providing insights that have raised billions of units of currency for governments around the world, and many prestigious prizes for economists. The modern analysis of auctions is traditionally traced back to John Forbes Nash's 1950 dissertation on non-cooperative games (\cite{nashNonCooperativeGames1951}. Extending the work of von Neumann and Morgenstern beyond zero-sum games (\cite{vonNeumann1944}), Nash introduced the concept of a 'Nash equilibrium', an optimal strategy for any player given full knowledge of every other player's strategy, which must exist for any finite game (that is, any game with a bounded set of strategies such as the limited bidding budget in our BDM task).
+
+Nash shared the 1994 Nobel Prize in economics that he won for his work on noncooperative games with John Harsanyi for the latter's work on Bayesian games when players have incomplete information about the game being played (\cite{harsanyi1997games}). For example, if a PhD student knows that their examiners are diligent, the Nash equilibrium should land on the student putting a fair bit of work even into the appendix of their thesis to produce a comprehensive piece of work to be examined upon. However, any student has incomplete information about their thesis committee and does not know if their examiners will be diligent or lazy (and not read the appendices) or perhaps just not interested in auction theory. In auctions, a bidder only has complete knowledge of their own value and range of bids for any offered good, and so any analysis of auctions must take place within the Bayes-Nash framework.
+
+The extension of game theory to incomplete information settings becomes crucial when considering the phenomenon that has become known as 'the winner's curse.' In 1971, Capen, Clapp, and Campbell published their reports that oil giants bidding for the rights to extract from offshore locations under a first-price auction mechanism were making less profit from these sites than expected (\cite{capenCompetitiveBiddingHighRisk1971}). All else being equal, by definition, the company which won the rights to drill an oil field had the highest expected value of the oil located within that field. That is, after all, why they submitted the highest bid and won the auction for those rights. For bidders who lack introspection, the highest bid for a given good tends to be the highest overestimation of that value of the goods, with the overestimation of value correlated with the number of bidders in the auction\footnote{Bazerman and Samuelson empirically tested this winner’s curse in first price auctions, getting MBA graduate students to bet on the value of a jar filled with nickels. On average, winning bids are roughly 25\% higher than the value of the coins that are being bid for (\cite{bazermanWonAuctionDont1983}).}.
+
+Robert Wilson solved the amount each bidder should optimally reduce their bid in such auctions by an analysis of auctions within the Bayesian games framework (\cite{wilsonCompetitiveBiddingAsymmetric1967}). This work was expanded upon by Wilson and his former student Paul Milgrom in two seminal papers (\cite{milgromTheoryAuctionsCompetitive1982}; \cite{milgromValueInformationSealedbid1982}) with two key results for auction theory. Firstly, it is possible to rank the expected income from an auction on a good based on the type of auction that is used. For instance, the English auction (the traditional mechanism used at auction houses where bids are open and gradually increase) and sealed second-price auctions (i.e. Vickrey auctions; the BDM mechanism but against conscious opponents) are functionally equivalent, but the open nature of the English auction mechanism reveals greater information about bidders' valuation of goods. Therefore, any ignorant bidder can gather more information about the value of the auctioned good that mitigates the winner's curse and leads bidders to bid more aggressively. English auctions typically raise more revenue than sealed second-price auctions, and both of these raise more than Dutch (descending price) auctions\footnote{As with much of microeconomics, this finding has a few assumptions which can be violated. Maskin and Riley showed that, theoretically, this ordinal ranking of auction mechanisms can be reversed if bidders are risk-averse (\cite{maskinOptimalAuctionsRisk1984}).}.
+
+This feeds into the second main finding that it is in the interest of sellers to reveal as much information of their valuation of a good as possible. For instance, when selling a used car, auctioneers should provide proof that the car can run safely so that bidders can be more sure they will not fall victim to the winner's curse and will be incentivised to bid higher. Milgrom and Wilson termed these findings the 'linkage principle'.
+
+Wilson and Milgrom's theoretical work in turn led to greater empiricism in auction theory. Throughout the 1950s and 1960s, Vernon Smith had carried out experimental auctions on classes of economics students (\cite{smithRationalChoiceContrast1991}). These experiments grew more sophisticated, and two papers published in 1980 and 1982 found similar empirical violations to revenue equivalence for 'identical' auctions to Milgrom's theoretical papers (\cite{coppingerIncentivesBehaviourEnglish1980}; \cite{coxjamescTheoryBehaviorSingle1982}). Vernon Smith shared the Nobel Prize in Economics for his work on experimental auctions with Kahneman in 2002. In 1986, Kagel and Levin also carried out experimental work into the winner's curse, confirming both the real-world behavioural findings of Capen, Clapp, and Campbell, and the theory laid out by Milgrom (\cite{kagelWinnersCursePublic1986}.
+
+These theoretical and experimental results are interesting by themselves, but perhaps the single area where auction theory has distinguished itself over the last 30 years is in its successful application to real-world auctions. The mobile phone spectrum is inherently limited by the range of frequencies usable, and is thus extremely valuable to telecommunications companies. Prior to 1993, the United States allocated spectrum via lottery and belief in free market mechanisms to encourage spectrum trading, leading to inefficiencies\footnote{In one particularly famous case, a group of dentists won the rights to spectrum in Cape Cod, Massachusetts which they then sold onto Southwestern Bell Telecommunications for \$41million profit (\cite{mcmillanjohnUsingMarketsHelp2001}).} and zero revenue for the federal government.  Among others, Milgrom and Wilson were invited to design auctions for the selling of spectrum in 1994 settling on the Simultaneous Multiple-Round Auction (SMRA) mechanism (\cite{mcmillanSellingSpectrumRights1994}). Similar spectrum auctions since then have raised more than \$60 billion in revenue for the government, and the efficient sorting of the natural monopoly has allowed wireless communication technology to flourish. Milgrom and Wilson were awarded the 2020 Nobel Prize in Economics for both their theoretical treatment of auctions and this successful application of the theory.
+
+In the United Kingdom, similar auctions have also been used with great success. In 2000, Britain sold third generation spectrum licences, raising £22.5 billion in a single auction, described as the 'biggest auction ever' (\cite{binmoreBiggestAuctionEver2002}). Not all spectrum licences have been such a success, with many European auctions at around the same time failing to raise anywhere near that amount (\cite{klempererWhatReallyMatters2002}), highlighting the crucial role of continual research into auction theory and behaviour to allocate scare resources.
+
+As Binmore and Klemperer note in their introduction, 'Twenty-two and a half billion is a great deal of money to raise for selling air, but that is what the British government raised in an auction for five telecom licences'. This quote neatly summarises the power of gradual advancements in microeconomic theory over the past century. We have progressed from the failures of the Praetorian guard and Johann Wolfgang von Goethe, to the mathematical study of games, and finally to governments worldwide 'putting auction theory to work' (\cite{milgromPuttingAuctionTheory2004}).

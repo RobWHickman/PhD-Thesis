@@ -1,0 +1,720 @@
+---
+title: "free reward response"
+author: "Robert Hickman"
+---
+title: "fractal display response"
+author: "Robert Hickman"
+date: "2025-03-12"
+output: html_document
+---
+
+```{r setup, warning=FALSE,message=FALSE}
+rm(list = ls())
+set.seed(3459)
+setwd("~/projects/thesis_scripts/figure_scripts/fractal_display/")
+library(tidyverse)
+library(jsonlite)
+library(patchwork)
+library(svglite)
+library(viridis)
+source("../../src/neuron_smoothing.R")
+source("../../src/figs.R")
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+monkey_col_pal <- scale_colour_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+neuronal_data <- bind_rows(
+  readRDS("../../data/neurons/onefrac_noerror_neuronal_data.rds"),
+  readRDS("../../data/neurons/threefrac_noerror_neuronal_data.rds"),
+)
+task_data <- readRDS("../../data/neurons/task_data.rds")
+
+cell_baselines_fractals <-
+  readRDS("../../data/baseline/cell_prefc_baselines_fractals_smoothed.rds")
+cell_baselines_fractal_counts <-
+  readRDS("../../data/baseline/cell_prefc_baselines_fractals.rds")
+cell_baselines_counts <-
+  readRDS("../../data/baseline/cell_prefc_baselines.rds")
+
+sigcells_uly <-
+  read_csv("../../data/cells/uly_sig_cells.csv") %>%
+  mutate(monkey = "Monkey U") %>%
+  mutate(date = as.Date(date, "%d-%b-%y"))
+sigcells_vice <-
+  read_csv("../../data/cells/vice_sig_cells.csv") %>%
+  mutate(monkey = "Monkey V") %>%
+  mutate(date = as.Date(date, "%d-%b-%Y"))
+
+sigcells <-
+  bind_rows(sigcells_uly, sigcells_vice) %>%
+  mutate(cell = paste0("cell", gsub("^(Clust)([0-9])(_.*)$", "\\2", cluster)))
+
+monkey_windows <- read_csv("../../data/config/monkey_windows.csv")
+configs <- read_csv("../../data/config/configs.csv")
+
+group_cols <- c("date", "monkey", "cell")
+group_cols_fractal <- c(group_cols, "fractal_value")
+
+relevant_cells <- sigcells %>%
+  select(date, monkey, cell, isDA, isResponsive, numTrGood, DAFracResponsive) %>%
+  filter(isDA == 1 & isResponsive == 1 & numTrGood == 1) %>%
+  distinct(date, monkey, cell, .keep_all = TRUE)
+
+n_start <- filter(configs, var == "neurons_start") %>% pull(value)
+n_end <- filter(configs, var == "neurons_end") %>% pull(value)
+smooth_window <-
+  filter(configs, var == "smooth_window") %>% pull(value)
+```
+
+
+
+```{r population_fig}
+pre_start <- -500
+pre_end <- -50
+
+fractal_displayed_task_data <- task_data %>%
+  filter(situation %in% c(1,2,3)) %>%
+  select(date, monkey, trial, fractal_value)
+
+fd_bits <- neuronal_data %>%
+  filter(situation %in% c(1,2,3)) %>%
+  filter(map_lgl(bits, function(x) {
+    if (!is.null(x) && is.data.frame(x) && nrow(x) > 0) {
+      matching_rows <- x$names == "fractal_display" & x$index == "upat"
+      sum(matching_rows) == 1 && !is.na(x$vals[matching_rows])
+    } else {
+      FALSE
+    }
+  })) %>%
+  unnest(bits) %>%
+  filter(names == "fractal_display" & index == "upat")
+
+fd_spikes <- fd_bits %>%
+  left_join(fractal_displayed_task_data, by = c("date", "monkey", "trial")) %>%
+  select(date, monkey, trial, fractal_value, fd_time = vals, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - fd_time)
+
+fd_baselines <- fd_spikes %>%
+  filter(spike_bit_time_ms >= pre_start & spike_bit_time_ms <= pre_end) %>%
+  select(date, monkey, cell, fractal_value, spike_bit_time_ms) %>%
+  group_by(date, monkey, cell, fractal_value) %>%
+  group_split() %>%
+  map_df(get_baseline_params, w = smooth_window, t = pre_start:pre_end)
+
+fractal_display_smoothed <- fd_spikes %>%
+  filter(spike_bit_time_ms >= n_start &
+           spike_bit_time_ms <= n_end) %>%
+  inner_join(relevant_cells, by = group_cols) %>%
+  select(date, monkey, cell, fractal_value, spike_bit_time_ms) %>%
+  nest(vector = spike_bit_time_ms) %>%
+  left_join(fd_baselines, by = group_cols_fractal) %>%
+  group_by(across(all_of(group_cols_fractal))) %>%
+  group_split() %>%
+  map_df(smooth_data, start = n_start, end = n_end, 100) %>%
+  group_by(monkey, t, fractal_value) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n(),
+    .groups = "keep"
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n)) %>%
+  mutate(
+    fractal_reward_value = case_when(
+      fractal_value == 1 ~ "low",
+      fractal_value == 2 ~ "medium",
+      fractal_value == 3 ~ "high"
+    )
+  ) %>%
+  mutate(fractal_reward_value = factor(fractal_reward_value, levels = c("high", "medium", "low")))
+
+p_population_response <-
+  ggplot(
+    fractal_display_smoothed %>% filter(
+      t > filter(configs, var == "fig_start") %>% pull(value) &
+        t < filter(configs, var == "fig_end") %>% pull(value)
+    ),
+    aes(x = t, y = av_zscore, colour = fractal_reward_value)
+  ) +
+  geom_rect(
+    data = monkey_windows,
+    aes(
+      xmin = window_start,
+      xmax = window_end,
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "grey",
+    alpha = 0.5,
+    inherit.aes = FALSE
+  ) +
+  geom_line() +
+  scale_colour_manual(values = c("darkred", "darkgreen", "darkblue"),
+                      name = "fractal reward value") +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  facet_wrap(~ monkey, scales = "free") +
+  population_firing_fig_theme(
+    filter(configs, var == "fig_start") %>% pull(value),
+    filter(configs, var == "fig_end") %>% pull(value),
+    "fractal display"
+  )
+
+```
+
+```{r pop stats test}
+spike_counts <- fd_spikes %>%
+  select(date, monkey, cell, trial, fractal_value, spike_bit_time_ms) %>%
+  left_join(monkey_windows, by = "monkey") %>%
+  group_by(date, monkey, cell, trial, fractal_value, window_start, window_end) %>%
+  summarise(n = sum(spike_bit_time_ms >= window_start & spike_bit_time_ms <= window_end), .groups = "drop") %>%
+  mutate(adj_n = n * (1000 / (window_end - window_start))) %>%
+  right_join(relevant_cells, by = group_cols) %>%
+  drop_na() %>%
+  mutate(adj_n = replace_na(adj_n ,0)) %>%
+  select(date, monkey, cell, trial, fractal_value, spike_counts = adj_n)
+  
+agg_spike_counts <- spike_counts %>%
+  group_by(date, monkey, cell, fractal_value) %>%
+  summarise(mean_spike_counts = mean(spike_counts), sem_spike_counts = sd(spike_counts) / sqrt(n()), n_trials = n(), .groups = "drop")
+
+
+monkey_u_data <- subset(agg_spike_counts, monkey == "Monkey U")
+monkey_v_data <- subset(agg_spike_counts, monkey == "Monkey V")
+
+kw_u <- kruskal.test(mean_spike_counts ~ factor(fractal_value), data = monkey_u_data)
+print("Kruskal-Wallis Test Results for Monkey U:")
+print(kw_u)
+
+kw_v <- kruskal.test(mean_spike_counts ~ factor(fractal_value), data = monkey_v_data)
+print("Kruskal-Wallis Test Results for Monkey V:")
+print(kw_v)
+
+
+```
+
+```{r population_fig}
+bid_quintile_task_data <- task_data %>%
+  filter(situation %in% c(1, 2, 3)) %>%
+  select(date, monkey, trial, monkey_bid) %>%
+  mutate(
+    monkey_bid_quintile = case_when(
+      monkey_bid <= 20 ~ 1,
+      monkey_bid <= 40 ~ 2,
+      monkey_bid <= 60 ~ 3,
+      monkey_bid <= 80 ~ 4,
+      TRUE ~ 5
+    )
+  )
+
+fd_spikes <- fd_bits %>%
+  left_join(bid_quintile_task_data, by = c("date", "monkey", "trial")) %>%
+  select(date,
+         monkey,
+         trial,
+         monkey_bid_quintile,
+         fd_time = vals,
+         sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - fd_time)
+
+fd_baselines <- fd_spikes %>%
+  filter(spike_bit_time_ms >= pre_start &
+           spike_bit_time_ms <= pre_end) %>%
+  select(date, monkey, cell, monkey_bid_quintile, spike_bit_time_ms) %>%
+  group_by(date, monkey, cell, monkey_bid_quintile) %>%
+  group_split() %>%
+  map_df(get_baseline_params, w = smooth_window, t = pre_start:pre_end)
+
+fractal_display_smoothed <- fd_spikes %>%
+  filter(spike_bit_time_ms >= n_start &
+           spike_bit_time_ms <= n_end) %>%
+  inner_join(relevant_cells, by = group_cols) %>%
+  select(date, monkey, cell, monkey_bid_quintile, spike_bit_time_ms) %>%
+  nest(vector = spike_bit_time_ms) %>%
+  left_join(fd_baselines, by = c(group_cols, "monkey_bid_quintile")) %>%
+  group_by(across(all_of(c(
+    group_cols, "monkey_bid_quintile"
+  )))) %>%
+  group_split() %>%
+  map_df(smooth_data, start = n_start, end = n_end, 100) %>%
+  group_by(monkey, t, monkey_bid_quintile) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n(),
+    .groups = "keep"
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+p_population_response_quintiles <-
+  ggplot(
+    fractal_display_smoothed %>% filter(
+      t > filter(configs, var == "fig_start") %>% pull(value) &
+        t < filter(configs, var == "fig_end") %>% pull(value)
+    ),
+    aes(
+      x = t,
+      y = av_zscore,
+      colour = factor(monkey_bid_quintile)
+    )
+  ) +
+  geom_rect(
+    data = monkey_windows,
+    aes(
+      xmin = window_start,
+      xmax = window_end,
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "grey",
+    alpha = 0.5,
+    inherit.aes = FALSE
+  ) +
+  geom_line() +
+  scale_colour_manual(values = viridis::inferno(5, begin = 0, end = 0.8),
+                      name = "forthcoming bid quintile (5 highest)") +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  facet_wrap(~ monkey, scales = "free") +
+  population_firing_fig_theme(
+    filter(configs, var == "fig_start") %>% pull(value),
+    filter(configs, var == "fig_end") %>% pull(value),
+    "fractal display"
+  )
+
+```
+
+```{r}
+spike_counts <- fd_spikes %>%
+  select(date, monkey, cell, trial, monkey_bid_quintile, spike_bit_time_ms) %>%
+  left_join(monkey_windows, by = "monkey") %>%
+  group_by(date, monkey, cell, trial, monkey_bid_quintile, window_start, window_end) %>%
+  summarise(n = sum(spike_bit_time_ms >= window_start & spike_bit_time_ms <= window_end), .groups = "drop") %>%
+  mutate(adj_n = n * (1000 / (window_end - window_start))) %>%
+  right_join(relevant_cells, by = group_cols) %>%
+  drop_na() %>%
+  mutate(adj_n = replace_na(adj_n ,0)) %>%
+  select(date, monkey, cell, trial, monkey_bid_quintile, spike_counts = adj_n)
+  
+agg_spike_counts <- spike_counts %>%
+  group_by(date, monkey, cell, monkey_bid_quintile) %>%
+  summarise(mean_spike_counts = mean(spike_counts), sem_spike_counts = sd(spike_counts) / sqrt(n()), n_trials = n(), .groups = "drop")
+
+
+monkey_u_data <- subset(agg_spike_counts, monkey == "Monkey U")
+monkey_v_data <- subset(agg_spike_counts, monkey == "Monkey V")
+
+kw_u <- kruskal.test(mean_spike_counts ~ factor(monkey_bid_quintile), data = monkey_u_data)
+print("Kruskal-Wallis Test Results for Monkey U:")
+print(kw_u)
+
+kw_v <- kruskal.test(mean_spike_counts ~ factor(monkey_bid_quintile), data = monkey_v_data)
+print("Kruskal-Wallis Test Results for Monkey V:")
+print(kw_v)
+```
+
+
+```{r}
+ntiles = 25
+
+bid_ntile_data <- task_data %>%
+  filter(situation %in% c(1, 2, 3)) %>%
+  select(date, monkey, session, trial, monkey_bid) %>%
+  mutate(
+    bid_ntiles = cut(
+      monkey_bid,
+      breaks = seq(0, 100, by = 100/ntiles),
+      labels = FALSE,
+      include.lowest = TRUE
+    )
+  )
+
+relevant_cells_ntiles <- relevant_cells %>%
+  select(all_of(group_cols)) %>%
+  crossing(bid_ntiles = 1:ntiles)
+
+fd_spikes <- fd_bits %>%
+  left_join(bid_ntile_data, by = c("date", "monkey", "session", "trial")) %>%
+  select(date, monkey, session, trial, bid_ntiles, fd_time = vals, sorted_spikes) %>%
+  unnest(sorted_spikes) %>%
+  mutate(spike_bit_time_ms = trial_spike_time_ms - fd_time) %>%
+  left_join(monkey_windows, by = "monkey") %>%
+  group_by(date, monkey, cell, session, trial, window_start, window_end, bid_ntiles) %>%
+  summarise(n = sum(spike_bit_time_ms >= window_start & spike_bit_time_ms <= window_end), .groups = "drop") %>%
+  mutate(adj_n = n * (1000 / (window_end - window_start))) %>%
+  right_join(relevant_cells_ntiles, by = c(group_cols, "bid_ntiles")) %>%
+  mutate(adj_n = replace_na(adj_n ,0)) 
+
+fd_av_spikes <- fd_spikes %>%
+  group_by(monkey, bid_ntiles) %>%
+  summarise(mean_n_s = mean(adj_n), sem = sd(adj_n) / sqrt(n()), .groups = "drop") %>%
+  mutate(bid_perc = bid_ntiles / ntiles)
+
+regression_stats <- fd_av_spikes %>%
+  group_by(monkey) %>%
+  do(model = lm(mean_n_s ~ bid_perc, data = .)) %>%
+  mutate(
+    glance = list(broom::glance(model))
+  ) %>%
+  unnest(glance) %>%
+  select(monkey, p.value, r.squared, adj.r.squared)
+
+print(regression_stats)
+
+p_regression <- ggplot(fd_av_spikes, aes(x = bid_perc, y = mean_n_s, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_n_s - sem, ymax = mean_n_s + sem), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "monkey bid percentage",
+    y = "average firing rate (impulses/s)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~ monkey) +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  )
+
+baselines <- cell_baselines_counts %>%
+  inner_join(relevant_cells, by = group_cols) %>%
+  group_by(date, monkey, cell, trial) %>%
+  summarise(n = sum(spike_bit_time_ms >= -500 & spike_bit_time_ms <= 0), .groups = "drop") %>%
+  mutate(adj_n = n * 2) %>%
+  group_by(date, monkey, cell) %>%
+  summarise(mean_n = mean(adj_n), sd_n = sd(adj_n), .groups = "drop") %>%
+  filter(sd_n != 0)
+
+fd_normalised_spikes <- fd_spikes %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (adj_n - mean_n) / sd_n) %>%
+  group_by(monkey, bid_ntiles) %>%
+  summarise(mean_n_s = mean(norm_n), sem = sd(norm_n) / sqrt(n()), .groups = "drop") %>%
+  mutate(bid_perc = bid_ntiles / ntiles)
+
+regression_stats_norm <- fd_normalised_spikes %>%
+  group_by(monkey) %>%
+  do(model = lm(mean_n_s ~ bid_perc, data = .)) %>%
+  mutate(
+    glance = list(broom::glance(model))
+  ) %>%
+  unnest(glance) %>%
+  select(monkey, p.value, r.squared, adj.r.squared)
+
+print(regression_stats_norm)
+
+p_norm_regression <- ggplot(fd_normalised_spikes, aes(x = bid_perc, y = mean_n_s, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_n_s - sem, ymax = mean_n_s + sem), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "monkey bid percentage",
+    y = "normalised firing rate (impulses/s)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~ monkey) +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  )
+
+```
+```{r}
+#not normalised
+monkey_u_data <- fd_av_spikes %>% filter(monkey == "Monkey U")
+monkey_v_data <- fd_av_spikes %>% filter(monkey == "Monkey V")
+
+monkey_u_model <- lm(mean_n_s ~ bid_perc, data = monkey_u_data)
+u_summary <- summary(monkey_u_model)
+print("Monkey U Regression Results:")
+print(u_summary)
+monkey_v_model <- lm(mean_n_s ~ bid_perc, data = monkey_v_data)
+v_summary <- summary(monkey_v_model)
+print("Monkey V Regression Results:")
+print(v_summary)
+
+# normalised
+monkey_u_norm_data <- fd_normalised_spikes %>% filter(monkey == "Monkey U")
+monkey_v_norm_data <- fd_normalised_spikes %>% filter(monkey == "Monkey V")
+
+monkey_u_norm_model <- lm(mean_n_s ~ bid_perc, data = monkey_u_norm_data)
+u_norm_summary <- summary(monkey_u_norm_model)
+print("Monkey U Normalised Regression Results:")
+print(u_norm_summary)
+monkey_v_norm_model <- lm(mean_n_s ~ bid_perc, data = monkey_v_norm_data)
+v_norm_summary <- summary(monkey_v_norm_model)
+print("Monkey V Normalised Regression Results:")
+print(v_norm_summary)
+
+```
+
+```{r}
+joy_task_data <- readRDS("~/projects/thesis_scripts/data/old_behaviour/joystick_behaviour_paired_data.rds") %>%
+  select(date, monkey, trial_no, subtask, starting_bid, monkey_bid, reward_level, data) %>%
+  filter(subtask == "BDM") %>%
+  mutate(monkey = case_when(
+    monkey %in% c("Ulysses", "Monkey U", "monkey U") ~ "Monkey U",
+    monkey %in% c("Vicer", "Monkey V", "monkey V") ~ "Monkey V",
+  ))
+
+joy_task_data$total_movement <- map_dbl(joy_task_data$data, function(j) sum(j$stimuli_movement, na.rm = TRUE))
+joy_task_data$abs_total_movement <- map_dbl(joy_task_data$data, function(j) sum(abs(j$stimuli_movement), na.rm = TRUE))
+joy_task_data$rt_ms <- map_dbl(joy_task_data$data, function(j) (first(which(j$stimuli_movement != 0)) / 60) * 1000)
+joy_task_data$bid_place_ms <- map_dbl(joy_task_data$data, function(j) (last(which(j$stimuli_movement != 0)) / 60) * 1000)
+joy_task_data$bid_time_ms <- joy_task_data$bid_place_ms - joy_task_data$rt_ms
+
+```
+
+```{r}
+joy_task_data2 <- joy_task_data %>%
+  mutate(time_param = bid_time_ms) %>%
+  group_by(monkey) %>%
+  mutate(
+    time_10th = quantile(time_param, 0.2, na.rm = TRUE),
+    time_90th = quantile(time_param, 0.8, na.rm = TRUE),
+    net_10th = quantile(total_movement, 0.1, na.rm = TRUE),
+    net_90th = quantile(total_movement, 0.9, na.rm = TRUE),
+    gross_10th = quantile(abs_total_movement, 0.1, na.rm = TRUE),
+    gross_90th = quantile(abs_total_movement, 0.9, na.rm = TRUE)
+  ) %>%
+  filter(
+    time_param >= time_10th & time_param <= time_90th,
+    total_movement >= net_10th & total_movement <= net_90th,
+    abs_total_movement >= gross_10th & abs_total_movement <= gross_90th
+  ) %>%
+  mutate(
+    net_movement = cut(
+      total_movement,
+      breaks = seq(min(net_10th), max(net_90th), length.out = ntiles + 1),
+      labels = FALSE,
+      include.lowest = TRUE
+    ),
+    gross_movement = cut(
+      abs_total_movement,
+      breaks = seq(min(gross_10th), max(gross_90th), length.out = ntiles + 1),
+      labels = FALSE,
+      include.lowest = TRUE
+    ),
+    movement_time = cut(
+      time_param,
+      breaks = seq(min(time_10th), max(time_90th), length.out = ntiles + 1),
+      labels = FALSE,
+      include.lowest = TRUE
+    )
+  ) %>%
+  select(-ends_with("_10th"), -ends_with("_90th")) %>%
+  ungroup() %>%
+  select(date, monkey, trial = trial_no, net_movement, gross_movement, movement_time)
+
+movement_residuals_data <- fd_spikes %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (adj_n - mean_n) / sd_n) %>%
+  mutate(bid_perc = bid_ntiles / ntiles) %>%
+  left_join(joy_task_data2, by = c("date", "monkey", "trial")) %>%
+  dplyr::select(date, monkey, cell, trial, bid_perc, norm_n, net_movement, gross_movement, movement_time) %>%
+  pivot_longer(cols = c(net_movement, gross_movement, movement_time), names_to = "movement_parameter", values_to = "movement_parameter_ntile")
+
+movement_summary <- movement_residuals_data %>%
+  group_by(monkey, movement_parameter, movement_parameter_ntile) %>%
+  summarise(mean_n_s = mean(norm_n), 
+            sem = sd(norm_n) / sqrt(n()), 
+            .groups = "drop") %>%
+  mutate(movement_perc = movement_parameter_ntile / ntiles)
+
+bid_models <- movement_residuals_data %>%
+  group_by(monkey) %>%
+  do(model = lm(norm_n ~ bid_perc, data = .))
+
+movement_residuals <- movement_residuals_data %>%
+  group_by(monkey) %>%
+  nest() %>%
+  left_join(bid_models, by = "monkey") %>%
+  mutate(
+    residuals = map2(data, model, ~mutate(.x, residual = residuals(.y)))
+  ) %>%
+  select(monkey, residuals) %>%
+  unnest(residuals)
+
+residual_summary <- movement_residuals %>%
+  group_by(monkey, movement_parameter, movement_parameter_ntile) %>%
+  summarise(mean_residual = mean(residual),
+            sem_residual = sd(residual) / sqrt(n()),
+            .groups = "drop") %>%
+  mutate(movement_perc = movement_parameter_ntile / ntiles) %>%
+  mutate(movement_parameter_name = case_when(
+    movement_parameter == "gross_movement" ~ "gross movement",
+    movement_parameter == "net_movement" ~ "net movement",
+    movement_parameter == "movement_time" ~ "bidding time",
+  )) %>%
+  mutate(movement_parameter_name = factor(movement_parameter_name, levels = c("gross movement", "net movement", "bidding time")))
+
+p <- ggplot(residual_summary, aes(x = movement_perc, y = mean_residual, colour = monkey, group = monkey)) + 
+  stat_smooth(method = "lm") +
+  geom_point(size = 2) + 
+  geom_errorbar(aes(ymin = mean_residual - sem_residual, ymax = mean_residual + sem_residual), width = 0) +
+  monkey_col_pal +
+  labs(
+    x = "movement parameter percentile",
+    y = "firing rate residual"
+  ) +
+  theme_minimal() +
+  facet_grid(movement_parameter_name~ monkey, scales = "free_y") +
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+    legend.position = "bottom",
+    strip.text.y = element_text(size = 12)
+  )
+
+residual_movement_stats <- residual_summary %>%
+  group_by(monkey, movement_parameter) %>%
+  do(model = lm(mean_residual ~ movement_perc, data = .)) %>%
+  mutate(
+    tidy = list(broom::tidy(model)),
+    glance = list(broom::glance(model))
+  )
+
+residual_movement_coefs <- residual_movement_stats %>%
+  unnest(tidy) %>%
+  filter(term == "movement_perc") %>%
+  select(monkey, movement_parameter, estimate, std.error, statistic, p.value)
+
+residual_movement_fit <- residual_movement_stats %>%
+  unnest(glance) %>%
+  select(monkey, movement_parameter, r.squared, adj.r.squared, p.value)
+
+print("Coefficient statistics:")
+print(residual_movement_coefs)
+
+print("Model fit statistics:")
+print(residual_movement_fit)
+```
+
+
+
+```{r}
+sig_cells_string_all <- "Monkey U: 123 putative dopamine neurons; Monkey V: 145 putative dopamine neurons"
+  
+p_population_response_cells <- p_population_response +
+  plot_annotation(
+    title = '',
+    subtitle = sig_cells_string_all,
+  )
+p_population_response_quintiles_cells <- p_population_response_quintiles +
+  plot_annotation(
+    title = '',
+    subtitle = sig_cells_string_all,
+  )
+
+p_regressions <- (p_regression + theme(legend.position = "none", axis.text.x = element_blank(), axis.title.x = element_blank())) /
+  p_norm_regression +
+  plot_annotation(
+    title = '',
+    subtitle = sig_cells_string_all,
+    tag_levels = "A"
+  ) &   
+  theme(
+    legend.position = "bottom",
+    plot.tag = element_text(size = 16)
+  )
+
+p_residuals <- p +  plot_annotation(
+    title = '',
+    subtitle = sig_cells_string_all,
+  )   
+
+
+```
+
+```{r}
+library(lme4)
+library(lmerTest)
+
+fd_trial_level <- fd_spikes %>%
+  left_join(baselines, by = group_cols) %>%
+  drop_na() %>%
+  mutate(norm_n = (adj_n - mean_n) / sd_n) %>%
+  left_join(
+    select(bid_ntile_data, date, monkey, session, trial, monkey_bid),
+    by = c("date", "monkey", "session", "trial")
+  ) %>%
+  mutate(
+    bid_perc = monkey_bid / 100,
+    cell_id  = paste(date, monkey, cell, sep = "_")
+  )
+
+me_results <- fd_trial_level %>%
+  group_by(monkey) %>%
+  group_modify(~ {
+    m <- lmer(norm_n ~ bid_perc + (1|cell_id), data = .x, REML = FALSE)
+    s <- summary(m)
+    ct <- coef(s)
+    tibble(
+      intercept    = ct["(Intercept)", "Estimate"],
+      intercept_se = ct["(Intercept)", "Std. Error"],
+      slope        = ct["bid_perc", "Estimate"],
+      slope_se     = ct["bid_perc", "Std. Error"],
+      t_value      = ct["bid_perc", "t value"],
+      p_value      = ct["bid_perc", "Pr(>|t|)"]
+    )
+  })
+
+print(me_results)
+
+p_me_regression <- p_me_regression +
+  plot_annotation(
+    title = '',
+    subtitle = sig_cells_string_all
+  )
+
+ggsave(
+  file.path("./Chapter4/Figs/redone_figs/", "fractal_display_lme_regression_fig.svg"),
+  p_me_regression,
+  width = 6.71,
+  height = 7.5,
+  units = "in"
+)
+
+```
+
+
+ggsave(
+  file.path("./output/redone_figs", "fractal_display_fig.svg"), 
+  p_population_response_cells,
+  width = 6.71,
+  height = 6,
+  units = "in"
+)
+
+ggsave(
+  file.path("./output/redone_figs", "fractal_display_bids_fig.svg"), 
+  p_population_response_quintiles_cells,
+  width = 6.71,
+  height = 6,
+  units = "in"
+)
+
+ggsave(
+  file.path("./output/redone_figs", "movement_residual.svg"), 
+  p_residuals,
+  width = 6.71,
+  height = 7.5,
+  units = "in"
+)
+
+ggsave(
+  file.path("./output/redone_figs", "fractal_display_regression_fig.svg"), 
+  p_regressions,
+  width = 6.71,
+  height = 7.5,
+  units = "in"
+)
+
+```
+

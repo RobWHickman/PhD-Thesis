@@ -1,0 +1,80 @@
+%!TEX root = ../thesis.tex
+% ******************************* Thesis Appendix B ********************************
+
+\chapter{Proof of Incentive Compatibility of the BDM Auction Mechanism}
+
+\ifpdf
+    \graphicspath{{Appendix2.1/Figs/Raster/}{Appendix2.1/Figs/PDF/}{Appendix1/Figs/}}
+\else
+    \graphicspath{{Appendix2.1/Figs/Vector/}{Appendix2.1/Figs/}}
+\fi
+
+
+For a more formal proof of the incentive compatibility of the BDM task, we present a proof originally adapted from \cite{milgromTheoryAuctionsCompetitive1982} in \cite{almohammadRewardValueRevealed2022}. The terms have been edited slightly to reflect their usage in this thesis, but the proof otherwise remains the same.
+
+We assume that any participant has a smooth, continuous, and differentiable utility function. An example is shown in Figure \ref{fig:utility_functions}, where the red lines show the expected utility of hypothetical participants for bids that increase along the x-axis. The black straight lines show the differentiation of this utility function with respect to the bid at certain points along this curve. 
+
+\begin{figure}[p] 
+\centering    
+\includesvg[width=1.0\textwidth,inkscapelatex=false]{AppendixD/Figs/utility_function_fig.svg}
+\caption[Examples of smooth, continuous, differentiable utility functions for expected payoff vs. bid.]{\textbf{Examples of smooth, continuous, differentiable utility functions for expected payoff vs. bid.} In A) a realistic utility function for the simple BDM paradigm used in this thesis is shown. This is directly comparable to those found in Figure \ref{fig:bdm_computer_bids}, especially those for the uniform distribution. Differentiation of the curve is shown in black lines at two points, one at a maxima (the optimal bid as shown in the derivation in this appendix), and one which is not at an optimal bid. In B) we present a hypothetical utility curve for some more complicated paradigm (or indeed a participant who does not understand the paradigm presented). This is not a utility curve we would expect to encounter in the scope of this thesis, but is used to make the point that the proof above will still find local maxima or minima for a subject's utility function. Again, the derivative of the curve is shown at two points, including at one local maxima. Curves are for illustrative purposes and so are valueless across both axes.}
+\label{fig:utility_functions}
+\end{figure}
+
+We know that the expected utility a participant has is the expected utility of winning the auction multiplied by the probability of winning the auction, plus the expected utility of losing the auction multiplied by the chance of losing the auction.
+
+\begin{equation}
+\begin{aligned}
+v_i(\overline{P}) = p_{win} \cdot v_i(\overline{P}|win) + (1 - p_{win}) \cdot v_i(\overline{P}|loss)
+\end{aligned}
+\label{eq:bdm_ic1}
+\end{equation}
+
+In the main text of Chapter 2, and in Appendix 2.2 we discuss the closed form solutions to this expected utility when participants make bids against one computer randomly drawing its bid from a uniform distribution. Here, we consider a participant bidding in a 'lifelike' auction, where a participant bids against any number of other bidders with unknown utility functions of their own.
+
+This participant places a bid, $B_{subject}$, which determines whether they win an auction against any number of other bids $B_{opps}$, where the maximum of these, $\hat{B}_{opps}$ determines the price paid in the event that the participant wins the auction. The probability of winning or losing any auction trial is therefore a cumulative distribution function of the opposing bids, $f(B_{subject})$ bounded by the minimum possible bid, $B_{min}$, and the subject's bid.
+
+\begin{equation}
+\begin{aligned}
+\upsilon_i(\overline{P}) = \int_{B_{min}}^{B_{subject}} \upsilon_i(\overline{P}|win)f(\hat{B}_{opps})d\hat{B}_{opps} + \int_{B_{subject}}^{B_{max}} \upsilon_i(\overline{P}|loss)f(\hat{B}_{opps})d\hat{B}_{opps}
+\end{aligned}
+\label{eq:bdm_ic2}
+\end{equation}
+
+We consider auctions as commonly understood in the marketplace (and not as carried out in economic/psychological/neuroscientific contexts)\footnote{This of course makes no difference, we are simply using the proof as formulated by Milgrom and Weber. In the BDM as discussed in the body of this thesis, we assume that there is some utility just from receiving the endowment gifted to the participant at the start of each trial, but this utility should be 'baked in' to the expected payoff of the participants and therefore does not change the results or implications of the derivation here. In fact, it is probably untrue that the utility even of human buying and selling mineral rights (the example in \cite{milgromTheoryAuctionsCompetitive1982}) is zero (see below).}, we assume that the utility $U(\overline{P}|{loss})$ is zero; the participant neither wins nor pays anything for an auctioned good\footnote{This assumption is economically sound, but probably psychologically tenuous. Consider a child on Christmas Day who has spent the last six months expecting a specific gift and instead receives nothing}.
+
+\begin{equation}
+\begin{aligned}
+v_i(\overline{P}) = \int_{B_{min}}^{B_{subject}} v_i(\overline{P}|win)f(\hat{B}_{opps})d\hat{B}_{opps} + \int_{B_{subject}}^{B_{max}} 0 \cdot f(\hat{B}_{opps})d\hat{B}_{opps}
+\end{aligned}
+\label{eq:bdm_ic3}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+v_i(\overline{P}) = \int_{B_{min}}^{B_{subject}} v_i(\overline{P}|win)f(\hat{B}_{opps})d\hat{B}_{opps}
+\end{aligned}
+\label{eq:bdm_ic4}
+\end{equation}
+
+The expected utility of the payment, given that the participant wins the auction, is equal to the utility of the good won ($G$), minus the payment for the good:
+
+\begin{equation}
+\begin{aligned}
+v_i(\overline{P}) = \int_{B_{min}}^{B_{subject}} v_i(G - \hat{B}_{opps})f(\hat{B}_{opps})d\hat{B}_{opps}
+\end{aligned}
+\label{eq:bdm_ic5}
+\end{equation}
+
+The maximum utility for a participant, $U(\overline{P})$, occurs when the first derivative of their expected utility with respect to their own bid $B_{subject}$ is zero. At exactly this point, the change to their utility as they change their bid is zero. Moving their bid to either side of this point causes the change to utility with respect to the bid to become negative\footnote{Figure \ref{fig:utility_functions}B) does in fact have a local minimum at roughly the midpoint of the x-axis, which contradicts this. A more stringent proof would state that this maximum is only a local maxima. For complicated utility functions that might arise (e.g.) as the BDM task is extended and extra rounds of bidding/payments/chance are incorporated, this could become important. For the simple BDM paradigm in this thesis and in the lifelike auctions of Milgrom and Weber, we assume a ‘simple’ utility curve with only one maximum, as presented in Figure \ref{fig:utility_functions}A) and Figure \ref{fig:bdm_payoff}.}.
+
+\begin{equation}
+\begin{aligned}
+\frac{dv_i(\overline{P})}{dB_{subject}} = v_i(G - B_{subject})f(B_{subject}) = 0
+\end{aligned}
+\label{eq:placeholder}
+\end{equation}
+
+It is clear that this equation is satisfied when the brackets of the utility function are equal to zero, that is, when the value of the good $G$ in units of the budget is equal to $B_{subject}$. In other words, this maximum is found when the utility of a good is exactly matched by the utility of the budget bid by a participant; a subject maximises utility by bidding exactly their utility for a good. 
+
+For a graphical representation of this proof, see Figure \ref{fig:bdm_payoff} where the change in payoff value (in utils) is flat with respect to the bid, at the point where the bid is equal to the utility of the auctioned good (red circles).

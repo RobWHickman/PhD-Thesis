@@ -1,0 +1,133 @@
+%!TEX root = ../thesis.tex
+% ******************************* Thesis Appendix B ********************************
+
+\chapter{Derivations of Payoff and Expected Cost of Misbehaviour on a BDM Auction Trial }
+
+\ifpdf
+    \graphicspath{{Appendix2.2/Figs/Raster/}{Appendix2.2/Figs/PDF/}{Appendix1/Figs/}}
+\else
+    \graphicspath{{Appendix2.2/Figs/Vector/}{Appendix2.2/Figs/}}
+\fi
+
+For any economic decision-making task, the payoff is equal to the magnitude of potential outcomes, multiplied by the probability of that outcome occurring (Equation \ref{eq:expected_utility1}). In any auction task, there are only two outcomes: winning the auctioned good or not. As the BDM is a second price auction, a ‘win’ occurs when the participant makes the highest bid, and the outcome is that they receive the auctioned good and pay the second highest bid out of their budget. The expected utility of a payout $\upsilon_i (P)$ can therefore be expressed as:
+
+\begin{equation}
+\begin{aligned}
+\upsilon_i(\overline{P}) = p_{win} \cdot \left(\upsilon_i(G) + (B_{max} - \overline{B}_{computer|win})\right) + (1 - p_{win}) \cdot B_{max}
+\end{aligned}
+\label{eq:bdm_payoff1}
+\end{equation}
+
+Where a good $G$, of some utility in terms of the budget is auctioned and receives bids, $B$. Throughout this appendix, the total budget is denoted $B_{max}$; both participant and computer bids are drawn from the range $[0, B_{max}]$.
+
+We use a BDM task as commonly reported in the economics literature, where there is one opponent bidder- a computer who makes random bids with an equal, uniform probability across the entire bidding range.  The probability of a participant winning any auction trial is therefore equal to their bid as a fraction of the total bidding range.
+
+\begin{equation}
+\begin{aligned}
+\upsilon_i(\overline{P}) = \frac{B_{subject}}{B_{max}} \cdot \left(\upsilon_i(G) + (B_{max} - \overline{B}_{computer|win})\right) + \left(1 - \frac{B_{subject}}{B_{max}}\right) \cdot B_{max}
+\end{aligned}
+\label{eq:bdm_payoff2}
+\end{equation}
+
+
+The expected computer bid given that the computer has bid less than $B_{subject}$ is a random bid drawn uniformly from the range of $0-B_{subject}$. The average computer bid on a trial that the subject wins is, therefore, half of $B_{subject}$: 
+
+\begin{equation}
+\begin{aligned}
+\upsilon_i(\overline{P}) &= \frac{B_{subject}}{B_{max}} \cdot \left(\upsilon_i(G) + \left(B_{max} - \frac{B_{subject}}{2}\right)\right) + \left(1 - \frac{B_{subject}}{B_{max}}\right) \cdot B_{max} \\
+&= \frac{\upsilon_i(G) \cdot B_{subject}}{B_{max}} - \frac{B_{subject}^2}{2B_{max}} + B_{max}
+\end{aligned}
+\label{eq:bdm_payoff6}
+\end{equation}
+
+The BDM is incentive compatible for each trial, therefore on each trial a rational participant should seek to maximise the utility of their expected payout by bidding exactly their utility for the good $G$. I.e. we assume for any trial that $\upsilon_i (G) = B_{subject}$.
+
+\begin{equation}
+\begin{aligned}
+\upsilon_i(\overline{P})_{max} &= \frac{B_{subject} \cdot B_{subject}}{B_{max}} - \frac{{B_{subject}}^2}{2B_{max}} + B_{max} \\
+&= \frac{{B_{subject}}^2}{2B_{max}} + B_{max}
+\end{aligned}
+\label{eq:bdm_payoff7}
+\end{equation}
+
+As mentioned, $B_{subject}$ is in the range $0-B_{max}$. We can therefore express $B_{subject}$ in terms of $B_{max}$ for the ideal situation for any subject (a highly valued good to be auctioned when $\upsilon_i (G) = B_{subject} \geq B_{max})$, or the worst case (an unvalued good when $\upsilon_i (G) = B_{subject} = 0)$.
+
+For any trial we can therefore express the expected utility of the payoff for a monkey to be:
+
+\begin{equation}
+\begin{aligned}
+\upsilon_i(\overline{P})_{max} = \begin{cases}
+\frac{3}{2} B_{max}, & \text{if } \upsilon_i(G) = B_{subject} \geq B_{max} \\
+B_{max}, & \text{if } \upsilon_i(G) = B_{subject} = 0 \\
+\frac{{B_{subject}}^2}{2B_{max}} + B_{max}, & \text{otherwise}
+\end{cases}
+\end{aligned}
+\label{eq:bdm_payoff8}
+\end{equation}
+
+From this result, we can derive the expected cost of misbehaviour- the difference between the maximum expected payoff of a trial and the post-bid expected payoff of a trial. As misbehaviour will only affect the potential profit of a trial\footnote{In the event of a loss the payoff is the same regardless of whether a participant paid attention: they receive the full endowment.}, for simplicity we only consider the difference between the utilities of the expected profit ($\overline{\pi}$). The expected change in the payment between when the participant bids their utility ($\upsilon_i (G) = B_{subject}$) and when they do not ($\upsilon_i (G) \neq B_{subject}$). We denote a potential non-optimal bid as $b$ in order to differentiate it from $B_{subject}$, the bid actually placed by a subject, which when behaving truthfully should equal their utility, $\upsilon_i(G)$.
+
+\subsection*{Uniform computer bids}
+
+The cost of misbehaviour, $C(b, \upsilon_i(G))$, is defined as the difference between the maximum expected payoff achievable by bidding truthfully, $\upsilon_i(\overline{P})_{max}$, and the expected payoff obtained by placing an arbitrary bid $b$, $\upsilon_i(\overline{P})(b)$. Substituting $b$ for $B_{subject}$ in Equation \ref{eq:bdm_payoff6} and subtracting from Equation \ref{eq:bdm_payoff7}:
+
+\begin{equation}
+\begin{aligned}
+C(b, \upsilon_i(G)) &= \upsilon_i(\overline{P})_{max} - \upsilon_i(\overline{P})(b) \\
+&= \left(\frac{\upsilon_i(G)^2}{2B_{max}} + B_{max}\right) - \left(\frac{b\upsilon_i(G)}{B_{max}} - \frac{b^2}{2B_{max}} + B_{max}\right) \\
+&= \frac{(\upsilon_i(G) - b)^2}{2B_{max}}
+\end{aligned}
+\label{eq:cost_uniform}
+\end{equation}
+
+The cost of misbehaviour is a quadratic in the deviation from truthful bidding, equal to zero if and only if $b = \upsilon_i(G)$, confirming incentive compatibility under uniform computer bids.
+
+\subsection*{Normal computer bids}
+
+When computer bids are drawn from a normal distribution with mean $\mu_c = B_{max}/2$ and standard deviation $\sigma = B_{max}/3$, the probability of winning is no longer simply the bid's proportion of the budget, but instead depends on where the bid falls relative to the computer's bid distribution. The probability of winning at bid $b$ is:
+
+\begin{equation}
+p_{win}(b) = \Phi\!\left(\frac{b - \mu_c}{\sigma}\right)
+\label{eq:pwin_normal}
+\end{equation}
+
+where $\Phi$ denotes the standard normal CDF. The expected computer bid conditional on winning is given by the truncated normal mean:
+
+\begin{equation}
+\bar{B}_{computer|win}(b) = \mu_c - \sigma\,\frac{\phi(z)}{\Phi(z)}, \quad z = \frac{b - \mu_c}{\sigma}
+\label{eq:ecb_normal}
+\end{equation}
+
+This follows because winning requires the computer's bid to have fallen below $b$, so conditional on winning, the computer's bid is drawn from the distribution truncated at $b$, where $\phi$ is the standard normal PDF. Substituting into Equation \ref{eq:bdm_payoff1} and simplifying:
+
+\begin{equation}
+\upsilon_i(\overline{P})(b) = \Phi(z)(\upsilon_i(G) - \mu_c) + B_{max} + \sigma\phi(z)
+\label{eq:payoff_normal}
+\end{equation}
+
+The cost of misbehaviour is therefore:
+
+\begin{equation}
+C(b, \upsilon_i(G)) = \bigl[\Phi(z^*) - \Phi(z)\bigr](\upsilon_i(G) - \mu_c) + \sigma\bigl[\phi(z^*) - \phi(z)\bigr]
+\label{eq:cost_normal}
+\end{equation}
+
+where $z^* = (\upsilon_i(G) - \mu_c)/\sigma$ is the standardised true value and $z = (b - \mu_c)/\sigma$ is the standardised bid. Unlike the uniform case, this expression does not reduce to a simple closed form; the cost depends on both the deviation of the bid from the true value and the position of $\upsilon_i(G)$ relative to the centre of the computer bid distribution.
+
+\subsection*{Matched-normal computer bids}
+
+Unlike the general normal case above, this specification has a closed form as centring the computer's distribution on the subject's own value causes the cumulative-distribution terms in the payoff expression to cancel. In the matched-normal case, computer bids are drawn from $\mathcal{N}(\upsilon_i(G),\, \sigma^2)$: the distribution is centred on the participant's true value rather than the midpoint of the budget. Setting $\mu_c = \upsilon_i(G)$ in Equations \ref{eq:pwin_normal}--\ref{eq:ecb_normal} and letting $z = (b - \upsilon_i(G))/\sigma$, the conditional expected computer bid becomes $\bar{B}_{computer|win} = \upsilon_i(G) - \sigma\phi(z)/\Phi(z)$, and the payoff simplifies to:
+
+\begin{equation}
+\upsilon_i(\overline{P})(b) = B_{max} + \sigma\phi\!\left(\frac{b - \upsilon_i(G)}{\sigma}\right)
+\label{eq:payoff_matched}
+\end{equation}
+
+This is maximised when $\phi((b-\upsilon_i(G))/\sigma)$ is maximised, i.e.\ when $b = \upsilon_i(G)$, since the normal PDF is maximised at its mode, where the Gaussian's exponential term is largest. The cost of misbehaviour is:
+
+\begin{equation}
+C(b, \upsilon_i(G)) = \sigma\phi(0)\left[1 - \exp\!\left(-\frac{(b - \upsilon_i(G))^2}{2\sigma^2}\right)\right]
+\label{eq:cost_matched}
+\end{equation}
+
+The cost is zero at $b = \upsilon_i(G)$, increases symmetrically as the bid deviates from the true value, and is bounded above by $\sigma\phi(0) = \sigma/\sqrt{2\pi}$.
