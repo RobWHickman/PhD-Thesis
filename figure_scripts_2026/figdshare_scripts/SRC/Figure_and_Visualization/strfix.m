@@ -1,0 +1,37 @@
+function outstr = strfix(string)
+outstr = string;
+outstr = strrep(outstr,' ','_');
+
+% outstr = strrep(outstr,'_','');
+outstr = strrep(outstr,'|','');
+outstr = strrep(outstr,'/','');
+outstr = strrep(outstr,'\','');
+outstr = strrep(outstr,'-','');
+outstr = strrep(outstr,'=','');
+outstr = strrep(outstr,'+','');
+outstr = strrep(outstr,':','');
+outstr = strrep(outstr,';','');
+outstr = strrep(outstr,'.','');
+outstr = strrep(outstr,',','');
+outstr = strrep(outstr,'(','');
+outstr = strrep(outstr,')','');
+outstr = strrep(outstr,'[','');
+outstr = strrep(outstr,']','');
+outstr = strrep(outstr,'>','');
+outstr = strrep(outstr,'<','');
+outstr = strrep(outstr,'?','');
+outstr = strrep(outstr,'{','');
+outstr = strrep(outstr,'}','');
+outstr = strrep(outstr,'!','');
+outstr = strrep(outstr,'@','');
+outstr = strrep(outstr,'#','');
+outstr = strrep(outstr,'$','');
+outstr = strrep(outstr,'%','');
+outstr = strrep(outstr,'^','');
+outstr = strrep(outstr,'&','');
+outstr = strrep(outstr,'*','');
+outstr = strrep(outstr,'"','');
+outstr = strrep(outstr,'''','');
+outstr = strrep(outstr,'~','');
+outstr = strrep(outstr,'`','');
+outstr = strrep(outstr,'__','_');
