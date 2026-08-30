@@ -1,0 +1,174 @@
+---
+title: "Untitled"
+author: "Robert Hickman"
+date: "13/12/2020"
+output: html_document
+---
+
+```{r libraries, warning=FALSE,message=FALSE}
+rm(list=ls())
+library(tidyverse)
+library(data.table)
+library(patchwork)
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+monkey_col_pal <- scale_colour_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+thesis_theme <- theme(
+  axis.text = element_text(size = 14),
+  axis.title = element_text(size = 18),
+  strip.text = element_text(size = 20)
+)
+
+```
+
+```{r}
+excluded_data <- readRDS("C:/Users/DHill/Desktop/thesis/cleaned_data/post_exclusion_good_bids.rds") %>%
+  mutate(reward_level_text = case_when(
+    reward_level == 1 ~ "low",
+    reward_level == 2 ~ "medium",
+    reward_level == 3 ~ "high"
+  )) %>%
+  mutate(monkey = case_when(
+    monkey == "Ulysses" ~ "monkey U",
+    monkey == "Vicer" ~ "monkey V"
+  )) %>%
+  mutate(reward_level_text = factor(reward_level_text, levels = c("low", "medium", "high")))
+
+data <- readRDS("C:/Users/DHill/Desktop/gettyR/data/joystick_behaviour_paired_data.rds") %>%
+  mutate(reward_level_text = case_when(
+    reward_level == 1 ~ "low",
+    reward_level == 2 ~ "medium",
+    reward_level == 3 ~ "high"
+  )) %>%
+  mutate(monkey = case_when(
+    monkey == "Ulysses" ~ "monkey U",
+    monkey == "Vicer" ~ "monkey V"
+  )) %>%
+  mutate(reward_level_text = factor(reward_level_text, levels = c("low", "medium", "high")))
+```
+
+```{r}
+data$total_movement <- map_dbl(data$data, function(j) sum(j$stimuli_movement, na.rm = TRUE))
+data$abs_total_movement <- map_dbl(data$data, function(j) sum(abs(j$stimuli_movement), na.rm = TRUE))
+data$rt_ms <- map_dbl(data$data, function(j) (first(which(j$stimuli_movement != 0)) / 60) * 1000)
+data$bid_place_ms <- map_dbl(data$data, function(j) (first(which(is.na(j$stimuli_movement))) / 60) * 1000)
+
+means <- data %>%
+    select(monkey, bid_place_ms, rt_ms) %>%
+    mutate(moving_time = bid_place_ms - rt_ms) %>%
+    group_by(monkey) %>%
+    summarise(mean_bidplace = mean(bid_place_ms), sd_bidplace = sd(bid_place_ms), mean_moving = mean(moving_time), sd_moving = sd(moving_time))
+```
+
+```{r}
+sd_rt_lines <- data %>%
+  filter(rt_ms > 99) %>%
+  group_by(monkey) %>%
+  summarise(mean_rt = mean(rt_ms), sd_rt = sd(rt_ms))
+sd_bp_lines <- data %>%
+  group_by(monkey) %>%
+  summarise(mean_rt = mean(bid_place_ms), sd_rt = sd(bid_place_ms))
+
+p1 <- data %>%
+  ggplot(aes(x = rt_ms, fill = monkey, colour = monkey)) +
+  geom_histogram(binwidth = 45, alpha = 0.7) +
+  geom_vline(data = sd_rt_lines, aes(xintercept = mean_rt - 3 * sd_rt), size = 1.5, linetype = "dashed") +
+  geom_vline(data = sd_rt_lines, aes(xintercept = mean_rt + 3 * sd_rt), size = 1.5, linetype = "dashed") +
+  monkey_fill_pal +
+  monkey_col_pal +
+  theme_minimal() +
+  labs(
+    x = "reaction time (/ms)",
+    y = "trials"
+  ) +
+  facet_wrap(~monkey) +
+  thesis_theme
+
+```
+
+```{r}
+
+threshold <- 150
+
+rts <-  data %>%
+  filter(rt_ms > threshold & !monkey_bid %in% c(1,0)) %>%
+  group_by(monkey) %>%
+  summarise(rt = mean(rt_ms))
+
+
+p2.1 <- data %>%
+  filter(rt_ms > threshold & rt_ms < 800 & !monkey_bid %in% c(1,0)) %>%
+  ggplot(aes(x = monkey_bid, y = rt_ms)) +
+  geom_hline(data = rts, aes(yintercept = rt), linetype = "dashed", colour = "grey", size = 1.5) +
+  geom_point(alpha = 0.05, aes(colour = factor(reward_level))) +
+  scale_colour_manual(values = c("red", "green", "blue"), labels = c("low","medium","high"), name = "reward level") +
+  labs(
+    x = "individual trial monkey bids",
+    y = "reaction time (/ms)"
+  ) +
+  facet_grid(reward_level~monkey) +
+  theme_minimal() +
+  thesis_theme +
+  stat_smooth(colour = "black", se = TRUE, method = "lm") + 
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 3)))
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+p2.2 <- data %>%
+  filter(rt_ms > threshold & !monkey_bid %in% c(1, 0)) %>%
+  ggplot(aes(x = factor(reward_level), y = rt_ms, fill = monkey)) +
+  geom_boxplot() +
+  monkey_fill_pal +
+  theme_minimal() +
+  thesis_theme +
+  facet_wrap(~monkey)
+
+p2 <- p2.2 + p2.1 + plot_layout(guides = "collect") & 
+  theme(
+    legend.position = "bottom", 
+    legend.key.size = unit(0.2, "cm"), 
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 12)
+    ) &
+  plot_annotation(tag_levels = 'A') & 
+  theme(plot.tag = element_text(size = 20)) & 
+  theme(plot.tag = element_text(size = 20))
+```
+
+```{r}
+wilcoxon <- data %>%
+  filter(rt_ms > threshold & !monkey_bid %in% c(1, 0)) %>%
+  select(monkey, reward_level_text, rt_ms)
+
+get_wilcoxons <- function(level1, level2, data, numericvar, filtervar, correction = TRUE) {
+  dat <- data %>%
+    filter(!!as.symbol(filtervar) == level1 | !!as.symbol(filtervar) == level2)
+  dat[[filtervar]] <- factor(dat[[filtervar]], levels = unique(dat[[filtervar]]))
+  
+  test <- coin::wilcox_test(dat[[numericvar]]~as.factor(dat[[filtervar]]))
+  z <- as.numeric(statistic(test, type="standardized"))
+  r <- abs(z) / sqrt(nrow(dat))
+  df <- data.frame(
+    level1, level2,
+    pvalue = pvalue(test), z, r
+  )
+  
+  return(df)
+}
+
+dotest <- function(data, numericvar, filtervar) {
+  combs <- combn(levels(data[[filtervar]]), 2)
+  
+  df <- map2_df(combs[1,], combs[2,], get_wilcoxons,
+               data, numericvar, filtervar) %>%
+    mutate(monkey = unique(data$monkey))
+}
+
+x <- wilcoxon %>%
+  group_by(monkey) %>%
+  group_split() %>%
+  lapply(dotest, numericvar = "rt_ms", filtervar = "reward_level_text") %>%
+  do.call(rbind, .)
+
+```

@@ -1,0 +1,515 @@
+---
+title: "Untitled"
+author: "Robert Hickman"
+date: "29/09/2020"
+output: html_document
+---
+
+# Reward Payoff Fig 3
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+
+budget_range <- c(0,10)
+seq_budget <- seq(from = budget_range[1], to = budget_range[2], length.out = 1000)
+
+auctioned_good_value <- c(0, 1.25, 2.5, 3.75, 5.0, 6.25, 7.5, 8.75)
+
+
+sim_value <- function(bid, value, type = "uniform", budget = budget_range, n_sims) {
+  if(type == "uniform") {
+    computer_bids = runif(n_sims, min = budget[1], max = budget[2])
+  } else if(type == "normal") {
+    computer_bids = rnorm(n_sims, mean = mean(budget), sd = mean(budget) / 3)
+    
+  } else if(type == "matched normal") {
+    computer_bids = rnorm(n_sims, mean = value, sd = mean(budget) / 3)
+  } else {
+    errorCondition("invalid type of sim")
+  }
+  
+  computer_bids[computer_bids < 0] <- 0.0001
+  computer_bids[computer_bids > max(budget)] <- max(budget) - 0.0001
+  
+  wins <- which(bid > computer_bids)
+  
+  win_payoff <- (max(budget) - computer_bids) + (value)
+  
+  average_payoff <- mean(c(win_payoff[wins], rep(max(budget), n_sims - length(wins))))
+  return(average_payoff)
+}
+
+get_expected_payment <- function(bid, min = 0, mean, sd) {
+  erf1 <- pracma::erf((bid-mean)/(sd * sqrt(2)))
+  erf2 <- pracma::erf((min-mean)/(sd * sqrt(2)))
+  denom <- sqrt(pi/2) * (erf1  - erf2)
+ 
+  e1 <- exp(-((min-mean)^2/(2*sd^2)))
+  e2 <- exp(-((bid-mean)^2/(2*sd^2)))
+  num <- e1 - e2
+ 
+  expected_payment = mean + sd * (num/denom)
+  return(expected_payment)
+}
+
+
+calc_value <- function(bid, value, type = "uniform", budget = budget_value) {
+ if(type == "uniform") {
+   p <- bid / max(budget)
+   e_c <- bid / 2
+ } else if(type == "normal") {
+   z <- (bid - mean(budget)) / (mean(budget) / 3)
+   p <- pnorm(z)
+   e_c <- mean(budget) - (mean(budget) / 3) * dnorm(z) / pnorm(z)
+ } else if(type == "matched normal") {
+   z <- (bid - value) / (mean(budget) / 3)
+   p <- pnorm(z)
+   e_c <- value - (mean(budget) / 3) * dnorm(z) / pnorm(z)
+ } else {
+   errorCondition("invalid type of sim")
+ }
+
+ win_payoff <- p * (value + (max(budget) - e_c))
+ lose_payoff <- (1-p) * max(budget)
+ expected_payoff <- win_payoff + lose_payoff
+ return(expected_payoff)
+}
+
+
+text_theme <- theme(
+  axis.text = element_text(size = 12), 
+  axis.title = element_text(size = 14), 
+  strip.text = element_text(size = 14),
+  legend.text = element_text(size = 12),
+  legend.title = element_text(size = 14)
+)
+
+```
+
+```{r}
+combs_df <- expand.grid(seq_budget, auctioned_good_value, c("uniform", "normal", "matched normal"))
+names(combs_df) <- c("bid", "value", "type")
+
+combs_df$payoffs <- purrr::pmap_dbl(combs_df, calc_value, budget = budget_range)
+# combs_df$payoffs <- purrr::pmap_dbl(combs_df, sim_value, budget = budget_range, n_sims = 100000)
+
+```
+
+```{r}
+max_ep <- combs_df %>%
+  group_by(type, value) %>%
+  slice_max(payoffs) %>%
+  ungroup() %>%
+  filter(!duplicated(paste(type, value))) %>%
+  mutate(bid = rep(auctioned_good_value, 3))
+```
+
+
+```{r}
+p1 <- ggplot(combs_df, aes(x = bid, y = payoffs, colour = value, group = value)) +
+  geom_hline(yintercept = 10, colour = "black", linetype = "dashed") +
+  #geom_smooth(se = FALSE) +
+  #geom_point() +
+  geom_line(size = 2) +
+  geom_point(data = max_ep, aes(x = bid, y = payoffs), colour = "red", alpha = 0.5, size = 3) +
+  scale_colour_viridis_c(name = "good value\n (utils)") +
+  labs(
+    title = "expected payoff for BDM bids against distributions of opponent bids",
+    subtitle = "maximum expected payoff per value level highlighted in red",
+    x = "bid value (utils)",
+    y = "payoff value (utils)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~type)
+
+f1 <- ggplot(combs_df, aes(x = bid, y = payoffs, colour = value, group = value)) +
+  geom_hline(yintercept = 10, colour = "black", linetype = "dashed") +
+  #geom_smooth(se = FALSE) +
+  #geom_point() +
+  geom_line(size = 2) +
+  geom_point(data = max_ep, aes(x = bid, y = payoffs), colour = "red", alpha = 0.5, size = 3) +
+  scale_colour_viridis_c(name = "good utility\n (utils)") +
+  labs(
+    x = "bid value (utils)",
+    y = "payoff value (utils)"
+  ) +
+  theme_minimal() +
+  facet_wrap(~type) +
+  text_theme
+
+ggsave('/Users/roberthickman/Desktop/utility_plot2.svg', f1, 
+       width = 10, height = 7, units = "in", device = 'svg')
+
+```
+
+```{r}
+ecm <- combs_df %>%
+  group_by(value, type) %>%
+  mutate(optimal_payoff_dist = max(payoffs, na.rm = TRUE) - payoffs)
+
+min_ecm <- ecm %>%
+  group_by(type, value) %>%
+  slice_min(optimal_payoff_dist) %>%
+  ungroup() %>%
+  filter(!duplicated(paste(type, value))) %>%
+  mutate(bid = rep(auctioned_good_value, 3))
+  
+
+p2 <- ggplot(ecm, aes(x = bid, y = optimal_payoff_dist, colour = value, group = value)) +
+  geom_line(size = 2) +
+  geom_point(data = min_ecm, aes(x = bid, y = optimal_payoff_dist), size = 3, colour = "red", alpha = 0.5) +
+  scale_colour_viridis_c() +
+  labs(
+    title = "ecm",
+    subtitle = "ecm lol",
+    x = "bid (utils)",
+    y = "cost of misbehaviour (utils)"
+  ) +
+  geom_hline(yintercept = 10, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 10)) +
+  theme_minimal() +
+  facet_wrap(~type)
+  #facet_grid(value ~ type)
+
+f2 <- ggplot(ecm, aes(x = bid, y = optimal_payoff_dist, colour = value, group = value)) +
+  geom_line(size = 2) +
+  geom_point(data = min_ecm, aes(x = bid, y = optimal_payoff_dist), size = 3, colour = "red", alpha = 0.5) +
+  scale_colour_viridis_c(name = "good utility\n (utils)") +
+  labs(
+    x = "bid (utils)",
+    y = "cost of misbehaviour (utils)"
+  ) +
+  geom_hline(yintercept = 10, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 10)) +
+  theme_minimal() +
+  facet_wrap(~type) +
+  text_theme
+
+ggsave('/Users/roberthickman/Desktop/misbehaviour_plot2.svg', f2, 
+       width = 10, height = 7, units = "in", device = 'svg')
+```
+
+```{r}
+exp_p5 <- combs_df %>% filter(value == 6.25)
+max_exp_p5 <- max_ep %>% filter(value == 6.25)
+ecm_p5 <- ecm %>% filter(value == 6.25)
+min_ecm_p5 <- min_ecm %>% filter(value == 6.25)
+
+p3 <- ggplot(exp_p5, aes(x = bid, y = payoffs, colour = type, group = type)) +
+  geom_line(size = 2) +
+  geom_point(data = max_exp_p5, aes(x = bid, y = payoffs), size = 6, colour = "red", alpha = 0.6) +
+  scale_colour_manual(values = c("maroon", "skyblue", "forestgreen"), name = "opposing bid\ndistribution", guide = FALSE) +
+  labs(
+    x = "bid value (utils)",
+    y = "payoff value (utils)"
+  ) +
+  theme_minimal()
+
+p4 <-  ggplot(ecm_p5, aes(x = bid, y = optimal_payoff_dist, colour = type, group = type)) +
+  geom_line(size = 2) +
+  geom_point(data = min_ecm_p5, aes(x = bid, y = optimal_payoff_dist), size = 6, colour = "red", alpha = 0.6) +
+  scale_colour_manual(values = c("maroon", "skyblue", "forestgreen"), name = "opposing bid\ndistribution", guide = FALSE) +
+  labs(
+    x = "bid value (utils)",
+    y = "cost of misbehaviour (utils)"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+library(patchwork)
+library(ggpubr)
+
+
+```
+
+```{r}
+random_monkey <- ecm %>%
+  dplyr::filter(!is.na(optimal_payoff_dist)) %>%
+  group_by(value, type) %>%
+  summarise(mean_payoff_dist = mean(optimal_payoff_dist),
+            sem_payoff_dist = sd(optimal_payoff_dist) / sqrt(n())) 
+
+# Create a dummy row for the missing category
+dummy_data <- data.frame(
+  value = NA,
+  mean_payoff_dist = NA,
+  sem_payoff_dist = NA,
+  type = "matched normal"
+)
+
+p5 <- random_monkey %>%
+  dplyr::mutate(type = factor(type, levels = c("uniform", "normal", "matched normal"))) %>%
+  dplyr::filter(type != "matched normal") %>%
+  # Add the dummy data
+  dplyr::bind_rows(dummy_data) %>%
+  ggplot(aes(x = value, y = mean_payoff_dist, fill = type)) +
+  geom_bar(stat = "identity", position = "dodge", na.rm = TRUE) +
+  geom_errorbar(aes(x = value, ymin = mean_payoff_dist - sem_payoff_dist, ymax = mean_payoff_dist + sem_payoff_dist, group = type), position = "dodge", na.rm = TRUE) +
+  scale_fill_manual(values = c("uniform" = "maroon", "normal" = "skyblue", "matched normal" = "forestgreen"), 
+                    name = "opposing bid\ndistribution", 
+                    breaks = c("uniform", "normal", "matched normal"),
+                    drop = FALSE) +
+  labs(
+    x = "good value (utils)",
+    y = "mean misbehaviour cost (utils)"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+library(cowplot)
+top_row <- plot_grid(p3 + text_theme, p4 + text_theme, 
+                     labels = c('A', 'B'), label_size = 18, vjust = 1.1)
+f5 <- plot_grid(top_row, p5 + text_theme, 
+                labels = c('', 'C'), label_size = 18, ncol = 1, vjust = 1.1)
+ggsave('/Users/roberthickman/Desktop/misbehaviour_payoff2.svg', f5, 
+       width = 10, height = 7, units = "in", device = 'svg')
+
+```
+
+
+```{r}
+choice_data <- seq(0, 1, 0.03) %>%
+  #generate distributions
+  data.frame(x = . * 20,
+             y = plogis(., 0.5, 0.2))
+
+
+p1.1 <- ggplot(choice_data, aes(x = x, y = y)) +
+  geom_segment(aes(x = 0, xend = 10, y = 0.5, yend = 0.5), linetype = "dashed", colour = "red", size = 2) +
+  geom_segment(aes(x = 10, xend = 10, y = 0.5, yend = 0), linetype = "dashed", colour = "red", size = 2) +
+  geom_line(size = 2) +
+  geom_point(size = 5, alpha = 0.7, colour = "darkblue") +
+  labs(
+    x = "value of offered good (utils)",
+    y = "proportion choose offered good"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+choice_data <- seq(0, 1, 0.075) %>%
+  #generate distributions
+  data.frame(x = . * 20,
+             y = plogis(., 0.5, 0.2))
+
+
+p1.1 <- ggplot(choice_data, aes(x = x, y = y)) +
+  geom_segment(aes(x = 0, xend = 10, y = 0.5, yend = 0.5), linetype = "dashed", colour = "red", size = 1.5) +
+  geom_segment(aes(x = 10, xend = 10, y = 0.5, yend = 0), linetype = "dashed", colour = "red", size = 1.5) +
+  geom_line(size = 2) +
+  geom_point(size = 5, alpha = 0.7, colour = "darkblue") +
+  labs(
+    x = "value of offered good (utils)",
+    y = "proportion of choices of offered good"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+set.seed(111)
+
+choice_data_cutdown <- seq(0, 1, 0.075 * 4) %>%
+  #generate distributions
+  data.frame(x = . * 20,
+             y = plogis(., 0.5, 0.2))
+
+n_trials <- 300
+choices_per_offer <- round(n_trials / nrow(choice_data_cutdown))
+
+choice_data2 <- purrr::map_df(choice_data_cutdown$x, function(x) {
+  choices <- runif(choices_per_offer)
+  prop_choices <- length(which(choices < x/20)) / length(choices)
+  df <- data.frame(x, prop_choices)
+})
+
+binomial_smooth <- function(...) {
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)
+}
+
+p1.2 <- ggplot(choice_data2, aes(x = x, y = prop_choices)) +
+  geom_segment(aes(x = 0, xend = 10, y = 0.5, yend = 0.5), linetype = "dashed", colour = "red", size = 1.5) +
+  geom_segment(aes(x = 10, xend = 10, y = 0.5, yend = 0), linetype = "dashed", colour = "red", size = 1.5) +
+  binomial_smooth(colour = "black", size = 2, se = FALSE) +
+  #geom_line(data = choice_data, aes(x = x, y = y), size = 2) +
+  geom_point(size = 5, alpha = 0.7, colour = "darkblue") +
+  labs(
+    x = "value of offered good (utils)",
+    y = "proportion of choices of offered good"
+  ) +
+  theme_minimal()
+
+```
+
+
+```{r}
+choice_data_cutdown <- seq(0, 1, 0.075) %>%
+  #generate distributions
+  data.frame(x = . * 20,
+             y = plogis(., 0.5, 0.2))
+
+n_trials <- 300
+choices_per_offer <- round(n_trials / nrow(choice_data_cutdown))
+
+choice_data3 <- purrr::map_df(choice_data_cutdown$x, function(x) {
+  choices <- runif(choices_per_offer)
+  prop_choices <- length(which(choices < x/20)) / length(choices)
+  df <- data.frame(x, prop_choices)
+})
+
+p1.3 <- ggplot(choice_data3, aes(x = x, y = prop_choices)) +
+  geom_segment(aes(x = 0, xend = 10, y = 0.5, yend = 0.5), linetype = "dashed", colour = "red", size = 1.5) +
+  geom_segment(aes(x = 10, xend = 10, y = 0.5, yend = 0), linetype = "dashed", colour = "red", size = 1.5) +
+  binomial_smooth(colour = "black", size = 2, se = FALSE) +
+  #geom_line(data = choice_data, aes(x = x, y = y), size = 2) +
+  geom_point(size = 5, alpha = 0.7, colour = "darkblue") +
+  labs(
+    x = "value of offered good (utils)",
+    y = "proportion of choices of offered good"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+choice_data4 <- seq(0, 1, 0.075) %>%
+  #generate distributions
+  data.frame(x = . * 20,
+             early = plogis(., 0.5, 0.2),
+             late = plogis(., 0.6, 0.2),
+             later = plogis(., 0.72, 0.2),
+             latest = plogis(., 0.87, 0.2)) %>%
+  pivot_longer(cols = c(early, late, later, latest)) %>%
+  mutate(name2 = case_when(
+    name == "early" ~ "first 75 trials",
+    name == "late" ~ "second 75 trials",
+    name == "later" ~ "third 75 trials",
+    name == "latest" ~ "last 75 trials"
+  ))
+
+mean_choices <- choice_data4 %>%
+  group_by(x) %>%
+  summarise(value = mean(value)) %>%
+  mutate(name2 = "mean of all trials")
+
+choice_data4 <- choice_data4 %>%
+  select(-., -name) %>%
+  bind_rows(mean_choices) %>%
+  mutate(name2 = factor(name2, levels = c("first 75 trials", "second 75 trials", "third 75 trials", "last 75 trials", "mean of all trials")))
+
+
+p1.4 <- ggplot(choice_data4, aes(x = x, y = value, colour = name2)) +
+  geom_segment(aes(x = 0, xend = 10, y = 0.5, yend = 0.5), linetype = "dashed", colour = "red", size = 1.5) +
+  geom_segment(aes(x = 10, xend = 10, y = 0.5, yend = 0), linetype = "dashed", colour = "red", size = 1.5) +
+  geom_line(size = 2) +
+  scale_colour_manual(values = c("seagreen", "green", "forestgreen", "darkgreen", "black"), name = "section of\nsession") +
+  labs(
+    x = "value of offered good (utils)",
+    y = "proportion of choices of offered good"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = c(.025, 1),
+    legend.justification = c("left", "top"),
+    )
+
+```
+```{r}
+plots_no_titles <- list(
+  p1.1 + text_theme + theme(axis.title = element_blank()) + 
+    scale_x_continuous(limits = c(0, 20)) + 
+    scale_y_continuous(limits = c(0, 1)),
+  p1.2 + text_theme + theme(axis.title = element_blank()) + 
+    scale_x_continuous(limits = c(0, 20)) + 
+    scale_y_continuous(limits = c(0, 1)),
+  p1.3 + text_theme + theme(axis.title = element_blank()) + 
+    scale_x_continuous(limits = c(0, 20)) + 
+    scale_y_continuous(limits = c(0, 1)),
+  p1.4 + text_theme + theme(axis.title = element_blank()) + 
+    scale_x_continuous(limits = c(0, 20)) + 
+    scale_y_continuous(limits = c(0, 1))
+)
+
+px <- plot_grid(plotlist = plots_no_titles, 
+               labels = c('A', 'B', 'C', 'D'), 
+               label_size = 18,
+               hjust = 0.85,       
+               vjust = 1,       
+               align = "hv", axis = "tblr")
+
+y_title <- ggdraw() + draw_label("proportion of choices of offered good", 
+                                angle = 90, size = 14)
+x_title <- ggdraw() + draw_label("value of offered good (utils)", size = 14)
+final_plot <- plot_grid(
+  y_title,
+  plot_grid(px, x_title, ncol = 1, rel_heights = c(1, 0.05)),
+  ncol = 2, rel_widths = c(0.05, 1)
+)
+
+ggsave('/Users/roberthickman/Desktop/bcb_plot2.svg', final_plot, 
+       width = 10, height = 7, units = "in", device = 'svg')
+
+```
+
+```{r}
+s <- seq(0, 10, by = 0.01)
+fake_data <- data.frame(
+  bid = s
+)
+
+fake_data$bdm_realistic <- dnorm(s, mean = 8, sd = 2) * 1.5
+
+fake_data1 <- dnorm(s, mean = 3, sd = 1) * 1.5
+fake_data2 <- dnorm(s, mean = 7, sd = 2) * 2
+
+fake_data$double_dip <- fake_data1 + fake_data2
+
+fake_data <- fake_data %>%
+  pivot_longer(cols = c(double_dip, bdm_realistic))
+
+segments <- data.frame(
+  x = c(1.7, 5.5, 6.75, 2.75),
+  xend = c(3.5, 8.5, 9.15, 5.15),
+  y = c(0.515, 0.4025, 0.3, 0),
+  yend = c(0.715, 0.4025, 0.3, 0.07),
+  name = c("double_dip", "double_dip", "bdm_realistic", "bdm_realistic")
+)
+
+p6a <- fake_data %>%
+  filter(name == "bdm_realistic") %>%
+  ggplot(aes(x = bid, y = value)) +
+  geom_line(colour = "red", size = 2) +
+  scale_colour_viridis_c() +
+  geom_segment(data= filter(segments, name == "bdm_realistic"), aes(x = x, xend = xend, y = y, yend = yend), size = 1.5) +
+  labs(
+    title = "hypothetical realistic expected payoff for BDM bids on an offered good",
+    subtitle = "differentiation of payoff wrt bid at two points shown in black",
+    x = "bid value (utils)",
+    y = "payoff value (utils)"
+  ) +
+  theme_minimal() +
+  theme(axis.text = element_blank())
+
+p6b <- fake_data %>%
+  filter(name == "double_dip") %>%
+  ggplot(aes(x = bid, y = value)) +
+  geom_line(colour = "red", size = 2) +
+  scale_colour_viridis_c() +
+  geom_segment(data= filter(segments, name == "double_dip"), aes(x = x, xend = xend, y = y, yend = yend), size = 1.5) +
+  labs(
+    title = "unrealistic expected payoff for BDM bids on an offered good",
+    subtitle = "differentiation of payoff wrt bid at two points shown in black",
+    x = "bid value (utils)",
+    y = "payoff value (utils)"
+  ) +
+  theme_minimal() +
+  theme(axis.text = element_blank())
+
+f6 <- plot_grid(p6a, p6b, labels = c('A', 'B'), label_size = 12, nrow = 2)
+
+```
+

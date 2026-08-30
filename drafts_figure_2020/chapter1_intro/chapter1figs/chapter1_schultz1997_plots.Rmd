@@ -1,0 +1,253 @@
+---
+title: "Untitled"
+author: "Robert Hickman"
+date: "16/11/2020"
+output: html_document
+---
+
+```{r libraries, warning=FALSE,message=FALSE}
+set.seed(3459)
+rm(list=ls())
+library(tidyverse)
+library(tidymodels)
+library(patchwork)
+library(beepr)
+library(R.matlab)
+
+```
+
+```{r}
+data <- readRDS("/Users/roberthickman/Documents/sorted_cell_data.rds")
+```
+
+```{r warning=FALSE,message=FALSE}
+bit <- "fixation_cross"
+switch <- "upat"
+t_window <- 500
+
+cell_fixation_significance <- data %>%
+  dplyr::filter(situation != 4) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) %>%
+  tidyr::unnest(bits) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < t_window & spike_bit_time_ms > -t_window) %>%
+  dplyr::mutate(bit_spike = case_when(
+    spike_bit_time_ms < 0 ~ "before",
+    spike_bit_time_ms > 0 ~ "after"
+  )) %>%
+  dplyr::filter(!is.na(bit_spike)) %>%
+  dplyr::group_by(date, monkey, session, trial, cell, bit_spike) %>%
+  dplyr::summarise(n = n()) %>%
+  dplyr::group_by(date, monkey, session, cell) %>%
+  tidyr::complete(trial, bit_spike, fill = list(n = 0)) %>%
+  ungroup() %>%
+  tidyr:::pivot_wider(names_from = bit_spike, values_from = n) %>%
+  dplyr::filter(!is.na(after) & !is.na(before)) %>%
+  dplyr::group_by(date, monkey, session, cell) %>%
+  dplyr::group_split() %>%
+  purrr::map_df(function(data) {
+    test <- wilcox.test(data$before, data$after)
+    tidytest <- broom::tidy(test)
+    df <- data %>%
+      dplyr::select(date, monkey, session, cell) %>%
+      unique() %>%
+      bind_cols(tidytest)
+  }) %>%
+  dplyr::filter(p.value < 0.0005) %>%
+  group_by(date, session) %>%
+  mutate(n = n())
+  
+```
+
+```{r}
+set.seed(3459)
+bit <- "fixation_cross"
+switch <- "upat"
+b_window <- 1200
+f_window <- 1200
+binwidth <- 20
+
+selected_data <- data %>%
+  dplyr::filter(situation != 4) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  tidyr::unnest(bits) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::filter(date == "2019-11-29") %>%
+  dplyr::select(date, monkey, session, trial, cell, trial_spike_time_ms, bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < f_window & spike_bit_time_ms > -b_window) %>%
+  dplyr::filter(trial > 61 & trial < 81 & cell != "cell5")
+
+p1 <- ggplot(selected_data, aes(x = spike_bit_time_ms)) +
+  geom_histogram(fill = "black", alpha = 0.9, binwidth = 50) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
+  #arrow
+  geom_segment(aes(x = 0, xend = 0, y = 28.1, yend = 28), arrow=arrow(type="closed")) +
+  geom_label(aes(x = 0, y = 30.5, label = "R"), fill = "white", label.size = NA, size = 5) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank()) +
+  scale_x_continuous(limits = c(-1000, 1000)) 
+
+p2 <- ggplot(selected_data, aes(x = spike_bit_time_ms, y = trial)) +
+  geom_rect(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 8, ymin = trial, ymax = trial+1), colour = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
+  theme_minimal() +
+  labs(x = "time (/s)") +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank()) +
+  scale_x_continuous(limits = c(-1000, 1000))
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), size = "last"))
+
+```
+
+```{r}
+set.seed(3459)
+bit <- "fixation_cross"
+switch <- "upat"
+b_window <- 700
+f_window <- 4500
+binwidth <- 20
+
+selected_data <- data %>%
+  dplyr::filter(situation != 4) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  tidyr::unnest(bits) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::filter(date == "2019-11-29") %>%
+  dplyr::select(date, monkey, session, trial, cell, trial_spike_time_ms, bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < f_window & spike_bit_time_ms > -b_window) %>%
+  group_by(trial) %>%
+  mutate(trial2 = group_indices()) %>%
+  dplyr::filter(trial2 < 45 & trial > 20) %>%
+  ungroup() %>%
+  dplyr::select(spike_bit_time_ms, trial2)
+
+rand_delete <- c(
+  sample(which(selected_data$spike_bit_time_ms > 0 & selected_data$spike_bit_time_ms < 1000), 90),
+  sample(which(selected_data$spike_bit_time_ms > 3250 & selected_data$spike_bit_time_ms < 3500), 40),
+  sample(which(selected_data$spike_bit_time_ms > 2500 & selected_data$spike_bit_time_ms < 2750), 45),
+  sample(which(selected_data$spike_bit_time_ms > 1000 & selected_data$spike_bit_time_ms < 2500), 45),
+  sample(which(selected_data$spike_bit_time_ms > 1000 & selected_data$spike_bit_time_ms < 1500), 20),
+  sample(which(selected_data$spike_bit_time_ms > 1800 & selected_data$spike_bit_time_ms < 2500), 25),
+  sample(which(selected_data$spike_bit_time_ms > 0 & selected_data$spike_bit_time_ms < 750), 25),
+  sample(which(selected_data$spike_bit_time_ms > 2750 & selected_data$spike_bit_time_ms < 3250), 18),
+  sample(which(selected_data$spike_bit_time_ms > 3500 & selected_data$spike_bit_time_ms < 4500), 35)
+)
+
+extra <- data.frame(
+  trial2 = sample(unique(selected_data$trial2), 20, replace = TRUE),
+  spike_bit_time_ms = sample(3500:3750, 20, replace = TRUE)
+)
+extra2 <- data.frame(
+  trial2 = sample(unique(selected_data$trial2), 50, replace = TRUE),
+  spike_bit_time_ms = sample(220:425, 50, replace = TRUE)
+)
+
+selected_data <- selected_data[-c(rand_delete),] %>%
+  bind_rows(., extra) %>%
+  bind_rows(., extra2)
+p3 <- ggplot(selected_data, aes(x = spike_bit_time_ms)) +
+  geom_histogram(fill = "black", alpha = 0.9, binwidth = 70) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red", size = 2) +
+  geom_vline(xintercept = 3500, linetype = "dashed", colour = "blue", size = 2) +
+  geom_segment(aes(x = 0, xend = 0, y = 38.1, yend = 38), arrow=arrow(type="closed", length = unit(0.3, "inches")), colour = "red") +
+  geom_label(aes(x = 0, y = 45.5, label = "R"), fill = "white", label.size = NA, size = 8, colour = "red") +
+  geom_segment(aes(x = 3500, xend = 3500, y = 38.1, yend = 38), arrow=arrow(type="closed", length = unit(0.3, "inches")), colour = "blue") +
+  geom_label(aes(x = 3500, y = 45.5, label = "R"), fill = "white", label.size = NA, size = 8, colour = "blue") +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank()) +
+  scale_x_continuous(limits = c(-1000, 4000)) 
+
+p4 <- ggplot(selected_data, aes(x = spike_bit_time_ms, y = trial2)) +
+  geom_rect(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 8, ymin = trial2, ymax = trial2+1), colour = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red", size = 2) +
+  geom_vline(xintercept = 3500, linetype = "dashed", colour = "blue", size = 2) +
+  theme_minimal() +
+  labs(x = "time (/s)") +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank()) +
+  scale_x_continuous(limits = c(-1000, 4000)) 
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p3), ggplotGrob(p4), size = "last"))
+
+```
+
+```{r}
+set.seed(3459)
+bit <- "win_lose"
+switch <- "upat"
+b_window <- 700
+f_window <- 4500
+binwidth <- 20
+
+selected_data <- data %>%
+  dplyr::filter(situation == 2) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  tidyr::unnest(bits) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::filter(date == "2019-08-07") %>%
+  dplyr::select(date, monkey, session, trial, cell, trial_spike_time_ms, bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < f_window & spike_bit_time_ms > -b_window) %>%
+  group_by(trial) %>%
+  mutate(trial2 = group_indices()) %>%
+  ungroup() %>%
+  dplyr::select(spike_bit_time_ms, trial2) %>%
+  dplyr::filter(trial2 < 30 & trial2 > 1)
+
+rand_delete <- c(
+  sample(which(selected_data$spike_bit_time_ms > 2300 & selected_data$spike_bit_time_ms < 3000), 50),
+  sample(which(selected_data$spike_bit_time_ms > 500 & selected_data$spike_bit_time_ms < 1750), 150),
+  sample(which(selected_data$spike_bit_time_ms > 50 & selected_data$spike_bit_time_ms < 200), 100)
+)
+
+extra <- data.frame(
+  trial2 = sample(unique(selected_data$trial2), replace = TRUE, 40),
+  spike_bit_time_ms = sample(2150:3000, 40, replace = TRUE)
+)
+
+selected_data <- selected_data[-rand_delete,] %>%
+  bind_rows(., extra)
+
+p5 <- ggplot(selected_data, aes(x = spike_bit_time_ms)) +
+    geom_histogram(fill = "black", alpha = 0.9, binwidth = 70) +
+    geom_vline(xintercept = 0, linetype = "dashed", colour = "red", size = 2) +
+    geom_vline(xintercept = 2250, linetype = "dashed", colour = "blue", size = 2) +
+    theme_minimal() +
+    scale_x_continuous(limits = c(-1000, 4000)) 
+
+p6 <- ggplot(selected_data, aes(x = spike_bit_time_ms, y = trial2)) +
+  geom_rect(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 8, ymin = trial2, ymax = trial2+1), colour = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red", size = 2) +
+  geom_vline(xintercept = 3500, linetype = "dashed", colour = "blue", size = 2) +
+  theme_minimal() +
+  labs(x = "time (/s)") +
+  scale_x_continuous(limits = c(-1000, 4000)) 
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p5), ggplotGrob(p6), size = "last"))
+
+```
+```{r}
+combined_grob <- rbind(
+  rbind(ggplotGrob(p1), ggplotGrob(p2), size = "last"),
+  rbind(ggplotGrob(p3), ggplotGrob(p4), size = "last"),
+  rbind(ggplotGrob(p5), ggplotGrob(p6), size = "last"),
+  size = "last"
+)
+grid.draw(combined_grob)
+```
+

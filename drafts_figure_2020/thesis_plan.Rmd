@@ -1,0 +1,63 @@
+---
+title: "thesis_plan"
+author: "robert hickman"
+date: "12/05/2020"
+output: html_document
+---
+
+Thesis Plan
+Chapter 1 – Intro/what is neuroeconomics ~ 2500 words
+Justification/layout of the thesis
+Decisions/valuations underlie every action
+Classically animal models do repeated choices and average is studied – c.f. humans in real life
+Exploits novel (ref building on Alaa) BDM task in macaques and record neurons to achieve  
+
+-auction theory with biological con
+straint
+	e.g. foraging
+Chapter 2 – Monkey Auction Behaviour (BDM) + BDM theory
+Chapter 3 – BDM neurophysiology
+Chapter 4- Monkey Choice Behaviour (binary choice)
+Monkey valuation calculated using indifference points
+Chapter 4.5 – Monkey Binary Choice Neurophysiology
+Chapter 5(4.5) – Modelling of neuronal activity?
+Chapter 6 – Future directions
+Second vs first price auctions
+Open first price auctions
+Studying competitive behaviour
+Optogenetic manipulating of bidding?
+
+What is the question? -> value stuff so reinforcement learning q values -> 
+
+Decision sare important
+Sensory decision maiking with a sprink.oling ofd shadlen
+For econ we need values – abstract and hard to get
+
+1) Decisions are the basis of everything anyone does
+a. At a fundamental level the brain is a decision engine
+i. Difference between passively floating and choosing to move to x location
+b. But decisions are hard to pin down
+i. When is a decision made 
+ii. compare with correlating brain activity to moving arm 
+iii. ‘a decision’ is an abstract event
+
+2) In last ~20 years have started measuring simple ‘decision process’
+a. Sensory decision making tasks provide a nice quantitative thing to regress against
+i. E.g. coherence in random dot motion task
+b. Can see the abstract decision being made in neuronal firing rates/etc.
+i. E.g. shadlen but also others
+ii. Neuronal firing ramps faster for more coherence
+c. In (e.g. random dot motion) there is a 100% correct decision that monkey is ‘always’ incentivised to make
+i. Want more juice -> get task correct -> make correct decision
+
+3) Though many ‘naturalistic’ decisions are sensory it is clear that many do not have a ‘right/wrong’ answer
+a. These are ‘valuation decisions’- value is a word we use to express that different organisms value the same thing differently
+b. E.g. foraging
+i. Sensory – how many berries on current bush
+ii. Should I stay at low berry count bush A or twist and explore bush B…
+c. Obviously choose bush with more berries with hindsight but what level of risk is acceptable will vary by organism _within_ species
+i. No way of telling for given animal whether it will be risk seeking or risk averse without studying
+1. (are there genetic studies on this?)
+ii. Risk seeking/risk averse curve for our monkeys small figure (think Phil has one)
+1. Studies on human variety on strength of risk seeking/ averse / prospect theory curve?
+d. 

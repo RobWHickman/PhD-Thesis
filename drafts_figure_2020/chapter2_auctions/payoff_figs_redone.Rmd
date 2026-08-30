@@ -1,0 +1,89 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-09-05"
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+budget_range <- c(0,10)
+seq_budget <- seq(from = budget_range[1], to = budget_range[2], length.out = 1000)
+auctioned_good_value <- c(6.25)
+```
+
+```{r}
+sim_value <- function(bid, value, type = "uniform", budget = budget_range, n_sims) {
+  if(type == "uniform") {
+    computer_bids = runif(n_sims, min = budget[1], max = budget[2])
+  } else if(type == "normal") {
+    computer_bids = rnorm(n_sims, mean = mean(budget), sd = mean(budget) / 3)
+   
+  } else if(type == "matched normal") {
+    computer_bids = rnorm(n_sims, mean = value, sd = mean(budget) / 3)
+  } else {
+    errorCondition("invalid type of sim")
+  }
+ 
+  computer_bids[computer_bids < 0] <- 0.0001
+  computer_bids[computer_bids > max(budget)] <- max(budget) - 0.0001
+ 
+  wins <- which(bid > computer_bids)
+ 
+  win_payoff <- (max(budget) - computer_bids) + (value)
+ 
+  average_payoff <- mean(c(win_payoff[wins], rep(max(budget), n_sims - length(wins))))
+  return(average_payoff)
+}
+
+sim_payoffs <- purrr::map_dbl(seq(0,10,0.01), sim_value, value = auctioned_good_value, type = "matched normal", budget = budget_range, n_sims = 1000000)
+
+p_sim <- ggplot() +
+  geom_line(aes(x = seq(0,10,0.01), y = sim_payoffs), colour = "darkblue", linewidth = 2) +
+  geom_point(aes(x = seq(0,10,0.01)[which.max(sim_payoffs)], y = max(sim_payoffs)), colour = "red", alpha = 0.5, size = 5) +
+  labs(
+    x = 'bid value (utils)',
+    y = 'payoff (utils)',
+    title = 'bids on second price auction for good worth 6.25 utils'
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+calc_value <- function(bid, value, type = "uniform", budget = budget_value) {
+ if(type == "uniform") {
+   p <- bid / max(budget)
+   e_c <- bid / 2
+ } else if(type == "normal") {
+   z <- (bid - mean(budget)) / (mean(budget) / 3)
+   p <- pnorm(z)
+   e_c <- mean(budget) - (mean(budget) / 3) * dnorm(z) / pnorm(z)
+ } else if(type == "matched normal") {
+   z <- (bid - value) / (mean(budget) / 3)
+   p <- pnorm(z)
+   e_c <- value - (mean(budget) / 3) * dnorm(z) / pnorm(z)
+ } else {
+   errorCondition("invalid type of sim")
+ }
+
+ win_payoff <- p * (value + (max(budget) - e_c))
+ lose_payoff <- (1-p) * max(budget)
+ expected_payoff <- win_payoff + lose_payoff
+ return(expected_payoff)
+}
+
+analytical_payoffs <- purrr::map_dbl(seq(0,10,0.01), calc_value, value = auctioned_good_value, type = "matched normal", budget = budget_range)
+
+p_analysis <- ggplot() +
+  geom_line(aes(x = seq(0,10,0.01), y = analytical_payoffs), colour = "darkblue", linewidth = 2) +
+  geom_point(aes(x = seq(0,10,0.01)[which.max(analytical_payoffs)], y = max(sim_payoffs)), colour = "red", alpha = 0.5, size = 5) +
+  labs(
+    x = 'bid value (utils)',
+    y = 'payoff (utils)',
+    title = 'bids on second price auction for good worth 6.25 utils'
+  ) +
+  theme_minimal()
+
+```

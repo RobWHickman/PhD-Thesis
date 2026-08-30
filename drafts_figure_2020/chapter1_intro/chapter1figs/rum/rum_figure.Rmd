@@ -1,0 +1,110 @@
+---
+title: "Untitled"
+author: "robert hickman"
+date: "30/11/2020"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(RColorBrewer)
+
+fill_pal <- scale_fill_manual(values = brewer.pal(4, "Set1"), labels = c("1", "2", "3", "4"), guide = FALSE)
+col_pal <- scale_colour_manual(values = brewer.pal(4, "Set1"), labels = c("1", "2", "3", "4"), guide = FALSE)
+
+
+x <- seq(1, 10, 0.01)
+y <- log(x, 2) * 3
+
+xs <- c(2,3,7,8)
+ys <- log(xs, 2) * 3
+
+df <- data.frame(x,y)
+
+line_points <- data.frame(xs, ys, end = 0)
+
+p <- ggplot(df, aes(x, y)) +
+  geom_segment(data = line_points, aes(x = xs, xend = xs, y = ys, yend = end), linetype = "dashed") +
+  geom_line(data = df, size = 2) +
+  geom_point(data = line_points, aes(x = xs, y = ys, colour = factor(as.character(xs))), size = 6.5) +
+  col_pal +
+  labs(
+    x = "amount of good offered",
+    y = "utility (/utils)"
+  ) +
+  theme_minimal() +
+  theme(axis.title = element_text(size = 20),
+        axis.text = element_text(size = 16))
+```
+
+
+```{r}
+n_points <- 10000000
+
+points <- lapply(ys, rnorm, n = n_points, sd = 1)
+
+df2 <- data.frame(
+  x = rep(xs, each = n_points),
+  y = rep(ys, each = n_points),
+  points = unlist(points),
+  group = rep(c("2", "1"), each = n_points * 2)
+) %>%
+  mutate(x = as.character(x))
+
+p2 <- ggplot(df2, aes(x = points, fill = x, group = x, colour = x)) +
+  geom_density(alpha = 0.7, size = 2) +
+  fill_pal +
+  col_pal +
+  coord_flip() +
+  labs(
+    x = "utility (/utils)",
+    y = "delete"
+  ) +
+  theme_minimal() +
+  facet_wrap(~group, nrow = 2) +
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+  ) +
+    theme(axis.title = element_text(size = 20),
+        axis.text = element_text(size = 16))
+
+```
+
+```{r}
+compare_23 <- table(df2$points[df2$x == 2] > df2$points[df2$x == 3])
+names(compare_23) <- c("3", "2")
+
+compare_78 <- table(df2$points[df2$x == 7] > df2$points[df2$x == 8])
+names(compare_78) <- c("8", "7")
+
+df3 <- bind_rows(
+  as.data.frame(compare_23) %>% mutate(group = 2, x_pos = c(1,2), Var1 = as.character(Var1)),
+  as.data.frame(compare_78) %>% mutate(group = 1, x_pos = c(1,2), Var1 = as.character(Var1))
+)
+
+p3 <- ggplot(df3, aes(x = factor(x_pos), y = Freq / n_points, fill = Var1, group = Var1, colour = Var1)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.7, size = 2) +
+  fill_pal +
+  col_pal +
+  labs(
+    x = "amount of good offered",
+    y = "% choose good"
+  ) +
+  scale_y_continuous(limits = c(0, 1), breaks = c(0, 1)) +
+  theme_minimal() +
+  facet_wrap(~group, nrow = 2) +
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+    axis.text.x = element_blank()
+  ) +
+  theme(axis.title = element_text(size = 20),
+        axis.text = element_text(size = 16))
+
+```
+
+```{r}
+#plot <- grid.arrange(p, p2, p3, nrow = 1)
+```

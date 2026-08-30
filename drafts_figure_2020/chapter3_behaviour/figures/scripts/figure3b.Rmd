@@ -1,0 +1,175 @@
+---
+title: "Untitled"
+author: "Robert Hickman"
+date: "30/11/2020"
+output: html_document
+---
+
+```{r libraries, warning=FALSE,message=FALSE}
+rm(list=ls())
+library(tidyverse)
+library(data.table)
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+monkey_col_pal <- scale_colour_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+thesis_theme <- theme(
+  axis.text = element_text(size = 16),
+  axis.title = element_text(size = 18),
+  strip.text = element_text(size = 20)
+)
+```
+
+```{r}
+data <- readRDS("C:/Users/DHill/Desktop/gettyR/data/joystick_behaviour_paired_data.rds") %>%
+  filter(subtask == "BDM")
+```
+
+```{r}
+step_remove_mondays <- function(data) {
+  new_data <- data %>%
+    filter(weekdays(date) != "Monday")
+  message <- paste("remove", nrow(data) - nrow(new_data), "trials on mondays :)")
+  message(message)
+  return(new_data)
+}
+```
+
+```{r}
+step_remove_toofastrt <- function(data, threshold_ms) {
+  new_data <- data %>%
+    filter(map_dbl(data, function(j) (first(which(j$stimuli_movement != 0)) / 60) * 1000) > threshold_ms)
+  message <- paste("remove", nrow(data) - nrow(new_data), "trials with reaction times under", threshold_ms, ":)")
+  message(message)
+  return(new_data)
+}
+```
+
+```{r}
+step_remove_sdtimes <- function(data, filter_quote, sds) {
+  new_data <- data %>%
+    mutate(tempvar = map_dbl(data, function(j) (eval(parse(text = filter_quote)) / 60) * 1000)) %>%
+    group_by(monkey) %>%
+    filter(tempvar < mean(tempvar) + sds*sd(tempvar) & tempvar > mean(tempvar) - sds*sd(tempvar)) %>%
+    ungroup() %>%
+    select(-tempvar)
+  message <- paste("remove", nrow(data) - nrow(new_data), "trials using filter", filter_quote, ":)")
+  message(message)
+  return(new_data)
+}
+```
+
+```{r}
+step_remove_topbottoms <- function(data) {
+  new_data <- data %>%
+    filter(monkey_bid < max(monkey_bid) & monkey_bid > 0)
+  message <- paste("remove", nrow(data) - nrow(new_data), "trials bidding top or bottom of range :)")
+  message(message)
+  return(new_data)
+}
+
+```
+
+```{r}
+step_extract_setfractals <- function(data, set_monkey, fractal_mags) {
+  new_data <- data %>%
+    filter(monkey == set_monkey)
+  rows <- nrow(new_data)
+  new_data <- new_data %>%
+    group_by(date) %>%
+    mutate(day_fractals = list(sort(unique(reward_juice_offer)))) %>%
+    ungroup() %>%
+    filter(
+      apply(matrix(map2_lgl(rep(day_fractals, length(fractal_mags)), rep(fractal_mags, each = nrow(.)), ~.y %in% .x), nrow = nrow(.)), 1, all)
+    )
+  message <- paste("remove", rows - nrow(new_data), "trials that aren't correct monkey and fractal vals :)")
+  message(message)
+  return(new_data)
+}
+
+```
+
+```{r}
+step_morethan_ntrials <- function(data, n_trials = 50) {
+  grouped <- data %>%
+    group_by(monkey, date) %>%
+    summarise(n = n()) %>%
+    filter(n >= n_trials)
+  
+  new_data <- grouped %>%
+    select(-n) %>%
+    ungroup() %>%
+    left_join(data, by = c("monkey", "date"))
+  
+  rows <- nrow(data)
+  
+  message <- paste("remove", rows - nrow(new_data), "trials on days without enough trials :)")
+  message(message)
+  return(new_data)
+}
+```
+
+
+https://www.pluralsight.com/guides/linear-lasso-and-ridge-regression-with-r
+
+```{r}
+good_bids <- data %>%
+  #step_remove_mondays() %>%
+  step_remove_toofastrt(threshold_ms = 100) %>%
+  step_remove_sdtimes(filter_quote = "first(which(j$stimuli_movement != 0))", sds = 3) %>%
+  step_remove_sdtimes(filter_quote = "first(which(is.na(j$stimuli_movement)))", sds = 3) %>%
+  step_remove_topbottoms() %>%
+  map2_df(c("Vicer", "Ulysses"), list(c(0.3, 1.0, 1.7), c(0.2, 0.45, 0.7)), step_extract_setfractals, data = .) %>%
+  step_morethan_ntrials(n_trials = 60) %>%
+  mutate(monkey = case_when(
+    monkey == "Ulysses" ~ "Monkey U",
+    monkey == "Vicer" ~ "Monkey V"
+  ))
+
+p <- good_bids %>%
+    group_by(date, monkey, reward_level) %>%
+    #summarise(monkey_bid = mean(monkey_bid)) %>%
+    ggplot(aes(x = factor(reward_level), y = monkey_bid, fill = monkey)) +
+    geom_boxplot() +
+    theme_minimal() +
+    facet_wrap(~monkey)  
+```
+```{r}
+grouped_good_bids <- good_bids %>%
+  group_by(monkey, date) %>%
+  summarise(n = n())
+
+means <- grouped_good_bids %>%
+  group_by(monkey) %>%
+  summarise(mean_bids = mean(n))
+
+p1 <- grouped_good_bids %>%
+  ggplot(aes(x = n)) +
+  geom_histogram(aes(fill = monkey), alpha = 0.8, binwidth = 10) +
+  geom_vline(data = means, aes(xintercept = mean_bids), linetype = "dashed", size = 1) +
+  monkey_fill_pal +
+  labs(
+    x = "trials per day"
+  ) +
+  theme_minimal() +
+  facet_wrap(~monkey) +
+  thesis_theme
+
+p2 <- grouped_good_bids %>%
+  filter(n > 9) %>%
+  ggplot(aes(x = date, y = n)) +
+  geom_line(alpha = 0.2) +
+  geom_point(aes(fill = monkey), size = 1.5, shape = 21, alpha = 0.7) +
+  monkey_fill_pal +
+  scale_y_continuous(limits = c(0, 250)) +
+  labs(
+    y = "trials per day"
+  ) +
+  theme_minimal() +
+  facet_wrap(~monkey) +
+  thesis_theme +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.3))
+
+```
+
+

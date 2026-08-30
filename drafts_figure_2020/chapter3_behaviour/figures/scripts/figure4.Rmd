@@ -1,0 +1,188 @@
+---
+title: "Untitled"
+author: "Robert Hickman"
+date: "24/11/2020"
+output: html_document
+---
+
+```{r}
+library(data.table)
+library(tidyverse)
+library(ggbeeswarm)
+library(broom)
+
+rm(list=ls())
+
+monkey_fill_pal <- scale_fill_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+monkey_col_pal <- scale_colour_manual(values = c("royalblue", "darkorange"), labels = c("Monkey U", "Monkey V"), guide = FALSE)
+
+thesis_theme <- theme(
+  axis.text = element_text(size = 14),
+  axis.title = element_text(size = 18),
+  strip.text = element_text(size = 20)
+)
+
+```
+
+```{r}
+data <- readRDS("C:/Users/DHill/Desktop/thesis/cleaned_data/post_exclusion_good_bids.rds") %>%
+  select(date, monkey, time, trial_no, monkey_bid, reward_juice_offer, reward_level)
+
+```
+
+```{r}
+test_data_3_fractals <- data %>%
+  mutate(reward_level_text = case_when(
+    reward_level == 1 ~ "low",
+    reward_level == 2 ~ "medium",
+    reward_level == 3 ~ "high"
+  )) %>%
+  mutate(monkey = case_when(
+    monkey == "Ulysses" ~ "monkey U",
+    monkey == "Vicer" ~ "monkey V"
+  )) %>%
+  mutate(reward_level_text = factor(reward_level_text, levels = c("low", "medium", "high")))
+
+```
+
+```{r}
+wilcoxon <- test_data_3_fractals %>%
+  group_by(monkey) %>%
+  group_split() %>%
+  map_df(function(dat) {
+    pairwise.wilcox.test(dat$monkey_bid, dat$reward_level_text, p.adjust = "bonferroni") %>%
+      tidy() %>%
+      mutate(monkey = unique(dat$monkey))
+  })
+
+wilcoxon_group <-  test_data_3_fractals %>%
+  group_by(date, monkey, reward_level_text) %>%
+  summarise(mean_monkey_bid = mean(monkey_bid, na.rm = TRUE)) %>%
+  ungroup() %>%
+  group_by(monkey) %>%
+  group_split() %>%
+  map_df(function(dat) {
+    pairwise.wilcox.test(dat$mean_monkey_bid, dat$reward_level_text, p.adjust = "bonferroni") %>%
+      tidy() %>%
+      mutate(monkey = unique(dat$monkey))
+  })
+
+```
+
+
+```{r}
+p1 <- ggplot(test_data_3_fractals, aes(x = factor(reward_level_text), y = monkey_bid, fill = monkey)) +
+  geom_boxplot() +
+  monkey_fill_pal +
+  labs(
+    x = "reward level",
+    y = "individual trial monkey bids"
+  ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  facet_wrap(~monkey) +
+  thesis_theme
+
+p2 <- test_data_3_fractals %>%
+  group_by(date, monkey, reward_level_text) %>%
+  summarise(mean_monkey_bid = mean(monkey_bid, na.rm = TRUE)) %>%
+  ggplot(aes(x = factor(reward_level_text), y = mean_monkey_bid, fill = monkey)) +
+  geom_boxplot() +
+  geom_beeswarm(size = 1, alpha = 0.5, cex = 1) +
+  monkey_fill_pal +
+  labs(
+    x = "reward level",
+    y = "mean session monkey bids"
+  ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  facet_wrap(~monkey) +
+  thesis_theme
+
+```
+```{r warning = FALSE}
+wilcoxon_by_day <- test_data_3_fractals %>%
+  group_by(monkey, date) %>%
+  group_split() %>%
+  map_df(function(dat) {
+    pairwise.wilcox.test(dat$monkey_bid, dat$reward_level_text, p.adjust = "bonferroni") %>%
+      tidy() %>%
+      mutate(monkey = unique(dat$monkey), date = unique(dat$date))
+  }) %>%
+  mutate(test = paste0(group1, "_", group2)) %>%
+  select(-group1, -group2)
+
+test <- wilcoxon_by_day %>%
+  pivot_wider(names_from = test, values_from = p.value) %>%
+  mutate(day_all_significant = case_when(
+    medium_low < 0.05 & high_low < 0.05 & high_medium < 0.05 ~ 1,
+    TRUE ~ 0
+  )) %>%
+  mutate(none_significant = case_when(
+    medium_low > 0.05 & high_low > 0.05 & high_medium > 0.05 ~ 1,
+    TRUE ~ 0
+  ))
+
+p3 <- wilcoxon_by_day %>%
+  mutate(significant = case_when(
+    p.value < 0.05 ~ 1,
+    TRUE ~ 0
+  )) %>%
+  group_by(test, monkey) %>%
+  summarise(prop_significant = mean(significant)) %>%
+  mutate(test = case_when(
+    test == "high_medium" ~ "high-med",
+    test == "high_low" ~ "high-low",
+    test == "medium_low" ~ "med-low"
+  )) %>%
+  mutate(test = factor(test, levels = c("high-med", "high-low", "med-low")))%>%
+  ggplot(aes(x = test, y = prop_significant)) +
+  geom_bar(stat = "identity", fill = "darkorchid", colour = "black") +
+  labs(
+    x = "Wilcoxon pair",
+    y = "proportion of days significant"
+  ) +
+  theme_minimal() +
+  facet_wrap(~monkey) +
+  thesis_theme #+
+ # theme(axis.text.x = element_text(angle = 20, vjust = 0.5, hjust=0.3))
+
+
+```
+
+```{r,warning=FALSE}
+spearman_by_day <- test_data_3_fractals %>%
+  group_by(date, monkey) %>%
+  group_split() %>%
+  map_df(function(dat) {
+    cor.test(dat$monkey_bid, as.numeric(dat$reward_level), method = "spearman") %>%
+      tidy() %>%
+      mutate(monkey = unique(dat$monkey), date = unique(dat$date))
+  })
+
+spearman_rho_mean <- spearman_by_day %>%
+  group_by(monkey) %>%
+  summarise(mean_rho = mean(estimate), start_date = min(date), end_date = max(date))
+
+p4 <- spearman_by_day %>%
+  ggplot(aes(x = date, y = estimate)) +
+  #stat_smooth(method = "lm", se = FALSE, aes(colour = monkey), size = 2) +
+  geom_hline(data = spearman_rho_mean, aes(colour = monkey, yintercept = mean_rho), linetype = "dashed", size = 2) +
+  geom_point(size = 3, shape = 21, aes(fill = monkey)) +
+  monkey_fill_pal +
+  monkey_col_pal +
+  scale_y_continuous(limits = c(0,1)) +
+  theme_minimal() +
+  facet_wrap(~monkey) +
+  thesis_theme +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.3))
+
+```
+```{r}
+library(patchwork)
+
+# from find_good_bids
+plot <- p1 + p2 + p3 + p4 + plot_annotation(tag_levels = 'A') & 
+  theme(plot.tag = element_text(size = 24))
+```
+

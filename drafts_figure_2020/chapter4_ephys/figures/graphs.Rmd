@@ -1,0 +1,1371 @@
+---
+title: "Untitled"
+author: "Robert Hickman"
+date: "04/10/2021"
+output: html_document
+---
+
+```{r libraries, warning=FALSE,message=FALSE}
+rm(list=ls())
+library(tidyverse)
+library(tidymodels)
+library(patchwork)
+library(gettyR)
+library(beepr)
+library(R.matlab)
+
+output_folder <- "C:/Users/DHill/Desktop/thesis/chapter4_ephys/figures/graphs_for_dan"
+group_cols <- c("date", "monkey", "session", "cell")
+
+DMK <- function(u, W) {(1 - exp(-u))*(exp(-u/W))}
+# w = window
+smooth_data <- function(spike_data, w, t, preset_z_params = NULL) {
+  divisor <- sum(map_dbl(seq(w), DMK, w))
+  vector <- spike_data$spike_bit_time_ms
+  
+  smooth <- map_dbl(t[1:(length(t)-w)], function(b) sum(map_dbl(vector[vector > b & vector < b + w] - b, DMK, w)) / divisor)
+  
+  if(is.null(preset_z_params)){
+    mu <- mean(smooth[t+w < 0])
+    std <- sd(smooth[t+w < 0])
+  } else {
+    mu <- present_z_params[1]
+    std <- preset_z_params[2]
+  }
+
+  if(is.na(mu) | is.na(std)) { return(NULL)}
+  if(mu == 0 & std == 0) { return(NULL)}
+
+  z_score <- (smooth - mu) / std
+  
+  df <- spike_data %>%
+    select(-spike_bit_time_ms) %>%
+    slice(rep(1, each = length(z_score))) %>%
+    mutate(
+      t = t[1:(length(t)-w)] + w,
+      z_score = z_score
+    )
+  
+  return(df)
+}
+
+  
+```
+
+```{r}
+rm <- data.frame(
+  monkey = "ulysses",
+  date = c("2019-07-12", "2019-07-18", "2019-08-09", "2019-08-15", "2020-02-07", "2020-01-30", "2019-09-26", "2019-10-04", "2019-11-29"),
+  session = c("0004", "0003", "0003", "0003", "0002", "0002", "0002", "0003", "0002"),
+  cell = c("cell3", "cell4", "cell5", "cell5", "cell5", "cell4", "cell7", "cell5", "cell5")
+)
+rm$date = as.Date(rm$date)
+```
+
+
+```{r load_data, warning=FALSE,message=FALSE}
+data <- bind_rows(
+  readRDS("C:/Users/DHill/Desktop/sorted_spikes/ulysses_sorted_data.rds") %>% mutate(monkey = "ulysses"),
+  readRDS("C:/Users/DHill/Desktop/sorted_spikes/vicer_sorted_data.rds") %>% mutate(monkey = "vicer")
+) %>%
+  dplyr::mutate(error = map(bits, ~dplyr::filter(., names == "error" & index == "upat"))) %>%
+  dplyr::mutate(error = map(error, ~dplyr::select(., vals))) %>%
+  dplyr::mutate(error = unlist(error)) %>%
+  dplyr::filter(is.na(error)) %>%
+  select(-error)
+
+  
+```
+
+```{r 3/1_fractal_days, warning=FALSE,message=FALSE}
+situation_cells <- data %>%
+  dplyr::select(date, monkey, session, trial, situation, sorted_spikes) %>%
+  tidyr::unnest(cols = sorted_spikes) %>%
+  select(date, monkey, session, situation, cell) %>%
+  dplyr::distinct() %>%
+  filter(situation %in% c(1,2,3)) %>%
+  group_by(date, monkey, session, cell) %>%
+  summarise(n = n_distinct(situation)) %>%
+  anti_join(rm, by = names(rm))
+
+three_situation_cells <- situation_cells %>%
+  filter(n == 3) %>%
+  select(-n)
+
+one_situation_cells <- situation_cells %>%
+  filter(n == 1) %>%
+  select(-n) %>%
+  filter(!is.na(cell))
+
+```
+
+```{r get_significant_cells, warning=FALSE,message=FALSE}
+bit <- "fixation_cross"
+switch <- "upat"
+t_window <- 750
+
+fc_unnested_bits <- data %>%
+  dplyr::filter(situation != 4) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) 
+
+fc_unnested_vals <- fc_unnested_bits %>%
+  mutate(vals = unlist(fc_unnested_bits$bits)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(abs(spike_bit_time_ms) < t_window & abs(spike_bit_time_ms) > 100) %>%
+  dplyr::select(date, monkey, session, trial,cell, spike_bit_time_ms)
+
+fc_significant_cells <- fc_unnested_vals %>%
+  dplyr::mutate(bit_spike = case_when(
+    spike_bit_time_ms < 0 ~ "before",
+    spike_bit_time_ms > 0 ~ "after"
+  )) %>%
+  dplyr::filter(!is.na(bit_spike)) %>%
+  dplyr::group_by(date, monkey, session, trial, cell, bit_spike) %>%
+  dplyr::summarise(n = n()) %>%
+  dplyr::group_by(date, monkey, session, cell) %>%
+  tidyr::complete(trial, bit_spike, fill = list(n = 0)) %>%
+  ungroup() %>%
+  tidyr:::pivot_wider(names_from = bit_spike, values_from = n) %>%
+  dplyr::filter(!is.na(after) & !is.na(before)) %>%
+  dplyr::group_by(date, monkey, session, cell) %>%
+  dplyr::group_split() %>%
+  purrr::map_df(function(data) {
+    test <- wilcox.test(data$before, data$after, alternative = "less")
+    tidytest <- broom::tidy(test)
+    df <- data %>%
+      dplyr::select(date, monkey, session, cell) %>%
+      unique() %>%
+      bind_cols(tidytest)
+  }) %>%
+  dplyr::filter(p.value < 0.01)
+
+
+```
+
+
+```{r get_significant_cells2, warning=FALSE,message=FALSE}
+bit <- "free_reward"
+switch <- "upat"
+t_window <- 750
+
+fr_unnested_bits <- data %>%
+  dplyr::filter(situation == 4) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms)
+
+fr_unnested_bits <- fr_unnested_bits %>%
+  filter(map_dbl(fr_unnested_bits$bits, nrow) == 1)
+
+fr_unnested_vals <- fr_unnested_bits %>%
+  mutate(vals = unlist(fr_unnested_bits$bits)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(abs(spike_bit_time_ms) < t_window & abs(spike_bit_time_ms) > 100) %>%
+  dplyr::select(date, monkey, session, trial,cell, spike_bit_time_ms)
+
+fr_significant_cells <- fr_unnested_vals %>%
+  dplyr::mutate(bit_spike = case_when(
+    spike_bit_time_ms < 0 ~ "before",
+    spike_bit_time_ms > 0 ~ "after"
+  )) %>%
+  dplyr::filter(!is.na(bit_spike)) %>%
+  dplyr::group_by(date, monkey, session, trial, cell, bit_spike) %>%
+  dplyr::summarise(n = n()) %>%
+  dplyr::group_by(date, monkey, session, cell) %>%
+  tidyr::complete(trial, bit_spike, fill = list(n = 0)) %>%
+  ungroup() %>%
+  tidyr:::pivot_wider(names_from = bit_spike, values_from = n) %>%
+  dplyr::filter(!is.na(after) & !is.na(before)) %>%
+  dplyr::group_by(date, monkey, session, cell) %>%
+  dplyr::group_split() %>%
+  purrr::map_df(function(data) {
+    test <- wilcox.test(data$before, data$after, alternative = "less")
+    tidytest <- broom::tidy(test)
+    df <- data %>%
+      dplyr::select(date, monkey, session, cell) %>%
+      unique() %>%
+      bind_cols(tidytest)
+  }) %>%
+  dplyr::filter(p.value < 0.01)
+
+
+```
+
+```{r get_cell_z_scores, warning=FALSE,message=FALSE}
+pre_fc_time <- 1700
+z_scores <- fc_unnested_bits %>%
+  mutate(vals = unlist(fc_unnested_bits$bits)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < 0 & spike_bit_time_ms > -pre_fc_time) %>%
+  dplyr::select(date, monkey, session, trial,cell, spike_bit_time_ms) %>%
+  group_by(date, monkey, session, trial, cell) %>%
+  summarise(spikes = n() * (1000 / pre_fc_time)) %>%
+  group_by(date, monkey, session, cell) %>%
+  summarise(
+    mu = mean(spikes),
+    std = sd(spikes)
+  ) %>%
+  filter(mu < 10)
+
+significant_cells <- fc_significant_cells %>%
+  mutate(id1 = "fc") %>%
+  left_join(select_at(fr_significant_cells, vars(all_of(group_cols))) %>% mutate(id2 = "fr"), by = all_of(group_cols)) %>%
+  filter(!is.na(id2)) %>%
+  left_join(select_at(z_scores, vars(all_of(group_cols))) %>% mutate(id3 = "zscore"), by = all_of(group_cols)) %>%
+  filter(!is.na(id3))
+
+sig_cells_string = paste0(
+  names(table(significant_cells$monkey)),
+  ": n = ",
+  table(significant_cells$monkey),
+  " neurons",
+  collapse = "; "
+)
+
+print(sig_cells_string)
+
+```
+
+```{r behaviour_data, warning=FALSE,message=FALSE}
+behaviour <- data %>%
+  select(date, monkey, session, trial, situation, trial_vals, sorted_spikes) %>%
+  unnest(trial_vals) %>%
+  filter(names %in% c("monkey_bid", "computer_bid")) %>%
+  pivot_wider(names_from = names, values_from = vals) %>%
+  unnest(sorted_spikes) %>%
+  right_join(select_at(significant_cells, vars(all_of(group_cols)))) %>%
+  filter(situation != 4) %>%
+  select_at(vars(all_of(group_cols), trial, situation, monkey_bid, computer_bid))
+
+```
+
+
+## Free Reward
+
+```{r free_reward_analysis, warning=FALSE,message=FALSE}
+bit = "free_reward"
+t_window = 1500 
+switch = "upat"
+fr = TRUE
+
+situation_data <- data %>%
+    dplyr::filter(situation == 4)
+
+fr_unnested_bits <- situation_data %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) 
+
+fr_unnested_vals <- fr_unnested_bits %>%
+  dplyr::filter(map_lgl(fr_unnested_bits$bits, ~(!all(is.na(.)) & nrow(.) == 1))) %>%
+  dplyr::mutate(vals = map_dbl(bits, unlist)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < t_window & spike_bit_time_ms > -t_window) %>%
+  dplyr::select(date, monkey, session, trial,cell, spike_bit_time_ms) %>%
+  right_join(select_at(significant_cells, vars(group_cols)), by = group_cols) 
+
+
+pfr1 <-  fr_unnested_vals %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  ggplot(aes(x = spike_bit_time_ms)) +
+  geom_histogram(fill = "darkblue", colour = "black") +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since onset of free reward (/ms)",
+    y = "total number of spikes"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~monkey)
+
+fr_rolling <- fr_unnested_vals %>%
+  group_by(date, monkey, session, cell) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -1000:1000) %>%
+  group_by(monkey, t) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+pfr2 <- fr_rolling %>%
+  filter(t > -500 & t < 1000) %>%
+  ggplot(aes(x = t, y = av_zscore)) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem), fill = "darkblue", alpha = 0.3, colour = NA, guide = FALSE) +
+  geom_line(size = 2, colour = "darkblue") +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since onset of free reward (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~monkey)
+
+pfr3 <- fr_unnested_vals %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  group_by(monkey, date, cell) %>%
+  mutate(cell_no = cur_group_id()) %>%
+  group_by(monkey) %>%
+  mutate(cell_no = cell_no - min(cell_no) + 1) %>%
+  ggplot(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 5, ymin = cell_no, ymax = cell_no + 1)) +
+  geom_rect(fill = "darkblue", alpha = 0.4) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since onset of free reward (/ms)",
+    y = "unique cell number"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_blank()
+  ) +
+  facet_wrap(~monkey)
+  
+free_reward_plot = pfr2 / pfr3 + plot_annotation(
+  title = 'Putative dopamine neuron responses to free liquid reward',
+  subtitle = sig_cells_string
+)
+
+ggsave(file.path(output_folder, "free_reward_response.svg"), free_reward_plot, device = "svg", width = 6, height = 7)
+ggsave(file.path(output_folder, "free_reward_response.png"), free_reward_plot, device = "png", width = 6, height = 7)
+
+```
+
+```{r fr_stats, message=FALSE,warning=FALSE}
+fr_stats1 <- fr_unnested_vals %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < 0 & spike_bit_time_ms > -350 ~ "pre",
+    spike_bit_time_ms > 0 & spike_bit_time_ms < 350 ~ "post"
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  group_by(monkey) %>%
+  group_split()
+
+
+lapply(fr_stats1, function(d) wilcox.test(d$post, d$pre, alternative = "greater"))
+
+
+fr_stats2 <- fr_unnested_vals %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < 0 & spike_bit_time_ms > -350 ~ "pre",
+    spike_bit_time_ms > 0 & spike_bit_time_ms < 350 ~ "post"
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, trial, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  group_by(date, monkey, session, cell) %>%
+  group_split() %>%
+  purrr::map_df(function(data) {
+    test <- wilcox.test(data$post, data$pre, alternative = "greater")
+    tidytest <- broom::tidy(test)
+    df <- data %>%
+      dplyr::select(date, monkey, session, cell) %>%
+      unique() %>%
+      bind_cols(tidytest)
+  })
+
+fr_stats3 <- fr_unnested_vals %>%
+  group_by(date, monkey, session, cell) %>%
+  summarise(n = n_distinct(trial)) %>%
+  ungroup()
+
+fr_stats4 <- fr_stats3 %>%
+  left_join(fr_stats2, by = c("date", "monkey", "session", "cell")) %>%
+  mutate(
+    significant = case_when(
+      p.value < 0.05 ~ "yes",
+      TRUE ~ "no"
+    ),
+    numbers = case_when(
+      n > 5 ~ "lots",
+      TRUE ~ "few"
+    )
+  )
+
+```
+
+# Fixation Cross
+
+```{r fixation_cross_analysis, warning=FALSE,message=FALSE}
+bit = "fixation_cross"
+t_window = 1500 
+switch = "upat"
+fr = TRUE
+
+situation_data <- data %>%
+    dplyr::filter(situation != 4)
+
+fc_unnested_bits <- situation_data %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) 
+
+fc_unnested_vals <- fc_unnested_bits %>%
+  dplyr::filter(map_lgl(fc_unnested_bits$bits, ~(!all(is.na(.)) & nrow(.) == 1))) %>%
+  dplyr::mutate(vals = map_dbl(bits, unlist)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < t_window & spike_bit_time_ms > -t_window) %>%
+  dplyr::select(date, monkey, session, trial,cell, spike_bit_time_ms) %>%
+  right_join(select_at(significant_cells, vars(group_cols)), by = group_cols) 
+
+pfc1 <-  fc_unnested_vals %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  ggplot(aes(x = spike_bit_time_ms)) +
+  geom_histogram(fill = "darkblue", colour = "black") +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since trial onset signal (/ms)",
+    y = "total number of spikes"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~monkey)
+
+fc_rolling <- fc_unnested_vals %>%
+  group_by(date, monkey, session, cell) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -1000:1000) %>%
+  group_by(monkey, t) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+pfc2 <- fc_rolling %>%
+  filter(t > -500 & t < 1000) %>%
+  ggplot(aes(x = t, y = av_zscore)) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem), fill = "darkblue", alpha = 0.3, colour = NA, guide = FALSE) +
+  geom_line(size = 2, colour = "darkblue") +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since trial onset signal (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~monkey)
+
+pfc3 <- fc_unnested_vals %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  group_by(monkey, date, cell) %>%
+  mutate(cell_no = cur_group_id()) %>%
+  group_by(monkey) %>%
+  mutate(cell_no = cell_no - min(cell_no) + 1) %>%
+  ggplot(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 2, ymin = cell_no, ymax = cell_no + 1)) +
+  geom_rect(fill = "darkblue", alpha = 0.2) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since trial onset signal (/ms)",
+    y = "unique cell number"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_blank()
+  ) +
+  facet_wrap(~monkey)
+  
+fix_cross_plot = pfc2 / pfc3 + plot_annotation(
+  title = 'Putative dopamine neuron responses to trial onset signal',
+  subtitle = sig_cells_string
+)
+ggsave(file.path(output_folder, "fixation_cross_response.svg"), fix_cross_plot, device = "svg", width = 6, height = 7)
+ggsave(file.path(output_folder, "fixation_cross_response.png"), fix_cross_plot, device = "png", width = 6, height = 7)
+
+
+```
+
+# Reward Display
+
+```{r reward_fractal_display, warning=FALSE,message=FALSE}
+bit = "fractal_display"
+t_window = 1500 
+switch = "upat"
+fr = FALSE
+
+situation_data <- data %>%
+    dplyr::filter(situation != 4)
+
+rew_unnested_bits <- situation_data %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) 
+
+rew_unnested_vals <- rew_unnested_bits %>%
+  dplyr::filter(map_lgl(rew_unnested_bits$bits, ~(!all(is.na(.)) & nrow(.) == 1))) %>%
+  dplyr::mutate(vals = map_dbl(bits, unlist)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < t_window & spike_bit_time_ms > -t_window) %>%
+  dplyr::select(date, monkey, session, trial, situation, cell, spike_bit_time_ms) %>%
+  right_join(select_at(significant_cells, vars(group_cols)), by = group_cols) %>%
+  right_join(three_situation_cells, by = group_cols) %>%
+  filter(!is.na(spike_bit_time_ms))
+
+rew_trial_info <- rew_unnested_vals %>%
+  mutate(reward_level = case_when(
+    situation == 1 ~ "low",
+    situation == 2 ~ "medium",
+    situation == 3 ~ "high"
+  )) %>%
+  mutate(reward_level = factor(reward_level, levels = c("low", "medium", "high")))
+
+prd1 <-  rew_trial_info %>%
+  dplyr::filter(spike_bit_time_ms > -800 & spike_bit_time_ms < 1000) %>%
+  ggplot(aes(x = spike_bit_time_ms, fill = reward_level)) +
+  geom_histogram(colour = "black", binwidth = 50, position=position_stack(reverse = TRUE)) +
+  scale_fill_viridis_d() +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since potential reward display (/ms)",
+    y = "total number of spikes"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  ) +
+  facet_wrap(~monkey, scales = "free")
+
+rew_rolling <- rew_trial_info %>%
+  group_by(date, monkey, session, reward_level, cell) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -700:1000) %>%
+  group_by(monkey, t, reward_level) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+prd2 <- rew_rolling %>%
+  ggplot(aes(x = t, y = av_zscore, colour = reward_level)) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem, fill = reward_level), alpha = 0.3, colour = NA, guide = FALSE) +
+  geom_line(size = 1) +
+  scale_fill_viridis_d() +
+  scale_colour_viridis_d() +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since potential reward display (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  ) +
+  facet_wrap(~monkey)
+
+prd3 <- rew_trial_info %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  group_by(monkey, date, cell) %>%
+  mutate(cell_no = cur_group_id()) %>%
+  group_by(monkey) %>%
+  mutate(cell_no = cell_no - min(cell_no) + 1) %>%
+  ggplot(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 2, ymin = cell_no, ymax = cell_no + 1, fill = reward_level)) +
+  geom_rect(alpha = 0.2) +
+  scale_fill_viridis_d(name = "offered reward level") +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since offered reward display (/ms)",
+    y = "unique cell number"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  ) +
+  guides(fill = guide_legend(override.aes = list(alpha=1))) +
+  facet_wrap(~monkey)
+
+rew_monkey_vec <- rew_trial_info %>%
+    group_by(date, monkey, session, cell) %>%
+    summarise(n()) %>%
+    pull(monkey)
+
+sig_cells_string_rew = paste0(
+  names(table(rew_monkey_vec)),
+  ": n = ",
+  table(rew_monkey_vec),
+  " neurons",
+  collapse = "; "
+)
+
+reward_display_plot =  prd2 / prd3 + plot_annotation(
+  title = 'Putative dopamine neuron responses to offered reward display',
+  subtitle = sig_cells_string_rew
+)
+
+ggsave(file.path(output_folder, "fractal_display.svg"), reward_display_plot, device = "svg", width = 6, height = 7)
+ggsave(file.path(output_folder, "fractal_display.png"), reward_display_plot, device = "png", width = 6, height = 7)
+
+```
+
+```{r reward_stats, warning=FALSE,message=FALSE}
+t_window <- 600
+rew_stats1 <- rew_trial_info %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < -100 & spike_bit_time_ms > -t_window ~ "pre",
+    spike_bit_time_ms > 100 & spike_bit_time_ms < t_window ~ "post"
+  )) %>%
+  mutate(reward_factor= case_when(
+    reward_level == "high" ~3,
+    reward_level == "medium" ~ 2,
+    reward_level == "low" ~ 1
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, reward_factor, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  mutate(delta = post/pre) %>%
+  filter(!is.na(delta) & !is.infinite(delta)) %>%
+  group_by(monkey) %>%
+  group_split() %>%
+  map_df(function(d) kruskal.test(d$delta, d$reward_factor) %>% broom::tidy())
+
+rew_stats2 <- rew_trial_info %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < -100 & spike_bit_time_ms > -400 ~ "pre",
+    spike_bit_time_ms > 100 & spike_bit_time_ms < 400 ~ "post"
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, trial, reward_level, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  group_by(date, monkey, session, cell, reward_level) %>%
+  group_split() %>%
+  map_df(function(d) cbind(
+    d %>% select(date, monkey, session, cell, reward_level) %>% mutate(n = nrow(.)) %>% distinct(),
+    wilcox.test(d$post, d$pre, alternative = "two.sided") %>% broom::tidy())
+  ) %>%
+  mutate(signif = case_when(p.value < 0.1 ~ "significant", p.value > 0.1 ~ "not_significant")) %>%
+  select(date, monkey, session, cell, reward_level, p.value) %>%
+  pivot_wider(names_from = reward_level, values_from = p.value) %>%
+  mutate(
+    signif = case_when(
+      low < 0.15 | high < 0.15 ~ "significant",
+      TRUE ~ "not_signif"
+    ),
+    high_signif = case_when(
+      high < 0.15 ~ "significant",
+      TRUE ~ "not_signif"
+    ),
+    low_signif = case_when(
+      low < 0.15 ~ "significant",
+      TRUE ~ "not_signif"
+    )
+  )
+
+
+rew_stats3 <- rew_trial_info %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < -100 & spike_bit_time_ms > -400 ~ "pre",
+    spike_bit_time_ms > 100 & spike_bit_time_ms < 400 ~ "post"
+  )) %>%
+  mutate(reward_factor= case_when(
+    reward_level == "high" ~3,
+    reward_level == "medium" ~ 2,
+    reward_level == "low" ~ 1
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, trial, reward_factor, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  mutate(delta = post/pre) %>%
+  filter(!is.na(delta) & !is.infinite(delta)) %>%
+  group_by(date, monkey, session, cell) %>%
+  group_split() %>%
+  map_df(function(d) {
+    cbind(
+      d %>% select(date, monkey, session, cell) %>% mutate(n = nrow(.)) %>% distinct(),
+      kruskal.test(d$delta, d$reward_factor) %>% broom::tidy()
+    )
+  }) %>%
+  mutate(signif = case_when(p.value < 0.1 ~ "significant", TRUE ~ "not_significant"))
+
+```
+
+# Trial Outcome
+
+```{r trial_outcome_display, warning=FALSE,message=FALSE}
+ntiles <- 3
+rew_trial_info2 <- distinct(behaviour) %>%
+  right_join(select_at(significant_cells, all_of(group_cols), by = group_cols)) %>%
+  group_by(date, situation) %>%
+  mutate(
+    winlose = case_when(
+      computer_bid > monkey_bid ~ "lose",
+      monkey_bid >= computer_bid ~ "win"
+    ),
+    reward_level = case_when(
+      situation == 1 ~ "low value reward",
+      situation == 2 ~ "medium value reward",
+      situation == 3 ~ "high value reward"
+    ),
+    monkey_bid_ntile = ntile(monkey_bid, ntiles),
+  ) %>%
+  mutate(reward_level = factor(reward_level, levels = c("high value reward", "medium value reward", "low value reward"))) %>%
+  mutate(
+    monkey_bid_ntile = case_when(
+      monkey_bid_ntile == 1 ~ "low",
+      monkey_bid_ntile == 2 ~ "medium",
+      monkey_bid_ntile == 3 ~ "high"
+    )
+  ) %>%
+  mutate(monkey_bid_ntile = factor(monkey_bid_ntile, levels = c("high", "medium", "low"))) %>%
+  left_join(rew_unnested_vals, by = c("date", "monkey", "session", "trial", "situation", "cell")) %>%
+  filter(!is.na(spike_bit_time_ms))
+    
+rew_rolling2 <- rew_trial_info2 %>%
+  group_by(date, monkey, session, reward_level, monkey_bid_ntile, cell) %>%
+  filter(!is.na(winlose) & !is.na(reward_level)) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -700:1000) %>%
+  group_by(monkey, t, reward_level, monkey_bid_ntile) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+colfunc1<-colorRampPalette(c("green", "darkgreen"))
+
+prd4 <- rew_rolling2 %>%
+  ggplot(aes(x = t, y = av_zscore, colour = factor(monkey_bid_ntile), group = paste0(monkey, reward_level, monkey_bid_ntile))) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem, fill = factor(monkey_bid_ntile)), alpha = 0.3, colour = NA, guide = FALSE) +
+  scale_colour_manual(values = colfunc1(ntiles), name = "forthcoming monkey bid third") +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since offered reward display (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom"
+  ) +
+  facet_grid(reward_level~monkey)
+
+reward_display_plot2 =  prd4 + plot_annotation(
+  title = 'Putative dopamine neuron responses to offered reward display',
+  subtitle = sig_cells_string_rew
+)
+
+ggsave(file.path(output_folder, "fractal_display_and_bid.svg"), reward_display_plot2, device = "svg", width = 6, height = 7)
+ggsave(file.path(output_folder, "fractal_display_and_bid.png"), reward_display_plot2, device = "png", width = 6, height = 7)
+
+```
+
+```{r}
+ntiles <- 3
+rew_trial_info2 <- distinct(behaviour) %>%
+  right_join(select_at(significant_cells, all_of(group_cols), by = group_cols)) %>%
+  group_by(date, situation) %>%
+  mutate(
+    winlose = case_when(
+      computer_bid > monkey_bid ~ "lose",
+      monkey_bid >= computer_bid ~ "win"
+    ),
+    reward_level = case_when(
+      situation == 1 ~ "low value reward",
+      situation == 2 ~ "medium value reward",
+      situation == 3 ~ "high value reward"
+    ),
+    monkey_bid_ntile = ntile(monkey_bid, ntiles),
+  ) %>%
+  mutate(reward_level = factor(reward_level, levels = c("high value reward", "medium value reward", "low value reward"))) %>%
+  left_join(rew_unnested_vals, by = c("date", "monkey", "session", "trial", "situation", "cell")) %>%
+  filter(!is.na(spike_bit_time_ms))
+    
+rew_rolling2 <- rew_trial_info2 %>%
+  group_by(date, monkey, session, monkey_bid_ntile, cell) %>%
+  filter(!is.na(winlose) & !is.na(reward_level)) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -500:1000) %>%
+  group_by(monkey, t, monkey_bid_ntile) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+colfunc1<-colorRampPalette(c("green", "darkgreen"))
+
+prd4 <- rew_rolling2 %>%
+  ggplot(aes(x = t, y = av_zscore, colour = monkey_bid_ntile, group = paste0(monkey, monkey_bid_ntile))) +
+  geom_line(size = 1) +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since offered reward display (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom"
+  ) +
+  facet_wrap(~monkey)
+
+```
+
+
+```{r trial_outcome_display_stats, warning=FALSE,message=FALSE}
+t_window <- 600
+outcome_stats1 <- rew_trial_info2 %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < -100 & spike_bit_time_ms > -t_window ~ "pre",
+    spike_bit_time_ms > 100 & spike_bit_time_ms < t_window ~ "post"
+  )) %>%
+  mutate(reward_factor= case_when(
+    reward_level == "high value reward" ~3,
+    reward_level == "medium value reward" ~ 2,
+    reward_level == "low value reward" ~ 1
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, reward_factor, winlose, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  mutate(delta = post/pre) %>%
+  filter(!is.na(delta) & !is.infinite(delta)) %>%
+  group_by(monkey, winlose) %>%
+  group_split() %>%
+  map_df(function(d) kruskal.test(d$delta, d$reward_factor) %>% broom::tidy())
+
+outcome_stats2 <- rew_trial_info2 %>%
+  filter(winlose == "lose") %>%
+  mutate(wilcoxon_group = case_when(
+    spike_bit_time_ms < -100 & spike_bit_time_ms > -500 ~ "pre",
+    spike_bit_time_ms > 100 & spike_bit_time_ms < 500 ~ "post"
+  )) %>%
+  filter(!is.na(wilcoxon_group)) %>%
+  group_by(date, monkey, session, cell, trial, reward_level, wilcoxon_group) %>%
+  summarise(n_spikes = n()) %>%
+  pivot_wider(names_from = wilcoxon_group, values_from = n_spikes, values_fill = 0) %>%
+  group_by(date, monkey, session, cell, reward_level) %>%
+  group_split() %>%
+  map_df(function(d) cbind(
+    d %>% select(date, monkey, session, cell, reward_level) %>% mutate(n = nrow(.)) %>% distinct(),
+    wilcox.test(d$post, d$pre, alternative = "two.sided") %>% broom::tidy())
+  ) %>%
+  mutate(signif = case_when(p.value < 0.1 ~ "significant", p.value > 0.1 ~ "not_significant")) %>%
+  select(date, monkey, session, cell, reward_level, p.value) %>%
+  pivot_wider(names_from = reward_level, values_from = p.value) %>%
+  rename(high = `high value reward`, medium = `medium value reward`, low = `low value reward`) %>%
+  mutate(
+    signif = case_when(
+      low < 0.15 | high < 0.15 ~ "significant",
+      TRUE ~ "not_signif"
+    ),
+    high_signif = case_when(
+      high < 0.15 ~ "significant",
+      TRUE ~ "not_signif"
+    ),
+    low_signif = case_when(
+      low < 0.15 ~ "significant",
+      TRUE ~ "not_signif"
+    )
+  )
+
+
+```
+
+
+
+```{r}
+situation_data <- data %>%
+    dplyr::filter(situation == 2)
+
+rew_unnested_bits_mid <- situation_data %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) 
+
+rew_unnested_vals_mid <- rew_unnested_bits_mid %>%
+  dplyr::filter(map_lgl(rew_unnested_bits_mid$bits, ~(!all(is.na(.)) & nrow(.) == 1))) %>%
+  dplyr::mutate(vals = map_dbl(bits, unlist)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < t_window & spike_bit_time_ms > -t_window) %>%
+  dplyr::select(date, monkey, session, trial, situation, cell, spike_bit_time_ms) %>%
+  right_join(select_at(significant_cells, vars(group_cols)), by = group_cols) %>%
+  filter(!is.na(spike_bit_time_ms))
+
+rew_trial_info_mid <- rew_unnested_vals_mid %>%
+  left_join(mutate(three_situation_cells, reward = "middle"), by = group_cols) %>%
+  left_join(mutate(one_situation_cells, reward = "only"), by = group_cols) %>%
+  mutate(reward = case_when(
+    reward.x == "middle" ~ "middle",
+    reward.y == "only" ~ "only"
+  )) %>%
+  select(-reward.x, -reward.y)
+
+rew_rolling_mid <- rew_trial_info_mid %>%
+  group_by(date, monkey, session, reward, cell) %>%
+  filter(!is.na(reward)) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -700:1000) %>%
+  group_by(monkey, t, reward) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+prd5 <- rew_rolling_mid %>%
+  ggplot(aes(x = t, y = av_zscore, colour = reward)) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem, fill = reward), alpha = 0.3, colour = NA, guide = FALSE) +
+  geom_line(size = 1) +
+  scale_colour_manual(values = c("purple", "goldenrod"), name = "context of medium offered reward fractal") +
+  scale_fill_manual(values = c("purple", "goldenrod"), guide = FALSE) +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since offered reward display (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~monkey)
+
+prd6 <- rew_trial_info_mid %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  group_by(monkey, date, cell) %>%
+  mutate(cell_no = cur_group_id()) %>%
+  group_by(monkey) %>%
+  mutate(cell_no = cell_no - min(cell_no) + 1) %>%
+  ggplot(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 2, ymin = cell_no, ymax = cell_no + 1, fill = reward)) +
+  geom_rect(alpha = 0.2) +
+  scale_fill_manual(values = c("purple", "goldenrod"), name = "context of medium offered reward fractal") +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since offered reward display (/ms)",
+    y = "unique cell number"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  ) +
+  guides(fill = guide_legend(override.aes = list(alpha=1))) +
+  facet_wrap(~monkey)
+
+rew_monkey_vec_mid <- rew_trial_info_mid %>%
+    group_by(date, monkey, session, cell) %>%
+    summarise(n()) %>%
+    pull(monkey)
+
+sig_cells_string_rew_mid = paste0(
+  names(table(rew_monkey_vec_mid)),
+  ": n = ",
+  table(rew_monkey_vec_mid),
+  " neurons",
+  collapse = "; "
+)
+
+reward_display_plot2 =  prd5 / prd6 + plot_annotation(
+  title = 'Putative dopamine neuron responses to offered reward display',
+  subtitle = sig_cells_string_rew_mid
+)
+
+ggsave(file.path(output_folder, "fractal_display_mids.svg"), reward_display_plot2, device = "svg", width = 6, height = 7)
+ggsave(file.path(output_folder, "fractal_display_mids.png"), reward_display_plot2, device = "png", width = 6, height = 7)
+
+```
+
+
+# Win Lose
+
+```{r}
+bit = "win_lose"
+t_window = 1500 
+switch = "upat"
+fr = FALSE
+
+situation_data <- data %>%
+    dplyr::filter(situation != 4)
+
+res_unnested_spikes <- situation_data %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::filter(., names == bit & index == switch))) %>%
+  dplyr::mutate(bits = map(bits, ~dplyr::select(., vals))) %>%
+  dplyr::select(date, monkey, session, trial, situation, bits, sorted_spikes) %>%
+  tidyr::unnest(sorted_spikes) %>%
+  dplyr::select(-spike_time_ms) 
+
+res_unnested_vals <- res_unnested_spikes %>%
+  dplyr::filter(map_lgl(res_unnested_spikes$bits, ~(!all(is.na(.)) & nrow(.) == 1))) %>%
+  dplyr::mutate(vals = map_dbl(bits, unlist)) %>%
+  dplyr::rename(bit_time_ms = vals) %>%
+  dplyr::mutate(spike_bit_time_ms = trial_spike_time_ms - bit_time_ms) %>%
+  dplyr::filter(spike_bit_time_ms < t_window & spike_bit_time_ms > -t_window) %>%
+  dplyr::select(date, monkey, session, trial, situation, cell, spike_bit_time_ms) %>%
+  right_join(select_at(significant_cells, vars(group_cols)), by = group_cols) %>%
+  right_join(three_situation_cells, by = group_cols) %>%
+  filter(!is.na(spike_bit_time_ms))
+
+
+res_trial_info <- res_unnested_vals %>%
+  left_join(distinct(behaviour), by = c("date", "monkey", "session", "trial", "situation", "cell")) %>%
+  mutate(
+    reward_level = case_when(
+      situation == 1 ~ "low",
+      situation == 2 ~ "medium",
+      situation == 3 ~ "high"
+    ),
+    monkey_bid_third = case_when(
+      monkey_bid >= 0 & monkey_bid < 34 ~ "low",
+      monkey_bid > 33 & monkey_bid < 67 ~ "medium",
+      monkey_bid > 66 & monkey_bid <= 100 ~ "high"
+    ),
+    computer_bid_third = case_when(
+      computer_bid >= 0 & computer_bid < 34 ~ "low",
+      computer_bid > 33 & computer_bid < 67 ~ "medium",
+      computer_bid > 66 & computer_bid <= 100 ~ "high"
+    ),
+    winlose = case_when(
+      computer_bid > monkey_bid ~ "computer's bid wins",
+      monkey_bid >= computer_bid ~ "monkey's bid wins"
+    )
+  ) %>%
+  mutate(
+    reward_level = factor(reward_level, levels = c("low", "medium", "high")),
+    monkey_bid_third = factor(monkey_bid_third, levels = c("low", "medium", "high")),
+    computer_bid_third = factor(computer_bid_third, levels = c("low", "medium", "high")),
+    winlose = factor(winlose, levels = c("monkey's bid wins", "computer's bid wins"))
+  )
+
+
+res_rolling <- res_trial_info %>%
+  group_by(date, monkey, session, winlose, reward_level, cell) %>%
+  filter(!is.na(winlose) & !is.na(reward_level)) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -700:1000) %>%
+  group_by(monkey, t, winlose, reward_level) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+pwl1 <- res_rolling %>%
+  dplyr::filter(t > -500 & t < 1000) %>%
+  ggplot(aes(x = t, y = av_zscore, colour = reward_level)) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem, fill = reward_level), alpha = 0.3, colour = NA, guide = FALSE) +
+  geom_line(size = 1) +
+  scale_colour_viridis_d(name = "offered reward level") +
+  scale_fill_viridis_d(guide = FALSE) +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since trial outcome revealed (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  ) +
+  facet_grid(winlose~monkey)
+
+pwl2 <- res_trial_info %>%
+  dplyr::filter(spike_bit_time_ms > -500 & spike_bit_time_ms < 1000) %>%
+  group_by(monkey, date, cell) %>%
+  mutate(cell_no = cur_group_id()) %>%
+  group_by(monkey) %>%
+  mutate(cell_no = cell_no - min(cell_no) + 1) %>%
+  ggplot(aes(xmin = spike_bit_time_ms, xmax = spike_bit_time_ms + 2, ymin = cell_no, ymax = cell_no + 1, fill = reward_level)) +
+  geom_rect(alpha = 0.2) +
+  scale_fill_viridis_d(name = "offered reward level") +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    x = "time since trial outcome revealed (/ms)",
+    y = "unique cell number"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_blank(),
+    legend.position = "bottom"
+  ) +
+  guides(fill = guide_legend(override.aes = list(alpha=1))) +
+  facet_wrap(~monkey)
+
+res_monkey_vec <- res_trial_info %>%
+    group_by(date, monkey, session, cell) %>%
+    summarise(n()) %>%
+    pull(monkey)
+
+sig_cells_string_res = paste0(
+  names(table(res_monkey_vec)),
+  ": n = ",
+  table(res_monkey_vec),
+  " neurons",
+  collapse = "; "
+)
+
+winlose_outcome_plot =  pwl1 / pwl2 + plot_annotation(
+  title = 'Putative dopamine neuron responses to reveal of trial outcome',
+  subtitle = sig_cells_string_res
+)
+
+ggsave(file.path(output_folder, "trial_outcome_display.svg"), winlose_outcome_plot, device = "svg", width = 6, height = 7)
+ggsave(file.path(output_folder, "trial_outcome_display.png"), winlose_outcome_plot, device = "png", width = 6, height = 7)
+
+```
+
+```{r}
+ntiles <- 3
+
+res_trial_info2 <- distinct(behaviour) %>%
+  right_join(select_at(significant_cells, all_of(group_cols), by = group_cols)) %>%
+  group_by(date, monkey, session, cell, situation) %>%
+  mutate(
+    winlose = case_when(
+      computer_bid > monkey_bid ~ "computer's bid wins",
+      monkey_bid >= computer_bid ~ "monkey's bid wins"
+    ),
+    reward_level = case_when(
+      situation == 1 ~ "low value reward",
+      situation == 2 ~ "medium value reward",
+      situation == 3 ~ "high value reward"
+    ),
+    monkey_bid_ntile = ntile(monkey_bid, ntiles),
+    computer_bid_ntile = ntile(computer_bid, ntiles),
+  ) %>%
+  mutate(winlose = factor(winlose, levels = c("monkey's bid wins", "computer's bid wins"))) %>%
+  mutate(reward_level = factor(reward_level, levels = c("high value reward", "medium value reward", "low value reward"))) %>%
+  mutate(
+    computer_bid_ntile = case_when(
+      computer_bid_ntile == 1 ~ "low",
+      computer_bid_ntile == 2 ~ "medium",
+      computer_bid_ntile == 3 ~ "high"
+    )
+  ) %>%
+  mutate(computer_bid_ntile = factor(computer_bid_ntile, levels = c("high", "medium", "low"))) %>%
+  left_join(res_unnested_vals, by = c("date", "monkey", "session", "trial", "situation", "cell")) %>%
+  filter(!is.na(spike_bit_time_ms))
+    
+res_rolling2 <- res_trial_info2 %>%
+  group_by(date, monkey, session, winlose, reward_level, computer_bid_ntile, cell) %>%
+  filter(!is.na(winlose) & !is.na(reward_level)) %>%
+  group_split() %>%
+  map_df(smooth_data, w = 200, t = -700:1000) %>%
+  group_by(monkey, t, winlose, reward_level, computer_bid_ntile) %>%
+  summarise(
+    av_zscore = mean(z_score, na.rm = TRUE),
+    sd_zscore = sd(z_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  mutate(sem = sd_zscore / sqrt(n))
+
+colfunc2<-colorRampPalette(c("red", "darkred"))
+
+pwl3 <- res_rolling2 %>%
+  dplyr::filter(t > -500 & t < 1000) %>%
+  dplyr::filter(winlose == "monkey's bid wins") %>%
+  ggplot(aes(x = t, y = av_zscore, colour = computer_bid_ntile)) +
+  geom_ribbon(aes(ymin = av_zscore - sem, ymax = av_zscore + sem, fill = computer_bid_ntile), alpha = 0.3, colour = NA, guide = FALSE) +
+  geom_line(size = 1) +
+  scale_fill_manual(values = colfunc1(ntiles), guide = FALSE) +
+  scale_colour_manual(values = colfunc1(ntiles), name = "revealed computer's bid third") +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    title = "monkey's bid wins condition:",
+    x = "time since trial outcome revealed (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  ) +
+  facet_grid(reward_level~monkey)
+
+pwl4 <- res_rolling2 %>%
+  dplyr::filter(t > -500 & t < 1000) %>%
+  dplyr::filter(winlose == "computer's bid wins") %>%
+  ggplot(aes(x = t, y = av_zscore, colour = computer_bid_ntile)) +
+  geom_line(size = 1) +
+  scale_colour_manual(values = colfunc1(ntiles), name = "revealed computer's bid third") +
+  geom_hline(yintercept = 0, colour = "black", size = 1.5) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed", size = 1.5) +
+  labs(
+    title = "computer's bid wins condition:",
+    x = "time since trial outcome revealed (/ms)",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom"
+  ) +
+  facet_grid(reward_level~monkey)
+
+winlose_outcome_plot2 =  pwl3 / pwl4 + plot_annotation(
+  title = 'Putative dopamine neuron responses to reveal of trial outcome',
+  subtitle = sig_cells_string_res
+)
+
+ggsave(file.path(output_folder, "trial_outcome_display_and_computer_bid.svg"), winlose_outcome_plot2, device = "svg", width = 6, height = 9)
+ggsave(file.path(output_folder, "trial_outcome_display_and_computer_bid.png"), winlose_outcome_plot2, device = "png", width = 6, height = 9)
+
+```
+
+
+```{r}
+# [normalised] to 
+z_vals <- fc_unnested_vals %>%
+  ungroup() %>%
+  filter(spike_bit_time_ms <= -200 & spike_bit_time_ms >= -600) %>%
+  group_by(date, monkey, session, cell, trial) %>%
+  summarise(impulses = n()) %>%
+  group_by(date, monkey, session, cell) %>%
+  summarise(
+    mean_impulses = mean(impulses),
+    sd_impulses = sd(impulses)
+  ) %>%
+  filter(sd_impulses != 0)
+
+bid_quartiles <- rew_trial_info2 %>%
+  ungroup() %>%
+  select(date, monkey, session, trial, monkey_bid) %>%
+  distinct() %>%
+  group_by(monkey) %>%
+  mutate(bid_tile = ntile(monkey_bid, 20)) %>%
+  group_by(monkey, bid_tile) %>%
+  mutate(mean_tile_bid = mean(bid_tile))
+
+post_impulses <- rew_trial_info2 %>%
+  filter(spike_bit_time_ms >= 150 & spike_bit_time_ms <= 500) %>%
+  filter(monkey_bid >1 & monkey_bid < 99) %>%
+  group_by(date, monkey, session, cell, trial, situation, monkey_bid) %>%
+  summarise(impulses = n()) %>%
+  left_join(z_vals, by = c("date", "monkey", "session", "cell")) %>%
+  filter(!is.na(sd_impulses)) %>%
+  mutate(normalised_impulses = (impulses - mean_impulses) / sd_impulses)
+  
+post_impulses_grouped <- post_impulses %>%
+  left_join(bid_quartiles, by = c("date", "monkey", "session", "trial", "monkey_bid")) %>%
+  group_by(monkey, bid_tile, mean_tile_bid) %>%
+  summarise(
+    n = n(),
+    mean_impulses = mean(normalised_impulses, na.rm = TRUE),
+    sd_impulses = sd(normalised_impulses, na.rm = TRUE)
+  )
+
+p_impulsesvsbid1 <- ggplot(post_impulses, aes(x = monkey_bid, y = normalised_impulses)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~monkey)
+  
+p_impulsesvsbid2 <- ggplot(post_impulses_grouped, aes(x = mean_tile_bid, y = mean_impulses)) +
+  geom_smooth(method = "lm", colour = "darkblue", fill = "grey80", size = 1.5) +
+  geom_smooth(method = "lm", colour = "darkred", fill = "grey80", size = 1.5, mapping = aes(weight = n)) +
+  geom_point(size = 3) +
+  geom_segment(
+    aes(
+      x = mean_tile_bid, xend = mean_tile_bid,
+      y = mean_impulses - (sd_impulses / sqrt(n)),
+      yend = mean_impulses + (sd_impulses / sqrt(n)))
+  ) +
+  labs(
+    x = "monkey's bid decile mean",
+    y = "standardised firing rate"
+  ) +
+  theme_minimal() +
+  facet_wrap(~monkey)
+
+ggsave(file.path(output_folder, "impulses_vs_bid_regression.svg"), p_impulsesvsbid2, device = "svg", width = 6, height = 9)
+ggsave(file.path(output_folder, "impulses_vs_bid_regression.png"), p_impulsesvsbid2, device = "png", width = 6, height = 9)
+
+
+```
+## Results
+
+```{r}
+# cells per monkey
+print("cells per monkey")
+table(significant_cells$monkey)
+print("---------------------------")
+
+# free reward wilcox test
+print("free reward wilcox per monkey")
+lapply(fr_stats1, function(d) wilcox.test(d$post, d$pre, alternative = "greater"))
+print("---------------------------")
+
+
+# free reward wilcox test per cell
+print("free reward wilcox per cell")
+table(fr_stats4$significant, fr_stats4$numbers)
+print("---------------------------")
+
+# reward display kruskal wallis per monkey
+print("reward display kruskal wallis per monkey")
+print(rew_stats1$p.value)
+print("---------------------------")
+
+
+print("reward display wilcoxon per monkey per cell")
+table(rew_stats2$signif, rew_stats2$monkey)
+print("---------------------------")
+
+print("reward display kruskal wallis per monkey per cell")
+table(rew_stats3$signif, rew_stats3$monkey)
+print("---------------------------")
+
+```
+

@@ -32,6 +32,8 @@ thesis_compile.log
 .Rproj.user/
 .svn/
 Thumbs.db
+~$*
+*.tmp
 
 # Data files
 *.csv
