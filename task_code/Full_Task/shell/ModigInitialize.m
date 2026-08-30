@@ -1,0 +1,566 @@
+function ModigInitialize
+%   ModigInitialize
+%
+% Called by Modig
+%
+% Initial parameter loading and setting.
+% Load global parameters
+% Check projects in the 'projects' directory
+% Each project needs to have a specific set of files. 
+%   If a project satisfies the requirements, it is registered and appears
+%   in the main menu
+% Checks USB devices using PTB-3 on a MAC/OSX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% coded by skoba (skoba-tky@umin.ac.jp) 8 June 2005
+% modified by skoba 22 August 2005
+%
+% RBM 30.03.07 changed path where it looks for projects, included errodlg
+%               for debugging, commented out PTB initialization codes  
+% RBM 25.04.07 some cosmetic changes, mainly erased directory changes /time
+%               consuming, redundant and I heard they flush out MEX files
+%               from memory?! TRY-catch 4 PTB calls
+% rbm 06.08 gettyhandshake
+% rbm 6.12  audio playback initialization
+% rbm 4.14 Adaptation to Modig v.2
+
+global ModigDir   % directory information 
+global ModigPrj   % stores info collected from the DEFINITION files found on each prj folder
+global MENUs      % stores menu handles
+global TaskOp     % stores parameters used to operate a task
+global VisParam   % related to visual presentation
+global ExtDevice  % related to IO device 
+global inside_task  
+global inside_session % holder, used in MoCommand
+global BehaveData % structure where we save behavioral data
+global IO         % redundant with ExtDevice, but legacy  
+global UserInfo   % Modigliani user information
+global AudParam   % handle for audio playback (PTB-3)
+
+inside_task = 0; inside_session = 0;
+
+% UserInfo must be present in Matlab's workspace --call first ModigLogIn
+if isempty(UserInfo)
+    error('UserInfo must be present in Matlab''s workspace call first ModigLogIn');
+end
+
+%% pre-set directories 
+% look for Modig and possible multiple instances
+allPaths = which('modig.m','-all');
+mypath = allPaths{1,:};
+if size(allPaths,1)>1,
+    fprintf(' Found %d copies of Modig. \n All are shadowed by:\n%s \n',size(allPaths,1),...
+        mypath)
+end
+
+backslash = strfind(mypath,'\');
+myRootDir = mypath(1:backslash(end-1));
+
+ModigDir.MainCode = [myRootDir, 'shell'];    
+ModigDir.Projects = [myRootDir, 'projects']; 
+ModigDir.Images   = [myRootDir, 'images'];   
+ModigDir.Log      = [myRootDir, 'log'];      
+
+% Check projects in the directory get directory names in the projects folder
+DirInfo = dir(ModigDir.Projects); 
+% if the directories defined above do not apply, get directory information by GUI dialog.
+if isempty(DirInfo)     
+    RootDir = uigetdir('\', 'Point to folder named "Modig"');
+    ModigDir.MainCode = strcat(RootDir,'\shell');
+    ModigDir.Projects = strcat(RootDir,'\projects');
+    ModigDir.Images   = strcat(RootDir,'\images');
+    ModigDir.Log      = strcat(RootDir,'\log');
+    DirInfo = dir(ModigDir.Projects);
+    UserInfo.ModigDir = ModigDir;
+end
+% get rid of '.','..','.DS_Store', etc.
+ProjectDir = DirInfo([DirInfo.isdir]==1 & ~strcmp({DirInfo.name},'.') & ...
+    ~strcmp({DirInfo.name},'..')); 
+
+% each project need to have  a MenuTbl_xxx.mat file,
+%                            a TaskTbl_xxx.mat file,
+% the RandTbl is alternative
+% These should be found in 'definition' folder under a folder in the
+% name of each project. 
+
+%% loop all project directories and load their default values
+for pd=1:length(ProjectDir)
+    MenuTbl_name = strcat(ModigDir.Projects,'/',ProjectDir(pd).name,...
+        '/definition/','MenuTbl_',ProjectDir(pd).name,'.mat');
+    TaskTbl_name = strcat(ModigDir.Projects,'/',ProjectDir(pd).name,...
+        '/definition/','TaskTbl_',ProjectDir(pd).name,'.mat');
+    RandTbl_name = strcat(ModigDir.Projects,'/',ProjectDir(pd).name,...
+        '/definition/','RandTbl_',ProjectDir(pd).name,'.mat');
+    
+    % Check whether each table exists or not.
+    ProjectDir(pd).name = ProjectDir(pd).name;
+    if exist(MenuTbl_name,'file')==2,
+        load(MenuTbl_name);
+        ModigPrj.(ProjectDir(pd).name).MenuTbl       =MenuTbl; 
+        ModigPrj.(ProjectDir(pd).name).MenuTblColumn =MenuTbl(1,:); 
+        ModigPrj.(ProjectDir(pd).name).MenuTbl(1,:)  =[]; 
+        %%% putting MenuTbl information in ModigPrj
+        MenuTblColumn = MenuTbl(1,:);
+        MenuTbl(1,:) = [];
+        [NumRowTbl NumColTbl] = size(MenuTbl);
+        % make a table of title name and column number
+        for t_id = 1:NumColTbl
+            str1 = cell2mat(MenuTblColumn(t_id));
+            blanks = findstr(str1,' ');
+            str1(blanks) = '_'; % if space in column name, replace it with underbar
+            str = strcat('ModigPrj.',ProjectDir(pd).name,'.MenuTblColumnID.',...
+                str1,'=',num2str(t_id),';');
+            eval(str);
+        end
+        clear MenuTbl; % clear loaded TaskTbl
+    else
+        warning('MODIG:problemLoadingTbl', ...
+            'Couldn''t find MenuTbl_%s. Skipping to the next project',...
+            ProjectDir(pd).name)
+        continue
+    end
+    
+    % TaskTbl
+    if exist(TaskTbl_name,'file')==2,
+        load(TaskTbl_name);
+        ModigPrj.(ProjectDir(pd).name).TaskTbl=TaskTbl; 
+        ModigPrj.(ProjectDir(pd).name).TaskTblColumn=TaskTbl(1,:); 
+        ModigPrj.(ProjectDir(pd).name).TaskTbl(1,:)=[]; 
+        %%% putting TaskTbl information in ModigPrj
+        TaskTblColumn = TaskTbl(1,:);
+        TaskTbl(1,:) = [];
+        [NumRowTbl NumColTbl] = size(TaskTbl); 
+        % x = size(y,2);  % Even better
+        % make a table of title name and column number
+        for t_id = 1:NumColTbl
+            str1 = cell2mat(TaskTblColumn(t_id));
+            blanks = findstr(str1,' ');
+            % if space in column name, replace it with underbar
+            str1(blanks) = '_'; 
+            str = strcat('ModigPrj.',ProjectDir(pd).name,'.TaskTblColumnID.',...
+                str1,'=',num2str(t_id),';');
+            eval(str);
+        end
+        clear TaskTbl;
+    else
+        warning('MODIG:problemLoadingTbl', ...
+            'Couldn''t find TaskTbl_%s. Skipping to the next project',...
+            ProjectDir(pd).name)
+        continue
+    end
+    
+%     if exist(RandTbl_name,'file')
+%         load(RandTbl_name);
+%         ModigPrj.(ProjectDir(pd).name).RandTbl      =RandTbl;
+%         ModigPrj.(ProjectDir(pd).name).RandTblColumn=RandTbl(1,:); 
+%         ModigPrj.(ProjectDir(pd).name).RandTbl(1,:) =[]; 
+%         % putting RandTbl information in ModigPrj
+%         RandTblColumn = RandTbl(1,:);
+%         RandTbl(1,:) = [];
+%         [NumRowTbl NumColTbl] = size(RandTbl);
+%         % make a table of title name and column number
+%         for t_id = 1:NumColTbl
+%             str1 = cell2mat(RandTblColumn(t_id));
+%             blanks = findstr(str1,' ');
+%             str1(blanks) = '_'; % if space in column name, replace it with underbar
+%             str = strcat('ModigPrj.',ProjectDir(pd).name,'.RandTblColumnID.',str1,'=',num2str(t_id),';');
+%             eval(str);
+%         end
+%         clear RandTbl;
+%     end
+end
+
+% show all the project names on the listbox in the main menu. If the
+%   ModigMainMenu GUI is open (mainly a debugging error)
+if ~isempty(MENUs) 
+    set(MENUs.ModigMainMenu.handles.CNTR_LIST_TASK,'string',...
+        {ProjectDir.name});
+else
+    error('ModigMainMenu.fig must be opened--call first ModigMenuControl(''ModigMainMenu'',''On''); ');
+end    
+
+% check connected USB devices.. 
+if IsOSX || IsOS9
+    DeviceStruct=PsychHID('Devices');
+    for a = 1:length(DeviceStruct)
+        if strcmpi(DeviceStruct(a).usageName,'keyboard'),
+            ExtDevice.keyboard.device_num = a;
+        elseif strcmpi(DeviceStruct(a).usageName,'mouse'),
+            ExtDevice.mouse.device_num = a;
+        end
+    end
+end
+
+%% Initial settings for task operation
+
+% [0 - 2] setting at 0, task process can be interupted by key input and
+% mouse click, but timing may get less accurate.
+TaskOp.priority_level = 2; 
+% show less messages (only important) at higher level
+TaskOp.message_level = 0;  
+TaskOp.running_mode = 'infinite'; 
+% 'infinite' or 'fixed_num_trials'. 
+
+% an array to store event history in each trial
+TaskOp.EvntHist.Tbl                    = {}; 
+TaskOp.EvntHist.Column.evnt_num        = 1;
+TaskOp.EvntHist.Column.evnt_name       = 2;
+TaskOp.EvntHist.Column.dur_error       = 3;
+TaskOp.EvntHist.Column.link_var_status = 4;
+TaskOp.EvntHist.Column.time_beh        = 5;
+TaskOp.EvntHist.Column.planned_dur     = 6;
+TaskOp.EvntHist.Column.adjusted_dur    = 7;
+TaskOp.EvntHist.Column.actual_dur      = 8;
+TaskOp.EvntHist.Column.end_time        = 9;
+TaskOp.EvntHist.rewHistVol             = zeros(1,2);
+TaskOp.mode                            = 'debug';
+TaskOp.prj                             = 'BDM';
+
+% handle of eye position marker on experimenter's screen
+TaskOp.eye_handle           = [];  
+TaskOp.touchHandle          = []; 
+
+TaskOp.repeatError          = 0;
+TaskOp.curSetup             = 0;
+% we'll save on the index the pulses we've sent on that particular line
+TaskOp.reward               = zeros(16,1); 
+% TaskOp.count.freeRew = 0;
+
+% initalization for double setup
+TaskOp.curSetup = 'A';
+TaskOp.roleChangeTrials = 1;
+TaskOp.roleChangeCorrect=[];
+TaskOp.respBlackBkg=1;
+
+
+% note, I'll be using only one gain and one offset value for each chanel, 
+%       I'll keep the old variables for consistency 
+TaskOp.Cal.Eye.Gain.x   = 800;
+TaskOp.Cal.Eye.Gain.y   = 500;
+TaskOp.Cal.Eye.Offset.x = 1;
+TaskOp.Cal.Eye.Offset.y = 1;
+% if UserInfo.use_split==1,
+TaskOp.Cal.Eye.gainHolder = zeros(2);
+% end
+
+% trial counter related
+TaskOp.count.total_seq          = 12;
+TaskOp.count.day_total          = 0;
+TaskOp.count.day_correct        = 0;
+TaskOp.count.day_error          = 0;
+TaskOp.count.block_total        = 0;
+TaskOp.count.block_correct      = 0;
+TaskOp.count.block_error        = 0;
+TaskOp.count.seq                = 0;
+TaskOp.count.total_seq          = 10;
+TaskOp.count.set_total          = 1;
+TaskOp.count.set_remaining      = 1;
+TaskOp.count.block_ignored      = 0;
+TaskOp.count.day_ignored        = 0;
+TaskOp.count.block_rew          = 0;
+TaskOp.count.day_rew            = 0;
+TaskOp.count.block_noRew        = 0;
+TaskOp.count.day_noRew          = 0;
+TaskOp.count.prjCount           = 0;
+TaskOp.count.choiceRT           = 0;
+TaskOp.count.earlyRelease       = 0;
+TaskOp.count.noTouch            = 0;
+TaskOp.count.block_ignored  = 0;
+TaskOp.count.day_ignored    = 0;
+TaskOp.count.block_rew      = 0;
+TaskOp.count.day_rew        = 0;
+TaskOp.count.block_noRew    = 0;
+TaskOp.count.day_noRew      = 0;
+TaskOp.count.prjCount       = 0;
+TaskOp.count.choiceRT       = 0;
+TaskOp.count.trialOrder     = 0; % if we're using one setup
+
+TaskOp.Trial.to_be_shuffled     = 1;
+TaskOp.Trial.just_shuffled      = 0;
+
+TaskOp.task_juice.start_time    = [];
+TaskOp.task_juice.end_time      = [];
+TaskOp.task_juice.dur           = [];
+TaskOp.free_juice.start_time    = [];
+TaskOp.free_juice.end_time      = [];
+TaskOp.free_juice.dur           = [];
+
+% log
+TaskOp.log.filename     = [];
+TaskOp.log.fullname     = [];
+TaskOp.log.handle       = [];
+TaskOp.log.on           = 0;
+TaskOp.log.basic_header = [{'subject'},...
+                           {'project'},...
+                           {'recorded'},...
+                           {'day total count'},...
+                           {'block total count'},...
+                           {'time start'},...
+                           {'shuffle'}];
+
+% behavior control
+TaskOp.lostHold = 0;
+TaskOp.handInterrupt = 0;
+TaskOp.eyeInterrupt = 0;
+TaskOp.touchInterrupt = 0;
+TaskOp.hold = 0;
+TaskOp.trialStWarning = 1;
+TaskOp.correct = 0;
+TaskOp.roleChangeCorrect=[];
+
+                       
+%% IO asignment etc.
+IO.Input.eye.cur_monitor_device = 'iscan';
+IO.Input.eye.monitor            = 1;
+IO.Input.eye.ch                 = [0 1];% analog x,y
+
+IO.Input.hand.monitor         = 1;
+IO.Input.hand.sampling_rate   = 20;
+
+IO.Input.use_touch_screen     = 0;
+
+if UserInfo.lab_connection == 1,
+    IO.Input.eye.tracking_method    = 'eye scan'; % Options are in ModigInputMenu
+    IO.Input.hand.tracking_method = 'daq'; % options are daq or key
+else
+   IO.Input.eye.tracking_method   = 'mouse'; % Options are in ModigInputMenu
+    IO.Input.hand.tracking_method = 'key'; % options are daq or key
+end
+
+
+IO.Input.behavior.sampling_rate = 50; % Hz
+
+% IO.Output.task_juice.dur = 50; % legacy
+IO.Output.free_juice.dur = 35; % in ms
+ModigSetTimer('Output','free_juice');
+
+
+
+%% an array to store eye position input in each trial
+BehaveData.Tbl              = []; 
+BehaveData.Column.time      = 1;
+BehaveData.Column.eye_x_raw = 2;
+BehaveData.Column.eye_y_raw = 3;
+BehaveData.Column.eye_x_cal = 4;
+BehaveData.Column.eye_y_cal = 5;
+BehaveData.tchInt           = [];
+
+%% External data acquisition system
+if UserInfo.lab_connection
+    ExtDevice.outputDio         = ModigCreateDio('out');
+    dioAutoTest(ExtDevice.outputDio);
+    ExtDevice.inputDio          = ModigCreateDio('in');    
+%     dioAutoTest(ExtDevice.inputDio); % it creates conflict
+    ExtDevice.aiObject          = ModigCreateAnalogInput;
+    ExtDevice.CurDevice         = 'NIDAQ'; % No alternative
+    set(MENUs.ModigMainMenu.handles.MENU_EnableHandshake,...
+        'enable','on','checked','on')
+    set(MENUs.ModigMainMenu.handles.MENU_ModigBitMonitor,'enable','on')
+    UserInfo.gettyHandshake = 1;
+    UserInfo.typeOfHandshake = 'NI';
+else
+    set(MENUs.ModigMainMenu.handles.MENU_EnableHandshake,...
+        'enable','off','checked','off')
+    set(MENUs.ModigMainMenu.handles.MENU_ModigBitMonitor,'enable','off')
+    UserInfo.gettyHandshake = 0;
+end
+
+%% Open PTB
+
+UserInfo.use_split = false;
+
+try
+    Screen('CloseAll');                                   % close all first
+    Screen('Preference', 'SkipSyncTests', 0); % for debugging use 1
+%     Screen('Preference', 'VBLTimestampingMode', 2);
+    VisParam.scr_num = max(Screen('Screens'));
+    
+    if VisParam.scr_num==1,
+        warning('Modig:MoInit',...
+            'Modig isn''t meant to be used with one monitor. Starting debug mode')      
+        [VisParam.scr_holder, VisParam.scr_rect_holder] = Screen('OpenWindow',...
+            VisParam.scr_num, 0, [0 0 200 200]);
+        
+    elseif VisParam.scr_num==2 && UserInfo.use_split==0,
+        % two monitors--> % 0: dual, 1:control, 2:subject, 
+        [VisParam.scr_holder, VisParam.scr_rect_holder] = Screen('OpenWindow', 2, 0); % 2 for Joystick, 1 for touchscreen
+
+    elseif VisParam.scr_num==2 && UserInfo.use_split==1,
+        % two monitors, one of which is split in two windows
+        VisParam.scrRects(1,:) = Screen('Rect',1);
+        VisParam.scrRects(2,:) = Screen('Rect',2);
+        VisParam.scrRects(3,:) = Screen('Rect',0);
+        
+        if VisParam.scrRects(1,3)==1280 && VisParam.scrRects(1,4)==800,
+            %laptop-sized monitor
+             % open both screens on monitor 1, which is the leftmost monitor
+             [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = ...
+                Screen('OpenWindow', 0, 0, ...
+                [0 0  VisParam.scrRects(1,3)/2  VisParam.scrRects(1,4)]);
+            [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = ...
+                Screen('OpenWindow', 0, 0, ...
+                [ VisParam.scrRects(1,3)/2 0  VisParam.scrRects(1,3)  VisParam.scrRects(1,4)]);
+            
+        elseif VisParam.scrRects(3,3)==2560,
+            % experimental setup (rect values are relative to the monitor)           
+            [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = ...
+                Screen('OpenWindow', 0,0,[-512 0 0 768]);
+            [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = Screen('Openwindow',...
+                0,0,[-1024 0 -512 768]);
+        else
+            % open in laptop screen
+            fprintf('ModigInitialize is unfamiliar with your setup... solve it yourself')
+            keyboard
+            
+          
+            % Open both screens on Screen 1
+%             middle = scrRects(1,1)+((scrRects(1,3)-scrRects(1,1))/2);
+%             [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = ...
+%                 Screen('OpenWindow',0,0,[middle,scrRects(1,2:4)]);
+%             [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = ...
+%                 Screen('OpenWindow',0,0,[scrRects(1,1:2),middle,scrRects(1,4)]);
+            
+%              % Open both screens on Screen 2     
+%             middle = scrRects(1,3)+(scrRects(2,3)/2);
+%             [VisParam.scr_holder(1), VisParam.scr_rect_holder(1,:)] = ...
+%                 Screen('OpenWindow', 0, 0, [scrRects(1,3) 0 middle scrRects(2,4)]);
+%             [VisParam.scr_holder(2), VisParam.scr_rect_holder(2,:)] = ...
+%                 Screen('OpenWindow', 0, 0, [scrRects(1,3)+middle 0 scrRects(1,3)+middle+scrRects(2,3) scrRects(2,4)]);
+
+           
+        end
+        TaskOp.curSetup = 'A';
+        
+        
+        % warm up
+        warmUp = 300;
+        ScreenWarmer(VisParam.scr_holder(1),VisParam.scr_rect_holder(1,:),warmUp);
+        ScreenWarmer(VisParam.scr_holder(2),VisParam.scr_rect_holder(2,:),warmUp);
+    elseif VisParam.scr_num==3,
+        % create two windows, spanning each one monitor in our double setup
+        % three monitors in dual mode --> 0:stereo, 1:disp2, 2:disp1, 3:disp3. 
+        % note that either calling 0 or 1 will hang Matlab since disp2 isn't 
+        % controlled by the primary gfx card
+        % two ELOs 1024x768
+        % three monitors with dual head gfx card in span mode-->  0:full 
+        % desktop, 1:display 2, 2: two monitors in span mode. check the rect value!
+        [VisParam.scr_holder(1),  VisParam.scr_rect_holder(1,:)]=Screen('OpenWindow',1, 0);
+        [VisParam.scr_holder(2),  VisParam.scr_rect_holder(2,:)]=Screen('OpenWindow',3, 0);
+        TaskOp.curSetup = 'A';
+        
+        shiftSetupMoMaMe;
+    end
+    VisParam.scr_handle = VisParam.scr_holder(1);
+    VisParam.scr_rect   = VisParam.scr_rect_holder(1,:);
+    
+    Priority(MaxPriority(VisParam.scr_handle));
+    Screen('Flip',VisParam.scr_handle);
+    % Nice picture to start with
+    if exist('nu_couche_dos.jpg','file')
+        pic = imread('nu_couche_dos.jpg');
+        txt_handle = Screen('MakeTexture',VisParam.scr_handle,pic);
+        Screen('DrawTexture',VisParam.scr_handle,txt_handle);
+        if UserInfo.use_split==1,
+            txt_handle2 = Screen('MakeTexture',VisParam.scr_holder(2),pic);
+            Screen('DrawTexture',VisParam.scr_holder(2),txt_handle2);
+        end
+    else
+        % not found?!
+        Screen('FillRect', VisParam.scr_handle, 255/2);
+        Screen('DrawText', VisParam.scr_handle, 'couldn''t load nice pic!', 0, VisParam.scr_rect(4)/2)
+        Screen('Flip',VisParam.scr_handle);
+    end
+    
+    % Initalize audio
+%     InitializePsychSound;
+    % Open the default audio device [], with default mode [] (==Only playback),
+    % and a required latencyclass of zero 0 == no low-latency mode, as well as
+    % a frequency of freq and nrchannels sound channels.
+    % This returns a handle to the audio device:
+%     try
+        % Try with the 'freq'uency we wanted:
+        AudParam.fs = 8192;
+        AudParam.nrchannels = 1;
+%         AudParam.pahandle = PsychPortAudio('Open', [], [], 0, AudParam.fs, AudParam.nrchannels);
+%     catch
+%         % Failed. Retry with default frequency as suggested by device:
+%         fprintf('\nCould not open device at wanted playback frequency of %i Hz. Will retry with device default frequency.\n', AudParam.fs);
+%         fprintf('Sound may sound a bit out of tune, ...\n\n');
+% 
+%         psychlasterror('reset');
+%         AudParam.pahandle = PsychPortAudio('Open', [], [], 0, [], AudParam.nrchannels);
+%     end
+catch
+      % We fucked it up, and we want control back!
+          psychrethrow(psychlasterror);
+    Priority(0);
+    Screen('CloseAll');
+    Modig exit
+    % Restore preferences
+%     Screen('Preference', 'VisualDebugLevel', oldVisualDebugLevel);
+%     Screen('Preference', 'SuppressAllWarnings', oldSupressAllWarnings);
+
+%     rethrow(lasterror)
+
+    return
+end
+
+%% Load screen parameters to global VisParam
+% [VisParam.scr_center_x, VisParam.scr_center_y] = RectCenter(rect);
+VisParam.scr_center_x   = VisParam.scr_rect(3) /2;
+VisParam.scr_center_y   = VisParam.scr_rect(4)/2;
+% VisParam.view_dist      = 500;                                   % distance between screen and subject in mm
+% VisParam.scr_width_mm   = 308;                                % size of subject monitor width in mm
+% VisParam.scr_height_mm  = 231;                                % size of subject monitor height in mm
+% VisParam.scr_width_pix  = VisParam.scr_rect(3);              % size of subject monitor width in pixels //redundant!
+% VisParam.scr_height_pix = VisParam.scr_rect(4);             % size of subject monitor height in pixels
+% scr_deg=atan(VisParam.scr_width_mm/VisParam.view_dist)*180/pi;
+%scr_deg = pi * (VisParam.scr_rect(3)-VisParam.scr_rect(1)) / atan(VisParam.scr_width_mm/VisParam.view_dist/2) / 360;
+% VisParam.pix_per_deg    = VisParam.scr_width_pix/scr_deg;
+% VisParam.deg_per_pix    = scr_deg/VisParam.scr_width_pix;
+% % VisParam.draw_eye_pos   = 1;
+% VisParam.draw_stimuli   = 1;
+% VisParam.report_hand    = 1;
+% ISCAN INFO FOR CALIBrATION //note, not used at the moment
+% VisParam.iscan.volt_range = 10.239;
+
+
+
+%% Arm the close request function in main menu
+if strcmpi(MENUs.ModigMainMenu.status,'on')
+    buf = get(MENUs.ModigMainMenu.handles.ModigMainMenu,'CloseRequestFcn');
+    str = strcat(buf,'ModigCommand(','''','exit','''',');');
+    set(MENUs.ModigMainMenu.handles.ModigMainMenu,'CloseRequestFcn',str);
+end
+
+%% Generate the handshake radio button group for ModigMainMenu
+if UserInfo.lab_connection,
+    % Create the button group.
+    h = uibuttongroup('parent',MENUs.ModigMainMenu.handle,...
+            'units','characters',...
+            'title','Type of Handshake',...
+            'visible','on','Position',[50 21.5 23.5 4.5],...
+            'tag','typeOfHandshake');
+    % Create three radio buttons in the button group.
+    radioNI = uicontrol('Style','radiobutton','String','NI',...
+        'Position',[19 25 87 15],'parent',h,'tag','radioNI');
+    radioTCP = uicontrol('Style','radiobutton','String','TCP',...
+        'Position',[19 5 87 15],'parent',h,'tag','radioTCP');
+
+    % Initialize some button group properties. 
+    set(h,'SelectionChangeFcn',@typeHandshakeSelection);
+    set(h,'SelectedObject',radioNI);  
+    set(h,'Visible','on');
+
+    % pass handles to global
+    MENUs.ModigMainMenu.handles.typeOfHandshake = h;
+    MENUs.ModigMainMenu.handles.radioNI = radioNI;
+    MENUs.ModigMainMenu.handles.radioTCP = radioTCP;
+else
+    set(MENUs.ModigMainMenu.handles.togglebutton_openConnection,'enable','off')
+end
+
+% update GUI handles
+MENUs.ModigMainMenu.handles = guihandles(MENUs.ModigMainMenu.handle);
+guidata(MENUs.ModigMainMenu.handle, MENUs.ModigMainMenu.handles);
+

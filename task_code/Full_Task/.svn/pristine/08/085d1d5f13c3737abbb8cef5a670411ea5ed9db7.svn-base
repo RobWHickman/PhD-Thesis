@@ -1,9 +1,0 @@
-function ModigPostTrial_OBS_LEARN
-% ModigPostTrial_OBS_LEARN
-%
-% changes the active setup based on the conditionals defined in
-% mopreptrial_OBS_LEARN
-%
-activeSetupChange;
-
-

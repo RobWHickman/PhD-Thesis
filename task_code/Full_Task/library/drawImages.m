@@ -1,0 +1,60 @@
+function [imgStr imgHdl] = drawImages(fname, pos, parentAxisHdl, axisKids,rotation)
+% [imgStr imgHdl] = drawImages(fname, pos, parentAxisHdl, axisKids,rotation)
+%
+% drawImages creates a texture of the image found in "fname" in position
+% "pos", which must be in Mac OS coordinates and also n "axisKids" in
+% "parentAxisHdl" to be shown concurrently in behaviour monitor. It can
+% also rotate the image with "rotation" angles.
+% 
+% See also drawRectangle_RBM, drawRings, 
+%
+% RBM 11.10
+% RBM 2.13 rotation
+global VisParam TaskOp MENUs UserInfo
+
+% load data from the image, create a texture and a string to draw it.
+image_data = imread(fname);
+
+% rotation
+if exist('rotation','var')
+    image_data = imrotate(image_data,rotation);
+end
+
+if isfield(VisParam, 'texture'),
+    thisTexture = size(VisParam.texture,2)+1;
+else
+    thisTexture = 1;
+end
+VisParam.texture(thisTexture).tex = Screen('MakeTexture',VisParam.scr_handle,image_data);
+imgStr = sprintf('Screen(''DrawTexture'',VisParam.scr_handle,VisParam.texture(%d).tex,[],%s);',thisTexture,mat2str(pos));
+        
+
+% now create image in the monitoring axis
+% To use with momoTbl
+if UserInfo.use_split && isfield(MENUs, 'ModigMonitorTable') && strcmp(TaskOp.curSetup,'A'),
+    pos(:,[1 3]) =  round(pos(:,[1 3]))+VisParam.scr_rect(3);
+end
+imgSz = pos(:,3:4)-pos(:,1:2);
+imgCtr = pos(:,1:2) + (imgSz/2);
+
+% flip upside-down the image...
+image_data = single(image_data);
+image_data(:,:,1) = flipud(image_data(:,:,1));
+image_data(:,:,2) = flipud(image_data(:,:,2));
+image_data(:,:,3) = flipud(image_data(:,:,3));
+image_data = image_data ./255;
+
+imgHdl = zeros(size(imgCtr,1),axisKids);
+for k = 1:size(imgCtr,1),
+    % make sure that the image size is positive
+    if imgSz(k,:)>0
+        for  j = 1:axisKids,
+            x = [pos(k,1), pos(k,1)+imgSz(k,1)];
+            y = [VisParam.scr_rect(4)-pos(k,4), (VisParam.scr_rect(4)-pos(k,4))+imgSz(k,2)];
+            imgHdl(k,j) = image(x,y,image_data,...
+                'Parent',parentAxisHdl,...
+                'Visible', 'off');
+        end
+    end
+end
+

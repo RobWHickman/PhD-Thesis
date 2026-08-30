@@ -1,0 +1,146 @@
+function screenWarmerColor(win,screenRect,animationLength)
+% screenWarmerColor(win,screenRect)
+% 
+%  currently you need to specify screenRect
+
+if nargin ~=3,
+    animationLength = Inf; % in s
+end
+
+waitframes = 4;
+ngauss = 10;
+gaussSize = 2^8;
+
+
+x = meshgrid(linspace(-10,10,gaussSize));
+y = meshgrid(linspace(-10,10,gaussSize));
+g = exp(-((x.^2) + (y'.^2))/2*(.3^2));
+
+% lumg = g.* 255;
+rgb(:,:,1) = g;
+rgb(:,:,2) = g;
+rgb(:,:,3) = g;
+rbg = single(rgb);
+
+% provide some verbal output
+str = sprintf('running screenWarmerColor.m for %d [s]. Interrupt by pressing a key', animationLength);
+disp(str)
+
+try
+    AssertOpenGL;
+   
+    % Retrieve size of window in pixels, need it later to make sure that our
+    % moving gaussians don't move out of the visible screen area:
+    [w, h] = RectSize(screenRect);
+
+    % Flip buffer to show initial black background:
+    Screen('Flip', win);
+    
+    % Enable alpha-blending, set it to a blend equation useable for linear
+    % superposition with alpha-weighted source. This allows to linearly
+    % superimpose gabor patches in the mathematically correct manner, should
+    % they overlap. Alpha-weighted source means: The 'globalAlpha' parameter in
+    % the 'DrawTextures' can be used to modulate the intensity of each pixel of
+    % the drawn patch before it is superimposed to the framebuffer image, ie.,
+    % it allows to specify a global per-patch contrast value:
+    Screen('BlendFunction', win, GL_SRC_ALPHA, GL_ONE); 
+
+    % Query duration of monitor refresh interval:
+    ifi=Screen('GetFlipInterval', win);    
+    waitduration = waitframes * ifi;
+
+    vbl=Screen('Flip', win);
+
+    % generate three gaussians with each basic color
+    for i = 1:ngauss,
+        gaussRGB = zeros(gaussSize,gaussSize,3);
+        gaussRGB(:,:,mod(i,3)+1) = g.*256;
+        gausstex(i) =Screen('MakeTexture', win, gaussRGB,[],1);
+        gaussRGB = [];
+    end
+    
+    % Preallocate array with destination rectangles:
+    % This also defines initial gabor patch orientations, scales and location
+    % for the very first drawn stimulus frame:
+    texrect = Screen('Rect', gausstex(1));
+    inrect = repmat(texrect', 1, ngauss);
+    
+    dstRects = zeros(4, ngauss);
+    for i=1:ngauss
+        dstRects(:, i) = CenterRectOnPoint(texrect, rand * w, rand * h)';
+    end
+    
+    % Preallocate array with rotation angles:
+    rotAngles = rand(1, ngauss) * 360;
+    
+    vblendtime = vbl + animationLength;
+
+    Priority(1);
+    % Animationloop:
+    while(vbl < vblendtime)
+        % Step one: Batch-Draw all gabor patches at the positions and
+        % orientations computed during last loop iteration: Here we fix
+        % 'globalAlpha' - and therefore contrast - to 05, ie., 50% of
+        % displayable range. Actually its less than 0.5, depending on the
+        % inherent contrast of the gabor defined above in matrix 'm'.
+        Screen('DrawTextures', win, gausstex, [], dstRects);
+    
+        % Mark drawing ops as finished, so the GPU can do its drawing job while
+        % we can compute updated parameters for next animation frame. This
+        % command is not strictly needed, but it may give a slight additional
+        % speedup, because the CPU can compute new stimulus parameters in
+        % Matlab, while the GPU is drawing the stimuli for this frame.
+        % Sometimes it helps more, sometimes less, or not at all, depending on
+        % your system and code, but it only seldomly hurts.
+        % performance...
+        Screen('DrawingFinished', win);
+    
+        % Compute updated positions and orientations for next frame. This code
+        % is vectorized, but could be probably optimized even more. Indeed,
+        % these few lines of Matlab code are the main speed-bottleneck for this
+        % demos animation loop on modern graphics hardware, not the actual drawing
+        % of the stimulus. The demo as written here is CPU bound - limited in
+        % speed by the speed of your main processor.
+
+        % Compute new random orientation for each patch in next frame:
+        rotAngles = rotAngles + 1 * randn(1, ngauss);
+    
+        % Compute centers of all patches, then shift them in new direction of
+        % motion 'rotAngles', use the mod() operator to make sure they don't
+        % leave the window display area. Its important to use RectCenterd and
+        % CenterRectOnPointd instead of RectCenter and CenterRectOnPoint,
+        % because the latter ones would round all results to integral pixel
+        % locations, which would make for an odd and jerky movement. It is
+        % also important to feed all matrices and vectors in proper format, as
+        % these routines are internally vectorized for higher speed.
+        [x y] = RectCenterd(dstRects);
+        x = mod(x + cos(rotAngles/360*2*pi), w);
+        y = mod(y + sin(rotAngles/360*2*pi), h);
+    
+        % Recompute dstRects destination rectangles for each patch, given the
+        % 'per gabor' scale and new center location (x,y):
+        [cX,cY] = RectCenterd(inrect);
+        dstRects([2 4],:) = inrect([2 4],:) + repmat((y-cY),2,1);
+        dstRects([1 3],:) = inrect([1 3],:) + repmat((x-cX),2,1);
+        
+       % Flip 'waitframes' monitor refresh intervals after last redraw.
+       vbl = Screen('Flip', win, vbl + waitduration);
+       % Abort demo if any key is pressed:
+       if KbCheck
+           disp('Aborted screenWarmerColor')
+          break;
+       end;
+    end 
+catch
+    sca;
+    psychrethrow(psychlasterror)    
+end
+Priority(0);
+
+% delete old textures,
+for i = 1:numel(gausstex),
+    Screen('Close', gausstex(i))
+end
+
+  % Flip buffer to show initial black background:
+    Screen('Flip', win);

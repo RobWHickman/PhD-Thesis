@@ -29,3 +29,26 @@ thesis_compile.log
 .DS_Store
 ._*
 .Rhistory
+.Rproj.user/
+.svn/
+Thumbs.db
+
+# Data files
+*.csv
+*.rds
+*.rdata
+*.mat
+*.zip
+*.dat
+*.xlsx
+*.xls
+*.parquet
+*.feather
+*.h5
+*.pkl
+*.npy
+*.npz
+*.db
+*.sqlite
+**/data/
+**/data_examples/
