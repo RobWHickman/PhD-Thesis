@@ -99,6 +99,8 @@
 % ************************ Thesis Information & Meta-data **********************
 % Thesis title and author information, refernce file for biblatex
 \input{thesis-info}
+% Deposit-only title page overrides; toggled by build-variants.sh
+\input{thesis-info-deposit}
 
 % ***************************** Abstract Separate ******************************
 % To printout only the titlepage and the abstract with the PhD title and the
@@ -107,7 +109,7 @@
 
 \ifdefineAbstract
  \pagestyle{empty}
- \includeonly{Declaration/declaration, Abstract/abstract}
+ \includeonly{Declaration/declaration_deposit, Abstract/abstract}
 \fi
 
 % ***************************** Chapter Mode ***********************************
@@ -129,7 +131,7 @@
 
 \maketitle
 
- \include{Declaration/declaration}
+ \include{Declaration/declaration_deposit}
  \include{Summary/summary}
  \include{Dedication/dedication}
  \include{Acknowledgement/acknowledgement}

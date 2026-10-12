@@ -1002,6 +1002,19 @@ wish to left align your text}
 \vfill
 }
 
+% Unsigned variant, used for the deposit copy: Cambridge requires the final
+% submission declaration to be typewritten and NOT signed, so this omits the
+% trailing author/date block. See:
+% https://www.cambridgestudents.cam.ac.uk/graduation/degree-approval-and-conferment/final-thesis-submission
+\newenvironment{declaration*}{
+\cleardoublepage
+\setsinglecolumn
+\chapter*{\centering \Large Declaration}
+\thispagestyle{empty}
+}{
+\vfill
+}
+
 
 
 % ****************************** Acknowledgements ********************************

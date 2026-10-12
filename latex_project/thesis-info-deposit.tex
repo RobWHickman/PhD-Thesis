@@ -1,0 +1,24 @@
+% *************** Title page overrides for the DEPOSIT copy only ***************
+% Cambridge's final thesis submission guidance closes the title page to exactly:
+% the full title, full legal name, College, date of submission, and the degree
+% statement -- "please do not include anything not specified below", and
+% "No additional information should be included on the title page. Including
+% additional information will delay the processing of your thesis."
+% https://www.cambridgestudents.cam.ac.uk/graduation/degree-approval-and-conferment/final-thesis-submission
+%
+% So the deposit copy drops the Department (explicitly prohibited: "your
+% College; [do NOT include your Department]") and the supervisor/advisor block.
+% The personal copy keeps all three; this file is only input for the deposit
+% build, by build-variants.sh.
+
+\dept{}
+
+\makeatletter
+\PHD@supervisorfalse
+\PHD@advisorfalse
+\makeatother
+
+% Must be the month/year the thesis was ORIGINALLY submitted for examination --
+% not the viva date, and not the build date. Left unset, the class silently
+% defaults to the current month, so this must stay pinned.
+\degreedate{January 2026}
